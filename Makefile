@@ -28,8 +28,8 @@ CXXFLAGS     += $(ALICEINC) -g
 PACKAGE = RAATrigger
 include lib$(PACKAGE).pkg
 
-SRCS := $(SRCS) G__$(PACKAGE).cxx
-OBJS := $(SRCS_ELECTRON:.cxx=.o)
+SRCS := $(SRCS) 
+OBJS := $(SRCS:.cxx=.o) G__$(PACKAGE).o
 PARFILE = $(PACKAGE).par
 
 default-target: lib$(PACKAGE).so
@@ -40,7 +40,7 @@ ifeq ($(ARCH),macosx)
 	@$(LD) -bundle -undefined $(UNDEFOPT) $(LDFLAGS) $^ -o $@
 endif
 ifeq ($(ARCH),macosx64)
-	@$(LD) $(SOFLAGS)lib$(PACKAGE).so $(LDFLAGS) $(ALICELIB) $^ -o $@
+	$(LD) $(SOFLAGS)lib$(PACKAGE).so $(LDFLAGS) $(EXPLLINKLIBS) $(ALICELIB) $^ -o $@
 else
 	@$(LD) $(SOFLAGS) $(LDFLAGS) $^ -o $@
 endif
@@ -54,6 +54,7 @@ clean:
 	@rm -f $(OBJS) *.so G__$(PACKAGE).*
 
 G__$(PACKAGE).cxx: $(HDRS) $(DHDR)
+	@echo $(HDRS)
 	@echo "Generating dictionary ..."
 	rootcint -f $@ -c $(CINTFLAGS) $(ALICEINC) $^
 

@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-#include <TList.h>
+#include <THashList.h>
 #include <TObjArray.h>
 #include <TString.h>
 
@@ -26,7 +26,7 @@ AliAnalysisTaskPtEMCalTrigger::AliAnalysisTaskPtEMCalTrigger():
 }
 
 AliAnalysisTaskPtEMCalTrigger::AliAnalysisTaskPtEMCalTrigger(const char *name):
-        AliAnalysisTaskSE(name, ""),
+        AliAnalysisTaskSE(name),
         fHistos(NULL)
 {
         DefineOutput(1, TList::Class());
@@ -42,7 +42,7 @@ AliAnalysisTaskPtEMCalTrigger::~AliAnalysisTaskPtEMCalTrigger(){
         if(fHistos) delete fHistos;
 }
 
-void AliAnalysisTaksPtEMCalTrigger::UserCreateOutputObjects(){
+void AliAnalysisTaskPtEMCalTrigger::UserCreateOutputObjects(){
         fHistos = new AliEMCalHistoContainer("PtEMCalTriggerHistograms");
 
         TArrayD ptbinning, zvertexBinning;
@@ -57,15 +57,15 @@ void AliAnalysisTaksPtEMCalTrigger::UserCreateOutputObjects(){
         triggerCombinations.insert(std::pair<std::string,std::string>("EMCGHigh", "jet-triggered events (high threshold)"));
         triggerCombinations.insert(std::pair<std::string,std::string>("NoEMCal", "non-EMCal-triggered events (low threshold)"));
         for(std::map<std::string,std::string>::iterator it = triggerCombinations.begin(); it != triggerCombinations.end(); ++it){
-                const std::string &name it->first, &title = it->second;
+                const std::string name = it->first, &title = it->second;
                 // Event counter
-                fHistos->CreateTH1(Form("hEvents%s", name), Form("Event counter for %s", title), 2, -0.5, 1.5);
+                fHistos->CreateTH1(Form("hEvents%s", name.c_str()), Form("Event counter for %s", title.c_str()), 2, -0.5, 1.5);
                 // Vertex position
                 fHistos->CreateTH1(Form("hZVertex%s", name.c_str()), Form("Distribution of the z-vertex position in %s", title.c_str()), zvertexBinning);
                 // Histograms for events without pileup rejection and without cuts
                 fHistos->CreateTH2(Form("hPt%s_nopr_nocut", name.c_str()), Form("Pt distribution in %s without pileup rejection without track cuts", title.c_str()), zvertexBinning, ptbinning);
                 // Histograms for events without pileup rejection and with stand
-                fHistos->CreateTH2(Form("hPt%s_nopr_stdcut", name.c_str()), Form("Pt distribution in %s without pileup rejection with standard track cuts". title.c_str()), zvertexBinning, ptbinning);
+                fHistos->CreateTH2(Form("hPt%s_nopr_stdcut", name.c_str()), Form("Pt distribution in %s without pileup rejection with standard track cuts", title.c_str()), zvertexBinning, ptbinning);
                 // Histograms for events without pileup rejection and without cuts
                 fHistos->CreateTH2(Form("hPt%s_wpr_nocut", name.c_str()), Form("Pt distribution in %s with pileup rejection without track cuts", title.c_str()), zvertexBinning, ptbinning);
                 // Histograms for events without pileup rejection and without cuts
@@ -79,11 +79,11 @@ void AliAnalysisTaksPtEMCalTrigger::UserCreateOutputObjects(){
         PostData(1, fHistos->GetListOfHistograms());
 }
 
-void AliAnalysisTaskPtEMCal::UserExec(Option_t* /*option*/){
+void AliAnalysisTaskPtEMCalTrigger::UserExec(Option_t* /*option*/){
 
         // Common checks: Have SPD vertex and primary vertex from tracks, and both need to have at least one contributor
         AliESDEvent *esd = static_cast<AliESDEvent *>(fInputEvent);
-        AliESDVertex *vtxTracks = esd->GetPrimaryVertex(),
+        const AliESDVertex *vtxTracks = esd->GetPrimaryVertex(),
                      *vtxSPD = esd->GetPrimaryVertexSPD();
         if(!(vtxTracks && vtxSPD)) return;
         if(vtxTracks->GetNContributors() < 1 || vtxSPD->GetNContributors() < 1) return;
@@ -99,23 +99,23 @@ void AliAnalysisTaskPtEMCal::UserExec(Option_t* /*option*/){
         }
 
         // apply event selection: Combine the Pileup cut from SPD with the other pA Vertex selection cuts.
-        bool isPileupEvent = fInputEvent->IsPileupFromSPD();
+        bool isPileupEvent = esd->IsPileupFromSPD();
         isPileupEvent = isPileupEvent || (TMath::Abs(vtxTracks->GetZ() - vtxSPD->GetZ()) > 0.5);
-        double covSPD[5]; vtxSPD->GetCovarianceMatrix(covSPD); 
-        isPileupEvent = isPileupEvnet || (TString(vtxSPD->GetTitle()).contains("vertexer:Z") && TMath::Sqrt(covSPD[5] > 0.25));
+        double covSPD[6]; vtxSPD->GetCovarianceMatrix(covSPD); 
+        isPileupEvent = isPileupEvent || (TString(vtxSPD->GetTitle()).Contains("vertexer:Z") && TMath::Sqrt(covSPD[5]) > 0.25);
 
         // Fill the zVertex of the event
         const double &zv = vtxTracks->GetZ();
-        fHistos->Fill("hZVertexMinBias", zv);
+        fHistos->FillTH1("hZVertexMinBias", zv);
         char histname[1024];      // for string operations
         if(!triggerstrings.size())
                 // Non-EMCal-triggered
-                fHistos->Fill("hZVertexNoEMCal", zv);
+                fHistos->FillTH1("hZVertexNoEMCal", zv);
         else{
                 // EMCal-triggered events
                 for(std::vector<std::string>::iterator it = triggerstrings.begin(); it != triggerstrings.end(); ++it){
                         sprintf(histname, "hZVertex%s", it->c_str());
-                        fHistos->Fill(histname, zv);
+                        fHistos->FillTH1(histname, zv);
                 }
         }
 
@@ -126,21 +126,21 @@ void AliAnalysisTaskPtEMCal::UserExec(Option_t* /*option*/){
         }
 
         // simple event counter: with/without pileup rejection
-        fHistos->Fill("hEventsMinBias", 0);
-        if(!triggerstrings.size()) fHistos->Fill("hEventsNoEMCal", 0);
+        fHistos->FillTH1("hEventsMinBias", 0);
+        if(!triggerstrings.size()) fHistos->FillTH1("hEventsNoEMCal", 0);
         else{
                 for(std::vector<std::string>::iterator it = triggerstrings.begin(); it != triggerstrings.end(); ++it){
                         sprintf(histname, "hEvents%s", it->c_str());
-                        fHistos->Fill(histname,0);
+                        fHistos->FillTH1(histname,0);
                 }
         }
         if(!isPileupEvent){ 
-                fHistos->Fill("hEventsMinBias", 1);
-                if(!triggerstrings.size()) fHistos->Fill("hEventsNoEMCal", 1);
+                fHistos->FillTH1("hEventsMinBias", 1);
+                if(!triggerstrings.size()) fHistos->FillTH1("hEventsNoEMCal", 1);
                 else{
                         for(std::vector<std::string>::iterator it = triggerstrings.begin(); it != triggerstrings.end(); ++it){
                                 sprintf(histname, "hEvents%s", it->c_str());
-                                fHistos->Fill(histname, 1);
+                                fHistos->FillTH1(histname, 1);
                         }
                 }
         }
@@ -148,31 +148,31 @@ void AliAnalysisTaskPtEMCal::UserExec(Option_t* /*option*/){
         AliESDtrack *track(NULL);
         // Loop over all tracks
         for(int itrk = 0; itrk < fInputEvent->GetNumberOfTracks(); ++itrk){
-                track = fInputEvent->GetTrack(itrk);
+                track = dynamic_cast<AliESDtrack *>(fInputEvent->GetTrack(itrk));
                 // first fill without pielup cut
                 if(fEtaRange.IsInRange(track->Eta())) continue;
                 const double &pt = track->Pt();
-                fHistos->Fill("hPtMinBias_nopr_nocut", zv, pt);
-                if(!isPileup)
-                        histos->Fill("hPtMinBias_wpr_nocut", zv, pt);
+                fHistos->FillTH2("hPtMinBias_nopr_nocut", zv, pt);
+                if(!isPileupEvent)
+                        fHistos->FillTH2("hPtMinBias_wpr_nocut", zv, pt);
                 else
-                        histos->Fill("hPtMinBias_failpr_nocut", zv, pt);
+                        fHistos->FillTH2("hPtMinBias_failpr_nocut", zv, pt);
                 if(!triggerstrings.size()){
-                        fHistos->Fill("hPtNoEMCal_nopr_nocut", zv, pt);
-                        if(!isPileup)
-                                fHistos->Fill("hPtNoEMCal_wpr_nocut", zv, pt);
+                        fHistos->FillTH2("hPtNoEMCal_nopr_nocut", zv, pt);
+                        if(!isPileupEvent)
+                                fHistos->FillTH2("hPtNoEMCal_wpr_nocut", zv, pt);
                         else
-                                fHistos->Fill("hPtNoEMCal_failpr_nocut", zv, pt);
+                                fHistos->FillTH2("hPtNoEMCal_failpr_nocut", zv, pt);
                 } else {
                         for(std::vector<std::string>::iterator it = triggerstrings.begin(); it != triggerstrings.end(); ++it){
                                 sprintf(histname, "hPt%s_nopr_nocut", it->c_str());
-                                fHistos->Fill(histname, zv, pt);
-                                if(!isPileup){
+                                fHistos->FillTH2(histname, zv, pt);
+                                if(!isPileupEvent){
                                         sprintf(histname, "hPt%s_wpr_nocut", it->c_str());
-                                        fHistos->Fill(hname, zv, pt);
-                                } else {
+                                        fHistos->FillTH2(histname, zv, pt);
+                                } else {
                                         sprintf(histname, "hPt%s_failpr_nocut", it->c_str());
-                                        fHistos->Fill(hname, zv, pt);
+                                        fHistos->FillTH2(histname, zv, pt);
                                 }
                         }
                 }
@@ -180,33 +180,33 @@ void AliAnalysisTaskPtEMCal::UserExec(Option_t* /*option*/){
 
         // Now apply track selection cuts
         if(fTrackSelection){
-                std::auto_ptr<TObjArray> acceptedTracks(fTrackSelection->GetAcceptedTracks());
+                std::auto_ptr<TObjArray> acceptedTracks(fTrackSelection->GetAcceptedTracks(esd));
                 TIter trackIter(acceptedTracks.get());
                 while((track = dynamic_cast<AliESDtrack *>(trackIter()))){
-                        if(!fEtaRange->IsInRange(track->Eta())) continue;
+                        if(!fEtaRange.IsInRange(track->Eta())) continue;
                         const double &pt = track->Pt();
-                        histos->Fill("hPtMinBias_nopr_stdcut", zv, pt);
-                        if(!isPileup)
-                                fHistos->Fill("hPtMinBias_wpr_stdcut", zv, pt);
+                        fHistos->FillTH2("hPtMinBias_nopr_stdcut", zv, pt);
+                        if(!isPileupEvent)
+                                fHistos->FillTH2("hPtMinBias_wpr_stdcut", zv, pt);
                         else
-                                fHistos->Fill("hPtMinBias_failpr_stdcut", zv, pt);
+                                fHistos->FillTH2("hPtMinBias_failpr_stdcut", zv, pt);
                         if(!triggerstrings.size()){
-                                fHistos->Fill("hPtNoEMCal_nopr_stdcut", zv, pt);
-                                if(!isPileup){
-                                        fHistos->Fill("hPtNoEMCal_wpr_stdcut", zv, pt);
+                                fHistos->FillTH2("hPtNoEMCal_nopr_stdcut", zv, pt);
+                                if(!isPileupEvent){
+                                        fHistos->FillTH2("hPtNoEMCal_wpr_stdcut", zv, pt);
                                 } else {
-                                        fHistos->Fill("hPtNoEMCal_failpr_stdcut", zv, pt);
+                                        fHistos->FillTH2("hPtNoEMCal_failpr_stdcut", zv, pt);
                                 }
                         } else {
                                 for(std::vector<std::string>::iterator it = triggerstrings.begin(); it != triggerstrings.end(); ++it){
-                                        sprintf(hname, "hPt%s_nopr_stdcut", it->c_str());
-                                        fHistos->Fill(hname, zv, pv);
-                                        if(!isPileup){
-                                                sprintf(hname, "hPt%s_wpr_stdcut", it->c_str());
-                                                fHistos->Fill(hname, zv, pt);
+                                        sprintf(histname, "hPt%s_nopr_stdcut", it->c_str());
+                                        fHistos->FillTH2(histname, zv, pt);
+                                        if(!isPileupEvent){
+                                                sprintf(histname, "hPt%s_wpr_stdcut", it->c_str());
+                                                fHistos->FillTH2(histname, zv, pt);
                                         } else {
-                                                sprintf(hname, "hPt%s_failpr_stdcut", it->c_str());
-                                                fHistos->Fill(hname, zv, pt)
+                                                sprintf(histname, "hPt%s_failpr_stdcut", it->c_str());
+                                                fHistos->FillTH2(histname, zv, pt);
                                         }
                                 }
                         }
@@ -215,29 +215,31 @@ void AliAnalysisTaskPtEMCal::UserExec(Option_t* /*option*/){
         PostData(1, fHistos->GetListOfHistograms());
 }
 
-void AliAnalysisTaskPtEMCal::CreateDefaultPtBinning(TArrayD &binning){
+void AliAnalysisTaskPtEMCalTrigger::CreateDefaultPtBinning(TArrayD &binning){
         std::vector<double> mybinning;
         std::map<double,double> definitions;
-        definitions.insert(TPair<double,double>(2.5, 0.1));
-        definitions.insert(TPair<double,double>(7., 0.25));
-        definitions.insert(TPair<double,double>(15., 0.5));
-        definitions.insert(TPair<double,double>(25., 1.));
-        definitions.insert(TPair<double,double>(40., 2.5));
-        definitions.insert(TPair<double,double>(60., 5.));
-        definitions.insert(TPair<double,double>(100., 5.));
+        definitions.insert(std::pair<double,double>(2.5, 0.1));
+        definitions.insert(std::pair<double,double>(7., 0.25));
+        definitions.insert(std::pair<double,double>(15., 0.5));
+        definitions.insert(std::pair<double,double>(25., 1.));
+        definitions.insert(std::pair<double,double>(40., 2.5));
+        definitions.insert(std::pair<double,double>(60., 5.));
+        definitions.insert(std::pair<double,double>(100., 5.));
         double currentval = 0;
         for(std::map<double,double>::iterator id = definitions.begin(); id != definitions.end(); ++id){
-                double limit = id->first, binwidth = id->second();
+                double limit = id->first, binwidth = id->second;
                 while(currentval <= limit){
                         currentval += binwidth;
                         mybinning.push_back(currentval);
                 }
         }
+        binning.Set(mybinning.size());
+        int ib = 0;
         for(std::vector<double>::iterator it = mybinning.begin(); it != mybinning.end(); ++it)
-                binning[ib] = *it;
+                binning[ib++] = *it;
 }
 
-void AliAnalysisTaskPtEMCal::CreateDefaultZVertexBinning(TArrayD &binning){
+void AliAnalysisTaskPtEMCalTrigger::CreateDefaultZVertexBinning(TArrayD &binning){
         std::vector<double> mybinning;
         double currentval = -40;
         mybinning.push_back(currentval);
@@ -248,5 +250,5 @@ void AliAnalysisTaskPtEMCal::CreateDefaultZVertexBinning(TArrayD &binning){
         binning.Set(mybinning.size());
         int ib = 0;
         for(std::vector<double>::iterator it = mybinning.begin(); it != mybinning.end(); ++it)
-                binning[ib] = *it;
+                binning[ib++] = *it;
 }

@@ -16,10 +16,10 @@ class AliEMCalHistoContainer : public TNamed{
 
                 void CreateTH1(const char *name, const char *title, int nbins, double xmin, double xmax);
                 void CreateTH1(const char *name, const char *title, int nbins, double *xbins);
-                void CreateTH1(const char *name, const char *title, TarrayD &xbins);
+                void CreateTH1(const char *name, const char *title, TArrayD &xbins);
                 void CreateTH2(const char *name, const char *title, int nbinsx, double xmin, double xmax, int nbinsy, double ymin, double ymax);
                 void CreateTH2(const char *name, const char *title, int nbinsx, double *xbins, int nbinsy, double *ybins);
-                void CreateTH2(const char *name, const char *title, TArrayD &xbins, int nbinsy, TArrayD &ybins);
+                void CreateTH2(const char *name, const char *title, TArrayD &xbins, TArrayD &ybins);
                 void CreateTHnSparse(const char *name, const char *title, int ndim, int *nbins, double *min, double *max);
                 void CreateTHnSparse(const char *name, const char *title, int ndim, TAxis **axes);
                 void SetObject(TObject * const o);
@@ -28,8 +28,8 @@ class AliEMCalHistoContainer : public TNamed{
                 void FillTH2(const char *hname, double *point, double weight = 1.);
                 void FillTHnSparse(const char *name, double *x, double weight = 1.);
 
-                TList *GetListOfHistograms() const { return fHistos; }
-                TObject *FindObject(const char *name);
+                THashList *GetListOfHistograms() { return fHistos; }
+                TObject *FindObject(const char *name) const;
 
         private:
                 AliEMCalHistoContainer(const AliEMCalHistoContainer &);

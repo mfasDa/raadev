@@ -4,25 +4,25 @@
 #include <TObject.h>
 
 template<typename t>
-class AliCutValueRange : public TObject {
+class AliCutValueRange : public TObject {
         public:
                 AliCutValueRange();
                 AliCutValueRange(t min, t max);
                 AliCutValueRange(t limit, bool isUpper);
-                ~AliCutValueRange();
+                ~AliCutValueRange() {}
                  
                 void SetLimits(t min, t max){
-                        fLimit[0] = min; 
-                        fLimit[1] = max;
-                        fHasLimits[0] = fHasLimits[1] = true;
+                        fLimits[0] = min; 
+                        fLimits[1] = max;
+                        fHasLimit[0] = fHasLimit[1] = true;
                 }
-                void UnsetLimits(){ fHasLimits[0] = fHasLimits[1] = false; }
+                void UnsetLimits(){ fHasLimit[0] = fHasLimit[1] = false; }
                 void SetLimit(t value, bool isUpper){
                         int bin = isUpper ? 1 : 0;
-                        fLimits[bin] = t;
+                        fLimits[bin] = value;
                         fHasLimit[bin] = true;
                 }
-                bool UnsetLimit(bool isUpper){
+                void UnsetLimit(bool isUpper){
                         int bin = isUpper ? 1 : 0;
                         fHasLimit[bin] = false;
                 }
@@ -35,5 +35,6 @@ class AliCutValueRange : public TObject {
                 bool    fNegate;
 
                 ClassDef(AliCutValueRange, 1)     // Value range for cuts
-}
+};
+
 #endif

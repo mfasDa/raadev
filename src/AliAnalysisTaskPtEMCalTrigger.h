@@ -1,7 +1,7 @@
 #ifndef ALIANALYSISTASKPTEMCALTRIGGER_H_
 #define ALIANALYSISTASKPTEMCALTRIGGER_H_
 
-#include "AliAnalysisTaskPt.h"
+#include "AliAnalysisTaskSE.h"
 #include "AliCutValueRange.h"
 
 class TArrayD;
@@ -22,7 +22,7 @@ class AliAnalysisTaskPtEMCalTrigger : public AliAnalysisTaskSE {
 
                 void UserCreateOutputObjects();
                 void UserExec(Option_t* /*option*/);
-                void Terminate() {}
+                void Terminate(Option_t * /*option*/) {}
 
                 void SetTrackCuts(AliESDtrackCuts *trackCuts) { fTrackSelection = trackCuts; }
                 void SetEtaRange(double etamin, double etamax) { fEtaRange.SetLimits(etamin, etamax); }
