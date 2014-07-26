@@ -19,8 +19,8 @@ AliAnalysisTask* AddTaskPtEMCalTrigger(){
         AliAnalysisDataContainer *coutput = mgr->CreateContainer("results", TList::Class(),    AliAnalysisManager::kOutputContainer, "AnalysisResults.root");
    
         //Connect input/output
-        mgr->ConnectInput(task, 0, cinput);
-        mgr->ConnectOutput(task, 1, coutput);
+        mgr->ConnectInput(pttriggertask, 0, cinput);
+        mgr->ConnectOutput(pttriggertask, 1, coutput);
            
-        return task;
+        return pttriggertask;
 }
