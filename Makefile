@@ -80,7 +80,7 @@ $(PACKAGE)/Makefile: Makefile #.$(PACKAGE)
 	@[ -d $(dir $@) ] || mkdir -p $(dir $@)
 	@sed 's/include \$$(ROOTSYS)\/test\/Makefile.arch/include Makefile.arch/' < $^ > $@
 
-$(PACKAGE)/Makefile.arch: $(ROOTSYS)/test/Makefile.arch
+$(PACKAGE)/Makefile.arch: $(ROOTSYS)/etc/Makefile.arch
 	@echo Copying $< to $@
 	@[ -d $(dir $@) ] || mkdir -p $(dir $@)
 	@cp -a $^ $@
