@@ -72,8 +72,6 @@ AliAnalysisAlien *CreateGridHandler(){
         std::cout << "Libraries: " << libstring << std::endl;
         plugin->SetAdditionalLibs(libstring.c_str());
 
-        plugin->AddExternalPackage("RAATrigger.par");
-   
         plugin->SetDefaultOutputs(kFALSE);
         plugin->SetOutputFiles("AnalysisResults.root"); 
         plugin->SetExecutableCommand("aliroot -b -q");
@@ -264,6 +262,7 @@ bool CreateTrainDir(AliAnalysisAlien *plugin, const TMap &lookup){
         // Make train data dir name and JDL, C and sh file names
         //
         TObjArray infos;
+        TString grid_base= "RAATrigger_pPb";
         bool found = FindDataSample(lookup, infos);
         if(!found){
                 printf("sample %s not found\n", g_sample.Data());
@@ -276,7 +275,7 @@ bool CreateTrainDir(AliAnalysisAlien *plugin, const TMap &lookup){
                 // Query number of train runs before
                 const char *gridhome = gGrid->GetHomeDirectory();
                 const char gridoutdir[256];
-                sprintf(gridoutdir, "%sAnalysis_pPb/%s", gridhome, type.Data());
+                sprintf(gridoutdir, "%s%s/%s", gridhome, grid_base.Data(), type.Data());
                 TGridResult *trainruns = gGrid->Ls(gridoutdir);
                 int nruns = trainruns->GetEntries();
                 // Get Date and time
@@ -284,7 +283,7 @@ bool CreateTrainDir(AliAnalysisAlien *plugin, const TMap &lookup){
                 g_train_dir = Form("%d_%d%02d%02d_%02d%02d", nruns, time.GetYear(), time.GetMonth(), time.GetDay(), time.GetHour(), time.GetMinute());
         }
         
-        plugin->SetGridWorkingDir(Form("Analysis_pPb/%s/%s", type.Data(), g_train_dir.Data()));
+        plugin->SetGridWorkingDir(Form("%s/%s/%s", grid_base.Data(), type.Data(), g_train_dir.Data()));
         plugin->SetJDLName(Form("RAATrigger_%s_%s.jdl", type.Data(), g_train_dir.Data()));
         plugin->SetExecutable(Form("RAATrigger_%s_%s.sh", type.Data(), g_train_dir.Data()));
         plugin->SetAnalysisMacro(Form("RAATrigger_%s_%s.C", type.Data(), g_train_dir.Data()));
