@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <sstream>
 
 #include <TDirectory.h>
 #include <TH1.h>
@@ -64,24 +65,30 @@ void AliAnalysisTaskPtEMCalTrigger::UserCreateOutputObjects(){
         triggerCombinations.insert(std::pair<std::string,std::string>("EMCGLow", "jet-triggered events (low threshold)"));
         triggerCombinations.insert(std::pair<std::string,std::string>("EMCGHigh", "jet-triggered events (high threshold)"));
         triggerCombinations.insert(std::pair<std::string,std::string>("NoEMCal", "non-EMCal-triggered events (low threshold)"));
-        for(std::map<std::string,std::string>::iterator it = triggerCombinations.begin(); it != triggerCombinations.end(); ++it){
-                const std::string name = it->first, &title = it->second;
-                // Event counter
-                fHistos->CreateTH1(Form("hEvents%s", name.c_str()), Form("Event counter for %s", title.c_str()), 2, -0.5, 1.5);
-                // Vertex position
-                fHistos->CreateTH1(Form("hZVertex%s", name.c_str()), Form("Distribution of the z-vertex position in %s", title.c_str()), zvertexBinning);
-                // Histograms for events without pileup rejection and without cuts
-                fHistos->CreateTH2(Form("hPt%s_nopr_nocut", name.c_str()), Form("Pt distribution in %s without pileup rejection without track cuts", title.c_str()), zvertexBinning, ptbinning);
-                // Histograms for events without pileup rejection and with stand
-                fHistos->CreateTH2(Form("hPt%s_nopr_stdcut", name.c_str()), Form("Pt distribution in %s without pileup rejection with standard track cuts", title.c_str()), zvertexBinning, ptbinning);
-                // Histograms for events without pileup rejection and without cuts
-                fHistos->CreateTH2(Form("hPt%s_wpr_nocut", name.c_str()), Form("Pt distribution in %s with pileup rejection without track cuts", title.c_str()), zvertexBinning, ptbinning);
-                // Histograms for events without pileup rejection and without cuts
-                fHistos->CreateTH2(Form("hPt%s_wpr_stdcut", name.c_str()), Form("Pt distribution in %s with pileup rejection with standard track cuts", title.c_str()), zvertexBinning, ptbinning);
-                // Histograms for events without pileup rejection and without cuts
-                fHistos->CreateTH2(Form("hPt%s_failpr_nocut", name.c_str()), Form("Pt distribution in %s which fail the pileup rejection without track cuts", title.c_str()), zvertexBinning, ptbinning);
-                // Histograms for events without pileup rejection and without cuts
-                fHistos->CreateTH2(Form("hPt%s_failpr_stdcut", name.c_str()), Form("Pt distribution in %s which fail the pileup rejection with standard track cuts", title.c_str()), zvertexBinning, ptbinning);
+        try{
+                for(std::map<std::string,std::string>::iterator it = triggerCombinations.begin(); it != triggerCombinations.end(); ++it){
+                        const std::string name = it->first, &title = it->second;
+                        // Event counter
+                        fHistos->CreateTH1(Form("hEvents%s", name.c_str()), Form("Event counter for %s", title.c_str()), 2, -0.5, 1.5);
+                        // Vertex position
+                        fHistos->CreateTH1(Form("hZVertex%s", name.c_str()), Form("Distribution of the z-vertex position in %s", title.c_str()), zvertexBinning);
+                        // Histograms for events without pileup rejection and without cuts
+                        fHistos->CreateTH2(Form("hPt%s_nopr_nocut", name.c_str()), Form("Pt distribution in %s without pileup rejection without track cuts", title.c_str()), zvertexBinning, ptbinning);
+                        // Histograms for events without pileup rejection and with stand
+                        fHistos->CreateTH2(Form("hPt%s_nopr_stdcut", name.c_str()), Form("Pt distribution in %s without pileup rejection with standard track cuts", title.c_str()), zvertexBinning, ptbinning);
+                        // Histograms for events without pileup rejection and without cuts
+                        fHistos->CreateTH2(Form("hPt%s_wpr_nocut", name.c_str()), Form("Pt distribution in %s with pileup rejection without track cuts", title.c_str()), zvertexBinning, ptbinning);
+                        // Histograms for events without pileup rejection and without cuts
+                        fHistos->CreateTH2(Form("hPt%s_wpr_stdcut", name.c_str()), Form("Pt distribution in %s with pileup rejection with standard track cuts", title.c_str()), zvertexBinning, ptbinning);
+                        // Histograms for events without pileup rejection and without cuts
+                        fHistos->CreateTH2(Form("hPt%s_failpr_nocut", name.c_str()), Form("Pt distribution in %s which fail the pileup rejection without track cuts", title.c_str()), zvertexBinning, ptbinning);
+                        // Histograms for events without pileup rejection and without cuts
+                        fHistos->CreateTH2(Form("hPt%s_failpr_stdcut", name.c_str()), Form("Pt distribution in %s which fail the pileup rejection with standard track cuts", title.c_str()), zvertexBinning, ptbinning);
+                }
+        } catch (HistoContainerContentException &e){
+                std::stringstream errormessage;
+                errormessage << "Creation of histogram failed: " << e.what();
+                AliError(errormessage.str().c_str());
         }
         fResults->Add(fHistos->GetListOfHistograms());
         if(fTrackSelection) fResults->Add(fTrackSelection);
