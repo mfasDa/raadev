@@ -67,11 +67,6 @@ $(PARFILE): $(patsubst %,$(PACKAGE)/%,$(filter-out G__%, $(HDRS) $(SRCS) $(DHDR)
 #	@mv $(PACKAGE)/hfe/* $(PACKAGE)/
 #	@rm -rf $(PACKAGE)/hfe
 	@tar cfzh $@ $(PACKAGE)
-	@rm -rf $(PACKAGE)/PROOF-INF
-	@rm -rf $(PACKAGE)/libPWG3hfe.pkg
-	@rm -rf $(PACKAGE)/PWG3hfeLinkDef.h
-	@rm -rf $(PACKAGE)/Makefile
-	@rm -rf $(PACKAGE)/Makefile.arch
 	@rm -rf $(PACKAGE)
 	@echo "done"
 
