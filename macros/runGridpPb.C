@@ -10,6 +10,7 @@ TString g_sample;
 TString g_plugin_mode;
 TString g_train_dir;
 TArrayI g_runlist;
+TString g_grid_workdir;
 
 AliAnalysisAlien *CreateGridHandler(){
         //
@@ -229,6 +230,9 @@ void ConfigParser(const char *configname){
                         g_train_dir = value;
                         continue;
                 }
+                if(!key.CompareTo("workdir")){
+                        g_grid_workdir = value;
+                }
                 printf("Unknown key: %s\n", key.Data());
         }
 }
@@ -262,7 +266,7 @@ bool CreateTrainDir(AliAnalysisAlien *plugin, const TMap &lookup){
         // Make train data dir name and JDL, C and sh file names
         //
         TObjArray infos;
-        TString grid_base= "RAATrigger_pPb";
+        TString grid_base = g_grid_workdir.Length() ? g_grid_workdir : "RAATrigger_pPb";
         bool found = FindDataSample(lookup, infos);
         if(!found){
                 printf("sample %s not found\n", g_sample.Data());
