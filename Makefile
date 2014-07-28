@@ -18,8 +18,8 @@ ifneq ($(ESD_INCLUDE),)
 	endif
 else
 	ifneq ($(ALICE_ROOT),)
-		ALICEINC += -I$(ALICE_ROOT)/include -I$(ALICE_ROOT)/STEER -I$(ALICE_ROOT)/ANALYSIS 
-		ALICELIB += -L$(ALICE_ROOT)/lib/tgt_$(ALICE_TARGET) -lSTEERBase -lESD -lAOD -lANALYSIS -lANALYSISalice 
+		ALICEINC += -I$(ALICE_INSTALL)/include 
+		ALICELIB += -L$(ALICE_INSTALL)/lib/tgt_$(ALICE_TARGET) -lSTEERBase -lESD -lAOD -lANALYSIS -lANALYSISalice 
 	else
 	endif
 endif
