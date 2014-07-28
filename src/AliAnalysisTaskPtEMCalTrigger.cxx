@@ -102,10 +102,10 @@ void AliAnalysisTaskPtEMCalTrigger::UserExec(Option_t* /*option*/){
         if(fInputHandler->IsEventSelected() & AliVEvent::kEMC7){
                 // EMCal-triggered event, distinguish types
                 TString trgstr(fInputEvent->GetFiredTriggerClasses());
-                if(trgstr.Contains("EJ1")) triggerstrings.push_back("EMJHigh");
-                if(trgstr.Contains("EJ1")) triggerstrings.push_back("EMJLow");
-                if(trgstr.Contains("EG1")) triggerstrings.push_back("EMGHigh");
-                if(trgstr.Contains("EG2")) triggerstrings.push_back("EMGLow");
+                if(trgstr.Contains("EJ1")) triggerstrings.push_back("EMCJHigh");
+                if(trgstr.Contains("EJ1")) triggerstrings.push_back("EMCJLow");
+                if(trgstr.Contains("EG1")) triggerstrings.push_back("EMCGHigh");
+                if(trgstr.Contains("EG2")) triggerstrings.push_back("EMCGLow");
         }
 
         // apply event selection: Combine the Pileup cut from SPD with the other pA Vertex selection cuts.
