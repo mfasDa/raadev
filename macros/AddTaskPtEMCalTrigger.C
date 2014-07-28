@@ -13,6 +13,10 @@ AliAnalysisTask* AddTaskPtEMCalTrigger(){
         
         AliAnalysisTaskPtEMCalTrigger *pttriggertask = new AliAnalysisTaskPtEMCalTrigger("ptemcaltriggertask");
         pttriggertask->SelectCollisionCandidates(AliVEvent::kINT7 | AliVEvent::kEMC7);                          // Select both INT7 or EMC7 triggered events
+        AliESDtrackCuts *trackCuts = AliESDtrackCuts::GetStandardITSTPCTrackCuts2011(true, 1);
+        trackCuts->SetMinNCrossedRowsTPC(120);
+        trackCuts->SetMaxDCAToVertexXYPtDep("0.0182+0.0350/pt^1.01");
+        pttriggertask->SetTrackCuts(trackCuts);
         mgr->AddTask(pttriggertask);
 
         AliAnalysisDataContainer *cinput = mgr->GetCommonInputContainer();

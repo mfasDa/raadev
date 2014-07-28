@@ -1,9 +1,14 @@
 #include <cstring>
+#include <iostream>
 #include <memory>
 #include <vector>
 #include <string>
 
+#include <TDirectory.h>
+#include <TH1.h>
 #include <THashList.h>
+#include <TKey.h>
+#include <TList.h>
 #include <TObjArray.h>
 #include <TString.h>
 
@@ -27,6 +32,7 @@ AliAnalysisTaskPtEMCalTrigger::AliAnalysisTaskPtEMCalTrigger():
 
 AliAnalysisTaskPtEMCalTrigger::AliAnalysisTaskPtEMCalTrigger(const char *name):
         AliAnalysisTaskSE(name),
+        fResults(NULL),
         fHistos(NULL)
 {
         DefineOutput(1, TList::Class());
@@ -38,11 +44,13 @@ AliAnalysisTaskPtEMCalTrigger::AliAnalysisTaskPtEMCalTrigger(const char *name):
 }
 
 AliAnalysisTaskPtEMCalTrigger::~AliAnalysisTaskPtEMCalTrigger(){
-        if(fTrackSelection) delete fTrackSelection;
+        //if(fTrackSelection) delete fTrackSelection;
         if(fHistos) delete fHistos;
 }
 
 void AliAnalysisTaskPtEMCalTrigger::UserCreateOutputObjects(){
+        fResults = new TList;
+
         fHistos = new AliEMCalHistoContainer("PtEMCalTriggerHistograms");
 
         TArrayD ptbinning, zvertexBinning;
@@ -75,8 +83,10 @@ void AliAnalysisTaskPtEMCalTrigger::UserCreateOutputObjects(){
                 // Histograms for events without pileup rejection and without cuts
                 fHistos->CreateTH2(Form("hPt%s_failpr_stdcut", name.c_str()), Form("Pt distribution in %s which fail the pileup rejection with standard track cuts", title.c_str()), zvertexBinning, ptbinning);
         }
+        fResults->Add(fHistos->GetListOfHistograms());
+        if(fTrackSelection) fResults->Add(fTrackSelection);
 
-        PostData(1, fHistos->GetListOfHistograms());
+        PostData(1, fResults);
 }
 
 void AliAnalysisTaskPtEMCalTrigger::UserExec(Option_t* /*option*/){
@@ -121,7 +131,7 @@ void AliAnalysisTaskPtEMCalTrigger::UserExec(Option_t* /*option*/){
 
         // Reject events which have a vertex outside the limits
         if(!fVertexZRange.IsInRange(vtxTracks->GetZ())){ 
-                PostData(1, fHistos->GetListOfHistograms());
+                PostData(1, fResults);
                 return;
         }
 
@@ -212,7 +222,7 @@ void AliAnalysisTaskPtEMCalTrigger::UserExec(Option_t* /*option*/){
                         }
                 }
         }
-        PostData(1, fHistos->GetListOfHistograms());
+        PostData(1, fResults);
 }
 
 void AliAnalysisTaskPtEMCalTrigger::CreateDefaultPtBinning(TArrayD &binning){

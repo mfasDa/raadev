@@ -5,6 +5,7 @@
 #include "AliCutValueRange.h"
 
 class TArrayD;
+class TList;
 class AliEMCalHistoContainer;
 class AliESDtrackCuts;
 
@@ -34,6 +35,7 @@ class AliAnalysisTaskPtEMCalTrigger : public AliAnalysisTaskSE {
                 void CreateDefaultPtBinning(TArrayD &binning);
                 void CreateDefaultZVertexBinning(TArrayD &binning);
 
+                TList                         *fResults;              //! container for results
                 AliEMCalHistoContainer        *fHistos;               //! Histogram container for the task
                 AliESDtrackCuts               *fTrackSelection;
 
