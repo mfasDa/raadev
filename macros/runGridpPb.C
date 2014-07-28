@@ -232,6 +232,7 @@ void ConfigParser(const char *configname){
                 }
                 if(!key.CompareTo("workdir")){
                         g_grid_workdir = value;
+                        continue;
                 }
                 printf("Unknown key: %s\n", key.Data());
         }
