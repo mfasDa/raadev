@@ -100,10 +100,10 @@ class AliEMCalHistoContainer : public TNamed{
         private:
                 AliEMCalHistoContainer(const AliEMCalHistoContainer &);
                 AliEMCalHistoContainer &operator=(const AliEMCalHistoContainer &);
-                THashList *FindGroup(const char *dirname);
-                void TokenizeFilename(const char *name, const char *delim, std::vector<std::string> &listoftokens);
-                const char *basename(const char *path);
-                const char *histname(const char *path);
+                THashList *FindGroup(const char *dirname) const;
+                void TokenizeFilename(const char *name, const char *delim, std::vector<std::string> &listoftokens) const;
+                const char *basename(const char *path) const;
+                const char *histname(const char *path) const;
                 
                 THashList *fHistos;                   // List of histograms                              
                 bool fIsOwner;                        // Set the ownership

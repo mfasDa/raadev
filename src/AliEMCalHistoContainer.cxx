@@ -416,7 +416,7 @@ TObject *AliEMCalHistoContainer::FindObject(const char *name) const {
 }
 
 //______________________________________________________________________________
-THashList *AliEMCalHistoContainer::FindGroup(const char *dirname){
+THashList *AliEMCalHistoContainer::FindGroup(const char *dirname) const {
         /*
          * Find histogram group. Name is using common notation
          *
@@ -435,7 +435,7 @@ THashList *AliEMCalHistoContainer::FindGroup(const char *dirname){
 }
 
 //______________________________________________________________________________
-void AliEMCalHistoContainer::TokenizeFilename(const char *name, const char *delim, std::vector<std::string> &listoftokens){
+void AliEMCalHistoContainer::TokenizeFilename(const char *name, const char *delim, std::vector<std::string> &listoftokens) const {
         /*
          * Tokenizes a string. Results are stored inside the vector listoftokens
          *
@@ -454,7 +454,7 @@ void AliEMCalHistoContainer::TokenizeFilename(const char *name, const char *deli
 }
 
 //______________________________________________________________________________
-const char *AliEMCalHistoContainer::basename(const char *path){
+const char *AliEMCalHistoContainer::basename(const char *path) const {
         /*
          * Helper function extracting the basename from a given histogram path.
          *
@@ -468,7 +468,7 @@ const char *AliEMCalHistoContainer::basename(const char *path){
 }
 
 //______________________________________________________________________________
-const char *AliEMCalHistoContainer::histname(const char *path){
+const char *AliEMCalHistoContainer::histname(const char *path) const {
         /*
          * Helper function extracting the histogram name from a given histogram path.
          *
