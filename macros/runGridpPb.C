@@ -425,6 +425,7 @@ void GenerateMergeConfigs(){
         outMerge << "runlist ";
         for(int irun = 0; irun < g_runlist.GetSize()-1; irun++) outMerge << g_runlist[irun] << ",";
         outMerge << g_runlist[g_runlist.GetSize()-1] << std::endl;
+        if(g_grid_workdir.Length()) outMerge << "workdir " << g_grid_workdir.Data() << std::endl;
         outMerge.close();
         // Write config for Terminate
         std::ofstream outTerminate("configTerminate.txt");
@@ -436,6 +437,7 @@ void GenerateMergeConfigs(){
         outTerminate << "runlist ";
         for(int irun = 0; irun < g_runlist.GetSize()-1; irun++) outTerminate << g_runlist[irun] << ",";
         outTerminate << g_runlist[g_runlist.GetSize()-1] << std::endl;
+        if(g_grid_workdir.Length()) outTerminate << "workdir " << g_grid_workdir.Data() << std::endl;
         outTerminate.close();
 
         printf("Configurations for MergeViaJDL and terminate generated\n");
