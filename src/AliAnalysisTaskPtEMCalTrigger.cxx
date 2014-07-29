@@ -1,3 +1,23 @@
+/**************************************************************************
+ * Copyright(c) 1998-2007, ALICE Experiment at CERN, All rights reserved. *
+ *                                                                        *
+ * Author: The ALICE Off-line Project.                                    *
+ * Contributors are mentioned in the code where appropriate.              *
+ *                                                                        *
+ * Permission to use, copy, modify and distribute this software and its   *
+ * documentation strictly for non-commercial purposes is hereby granted   *
+ * without fee, provided that the above copyright notice appears in all   *
+ * copies and that both the copyright notice and this permission notice   *
+ * appear in the supporting documentation. The authors make no claims     *
+ * about the suitability of this software for any purpose. It is          *
+ * provided "as is" without express or implied warranty.                  *
+ **************************************************************************/
+
+/*
+ *
+ */
+
+
 #include <cstring>
 #include <iostream>
 #include <memory>
@@ -24,18 +44,26 @@
 
 ClassImp(AliAnalysisTaskPtEMCalTrigger)
 
+//______________________________________________________________________________
 AliAnalysisTaskPtEMCalTrigger::AliAnalysisTaskPtEMCalTrigger():
         AliAnalysisTaskSE(),
         fHistos(NULL),
         fTrackSelection(NULL)
 {
+        /*
+         * Dummy constructor, initialising the values with default (NULL) values
+         */
 }
 
+//______________________________________________________________________________
 AliAnalysisTaskPtEMCalTrigger::AliAnalysisTaskPtEMCalTrigger(const char *name):
         AliAnalysisTaskSE(name),
         fResults(NULL),
         fHistos(NULL)
 {
+        /*
+         * Main constructor, setting default values for eta and zvertex cut
+         */
         DefineOutput(1, TList::Class());
 
         // Set default cuts
@@ -44,12 +72,21 @@ AliAnalysisTaskPtEMCalTrigger::AliAnalysisTaskPtEMCalTrigger(const char *name):
 
 }
 
+//______________________________________________________________________________
 AliAnalysisTaskPtEMCalTrigger::~AliAnalysisTaskPtEMCalTrigger(){
+        /*
+         * Destructor, deleting output
+         */
         //if(fTrackSelection) delete fTrackSelection;
         if(fHistos) delete fHistos;
 }
 
+//______________________________________________________________________________
 void AliAnalysisTaskPtEMCalTrigger::UserCreateOutputObjects(){
+        /*
+         * Create the list of output objects and define the histograms.
+         * Also adding the track cuts to the list of histograms.
+         */
         fResults = new TList;
         fResults->SetOwner();
 
@@ -98,7 +135,13 @@ void AliAnalysisTaskPtEMCalTrigger::UserCreateOutputObjects(){
         PostData(1, fResults);
 }
 
+//______________________________________________________________________________
 void AliAnalysisTaskPtEMCalTrigger::UserExec(Option_t* /*option*/){
+        /*
+         * Runs the event loop
+         *
+         * @param option: Additional options
+         */
 
         // Common checks: Have SPD vertex and primary vertex from tracks, and both need to have at least one contributor
         AliESDEvent *esd = static_cast<AliESDEvent *>(fInputEvent);
@@ -234,7 +277,13 @@ void AliAnalysisTaskPtEMCalTrigger::UserExec(Option_t* /*option*/){
         PostData(1, fResults);
 }
 
+//______________________________________________________________________________
 void AliAnalysisTaskPtEMCalTrigger::CreateDefaultPtBinning(TArrayD &binning){
+        /*
+         * Creating the default pt binning.
+         *
+         * @param binning: Array where to store the results.
+         */
         std::vector<double> mybinning;
         std::map<double,double> definitions;
         definitions.insert(std::pair<double,double>(2.5, 0.1));
@@ -258,7 +307,13 @@ void AliAnalysisTaskPtEMCalTrigger::CreateDefaultPtBinning(TArrayD &binning){
                 binning[ib++] = *it;
 }
 
+//______________________________________________________________________________
 void AliAnalysisTaskPtEMCalTrigger::CreateDefaultZVertexBinning(TArrayD &binning){
+        /*
+         * Creating default z-Vertex binning.
+         *
+         * @param binning: Array where to store the results.
+         */
         std::vector<double> mybinning;
         double currentval = -40;
         mybinning.push_back(currentval);
