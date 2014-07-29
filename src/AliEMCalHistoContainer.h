@@ -17,6 +17,9 @@ class TList;
 class THashList;
 
 class HistoContainerContentException : public std::exception {
+        /*
+         * Error handling class for the histogram container
+         */
         public:
                 enum ExceptionType_t {
                         kHistNotFoundException = 0,
@@ -35,7 +38,7 @@ class HistoContainerContentException : public std::exception {
                 }
                 virtual ~HistoContainerContentException() throw() {}
 
-                const char *what() const throw() {
+                virtual const char *what() const throw() {
                         std::stringstream msgbuilder;
                         switch(fExceptionType) {
                                 case kHistNotFoundException:
@@ -62,9 +65,9 @@ class HistoContainerContentException : public std::exception {
                 ExceptionType_t GetExceptionType() const { return fExceptionType; }
 
         private:
-                std::string           fHistname;
-                std::string           fGroup;
-                ExceptionType_t       fExceptionType;
+                std::string           fHistname;            // Name of the histogram producing the exception
+                std::string           fGroup;               // Group of objects producing the exception
+                ExceptionType_t       fExceptionType;       // type of the exception
 
 };
 
