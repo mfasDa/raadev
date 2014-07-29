@@ -1,6 +1,7 @@
 #ifndef ALIEMCALHISTOCONTAINER_H
 #define ALIEMCALHISTOCONTAINER_H
 
+#include <cstring>
 #include <exception>
 #include <string>
 #include <sstream>
@@ -20,11 +21,13 @@ class HistoContainerContentException : public std::exception {
                         kGroupException = 3
                 };
 
-                HistoContainerContentException(const char *histname, ExceptionType_t etype):
+                HistoContainerContentException(const char *histname, const char *hgroup, ExceptionType_t etype):
                         fHistname(),
+                        fGroup(),
                         fExceptionType(etype)
                 {
                         if(histname) fHistname = histname;
+                        if(hgroup) fGroup = hgroup;
                 }
                 virtual ~HistoContainerContentException() throw() {}
 
@@ -32,16 +35,20 @@ class HistoContainerContentException : public std::exception {
                         std::stringstream msgbuilder;
                         switch(fExceptionType) {
                                 case kHistNotFoundException:
-                                        msgbuilder << "Histogram " << fHistname << " not found in the list of histograms.";
+                                        msgbuilder << "Histogram " << fHistname << " not found in";
+                                        if(strlen(fGroup.c_str())) msgbuilder << " group " << fGroup;
+                                        else msgbuilder << " the list of histograms.";
                                         break;
                                 case kTypeException:
                                         msgbuilder << "Object " << fHistname << " is of wrong type.";
                                         break;
                                 case kHistDuplicationException:
-                                        msgbuilder << "Histogram " << fHistname << " already exists in the list of histograms.";
+                                        msgbuilder << "Histogram " << fHistname << " already exists in";
+                                        if(strlen(fGroup.c_str())) msgbuilder << " group " << fGroup;
+                                        else msgbuilder << " the list of histograms.";
                                         break;
                                 case kGroupException:
-                                        msgbuilder << "Group " << fHistname << " not found.";
+                                        msgbuilder << "Group " << fGroup << " not found.";
                                         break;
                         };
                         return msgbuilder.str().c_str();
@@ -52,6 +59,7 @@ class HistoContainerContentException : public std::exception {
 
         private:
                 std::string           fHistname;
+                std::string           fGroup;
                 ExceptionType_t       fExceptionType;
 
 };
@@ -61,6 +69,7 @@ class AliEMCalHistoContainer : public TNamed{
                 AliEMCalHistoContainer();
                 AliEMCalHistoContainer(const char *name);
                 ~AliEMCalHistoContainer();
+                void ReleaseOwner() { fIsOwner = kFALSE; };
 
                 void CreateHistoGroup(const char *groupname, const char *parent = "/") throw(HistoContainerContentException);
 
@@ -72,7 +81,7 @@ class AliEMCalHistoContainer : public TNamed{
                 void CreateTH2(const char *name, const char *title, TArrayD &xbins, TArrayD &ybins) throw(HistoContainerContentException);
                 void CreateTHnSparse(const char *name, const char *title, int ndim, int *nbins, double *min, double *max) throw(HistoContainerContentException);
                 void CreateTHnSparse(const char *name, const char *title, int ndim, TAxis **axes) throw(HistoContainerContentException);
-                void SetObject(TObject * const o) throw(HistoContainerContentException);
+                void SetObject(TObject * const o, const char *group = "/") throw(HistoContainerContentException);
                 void FillTH1(const char *hname, double x, double weight = 1.) throw(HistoContainerContentException);
                 void FillTH2(const char *hname, double x, double y, double weight = 1.) throw(HistoContainerContentException);
                 void FillTH2(const char *hname, double *point, double weight = 1.) throw(HistoContainerContentException);
@@ -87,9 +96,10 @@ class AliEMCalHistoContainer : public TNamed{
                 THashList *FindGroup(const char *dirname);
                 void TokenizeFilename(const char *name, const char *delim, std::vector<std::string> &listoftokens);
                 const char *basename(const char *path);
-                const char *filename(const char *path);
+                const char *histname(const char *path);
                 
                 THashList *fHistos;                   // List of histograms                              
+                bool fIsOwner;                        // Set the ownership
 
                 ClassDef(AliEMCalHistoContainer, 1)   // Container for histograms
 };

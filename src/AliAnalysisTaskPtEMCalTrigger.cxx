@@ -51,8 +51,10 @@ AliAnalysisTaskPtEMCalTrigger::~AliAnalysisTaskPtEMCalTrigger(){
 
 void AliAnalysisTaskPtEMCalTrigger::UserCreateOutputObjects(){
         fResults = new TList;
+        fResults->SetOwner();
 
         fHistos = new AliEMCalHistoContainer("PtEMCalTriggerHistograms");
+        fHistos->ReleaseOwner();
 
         TArrayD ptbinning, zvertexBinning;
         CreateDefaultPtBinning(ptbinning);
