@@ -51,6 +51,7 @@ namespace EMCalTriggerPtAnalysis {
         //______________________________________________________________________________
         AliAnalysisTaskPtEMCalTrigger::AliAnalysisTaskPtEMCalTrigger():
                 AliAnalysisTaskSE(),
+                fResults(NULL),
                 fHistos(NULL),
                 fTrackSelection(NULL)
         {
@@ -63,7 +64,8 @@ namespace EMCalTriggerPtAnalysis {
         AliAnalysisTaskPtEMCalTrigger::AliAnalysisTaskPtEMCalTrigger(const char *name):
                 AliAnalysisTaskSE(name),
                 fResults(NULL),
-                fHistos(NULL)
+                fHistos(NULL),
+                fTrackSelection(NULL)
         {
                 /*
                  * Main constructor, setting default values for eta and zvertex cut
