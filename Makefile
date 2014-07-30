@@ -54,9 +54,8 @@ clean:
 	@rm -f $(OBJS) *.so G__$(PACKAGE).*
 
 G__$(PACKAGE).cxx: $(HDRS) $(DHDR)
-	@echo $(HDRS)
 	@echo "Generating dictionary ..."
-	rootcint -f $@ -c $(CINTFLAGS) $(ALICEINC) $^
+	rootcint -f $@ -c $(CINTFLAGS) $(ALICEINC) -I$(ROOTSYS)/include $^
 
 G__$(PACKAGE).h: ;
 

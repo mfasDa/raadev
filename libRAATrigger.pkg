@@ -1,7 +1,7 @@
 #-*- Mode: Makefile -*-
 
-SRCS=src/AliEMCalHistoContainer.cxx \
-     src/AliCutValueRange.cxx \
+SRCS=src/AliCutValueRange.cxx \
+     src/AliEMCalHistoContainer.cxx \
      src/AliAnalysisTaskPtEMCalTrigger.cxx 
 
 HDRS= $(SRCS:.cxx=.h)
