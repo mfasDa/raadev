@@ -13,11 +13,5 @@
 #pragma link C++ class EMCalTriggerPtAnalysis::AliCutValueRange<int>+;
 #pragma link C++ class EMCalTriggerPtAnalysis::AliAnalysisTaskPtEMCalTrigger+;
 
-//#pragma link C++ class AliEMCalHistoContainer+;
-//#pragma link C++ class AliCutValueRange<float>+;
-//#pragma link C++ class AliCutValueRange<double>+;
-//#pragma link C++ class AliCutValueRange<int>+;
-//#pragma link C++ class EMCalTriggerPtAnalysis::AliAnalysisTaskPtEMCalTrigger+;
-
 #endif /* __CINT__ */
 
