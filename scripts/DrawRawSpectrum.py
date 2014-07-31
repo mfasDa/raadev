@@ -1,23 +1,18 @@
 #! /usr/bin/python
+# 
+# Script plotting the raw spectrum for different trigger classes and event selections
+# Can run in batch mode or in interactive mode. For the interactive mode load the script
+# as module and execute the run function with the inputfile name and the command line 
+# options.
+#
+#    Author: Markus Fasel
+#
+
 import os, sys, getopt
 from ROOT import TCanvas,TFile,TH1F,TPaveText,gROOT,kRed
-from Helper import NormaliseBinWidth
+from Helper import NormaliseBinWidth,FileReaderException,HistNotFoundException
 
 gObjects = list()
-
-class FileReaderException(Exception):
-        def __init__(self, filename):
-                self.__filename == filename
-
-        def __str__(self):
-                return "Could not open file %s" %(filename)
-
-class HistNotFoundException(Exception):
-        def __init__(self, histname):
-                self.__histname = histname
-
-        def __str__(self):
-                return "Histogram %s not found" %(histname)
 
 def ReadFromFile(filename, options):
         """
@@ -26,20 +21,18 @@ def ReadFromFile(filename, options):
         infile = TFile.Open(filename)
         if not infile or infile.IsZombie():
                 raise FileReaderException(filename)
-        resultlist = infile.Get("results")
-        histlist = resultlist.FindObject("List of histograms of container PtEMCalTriggerHistograms")
+        myresultlist = infile.Get("results")
+        histlist = myresultlist.FindObject("List of histograms of container PtEMCalTriggerHistograms")
 
         resultlist = dict()
-        histnameEC = "hEvents%s" %(options["Trigger"])
-        histnameSpec = "hPt%s_%s_%s" %(options["Trigger"], options["Eventselection"], options["Trackselection"])
-        hEC = histlist.FindObject(histnameEC)
+        hEC = histlist.FindObject("hEvents%s" %(options["Trigger"]))
         if not hEC:
                 infile.Close()
                 raise HistNotFoundException(histnameEC)
         else:
                 hEC.SetDirectory(gROOT)
                 resultlist["EventCounter"] = hEC
-        hSpec = histlist.FindObject(histnameSpec)
+        hSpec = histlist.FindObject("hPt%s_%s_%s" %(options["Trigger"], options["Eventselection"], options["Trackselection"]))
         if not hSpec:
                 hSpec.SetDirectory(gROOT)
                 infile.Close()
