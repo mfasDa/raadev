@@ -20,6 +20,9 @@ class HistNotFoundException(Exception):
                 return "Histogram %s not found" %(histname)
 
 def ReadFromFile(filename, options):
+        """
+        Read histogram with input spectrum from file.
+        """
         infile = TFile.Open(filename)
         if not infile or infile.IsZombie():
                 raise FileReaderException(filename)
@@ -46,6 +49,9 @@ def ReadFromFile(filename, options):
         return resultlist
 
 def MakePlot(spectrum, options):
+        """
+        Create final plot of the spectrum.
+        """
         plot = TCanvas("crawspectrum", "Raw charged hadron spectrum")
         plot.cd()
         plot.SetGrid(False, False)
@@ -84,6 +90,9 @@ def MakePlot(spectrum, options):
         return plot
 
 def Usage():
+        """
+        Print help text.
+        """
         print " Usage: "
         print "   "
         print "   DrawRawSpectrum.py [OPTIONS] filename"
@@ -103,46 +112,9 @@ def Usage():
         print "   -r/--pilupreject:         Pileup rejection applied"
         print "   -w/--withpilup:           No pileup rejection applied"
 
-def launch(filename, options):
+def launch(filename, arglist):
         try:
-                speclist = ReadFromFile(filename, options);
-        except FileReaderException as e:
-                print str(e)
-                sys.exit(1)
-        except HistNotFoundException as e:
-                print str(e)
-                sys.exit(1)
-
-        nevents = 0
-        if options["eventselection"] == "nopr":
-                nevents = speclist["EventCounter"].GetBinContent(1)
-        else:
-                nevents = speclist["EventCounter"].GetBinContent(2)
-
-        spectrum = speclist["Spectrum"].ProjectionY("rawspectrum")
-        spectrum.Sumw2()
-        spectrum.Scale(1./nevents)
-        NormaliseBinWidth(spectrum)
-
-        plot = MakePlot(spectrum, options)
-        if len(options["plotfile"]):
-                plot.SaveAs(options["plotfile"])
-        if len(options["outputfile"]):
-                outputfile = TFile(options["outputfile"], "RECREATE")
-                if outputfile:
-                        outputfile.cd()
-                        spectrum.Write(spectrum.GetName())
-                        outputfile.Close()
-
-def main():
-        if len(sys.argv) < 2:
-                Usage()
-                sys.exit(1)
-
-        filename = sys.argv[len(sys.argv) - 1]
-        
-        try:
-                opt, arg = getopt.getopt(sys.argv[1:], "e:mno:p:rsw", ["emcal=","help","minbias","nocuts","outputfile=","plotname=","standardcuts","pileupreject","withpileup"])
+                opt, arg = getopt.getopt(arglist, "e:mno:p:rsw", ["emcal=","help","minbias","nocuts","outputfile=","plotname=","standardcuts","pileupreject","withpileup"])
         except getopt.GetoptError as e:
                 print "Invalid argument(s)"
                 print str(e)
@@ -190,7 +162,54 @@ def main():
                 elif o in ("-w", "-withpileup"):
                         options["eventselection"] = "nopr"
 
-        launch(filename, options)
+        try:
+                speclist = ReadFromFile(filename, options);
+        except FileReaderException as e:
+                print str(e)
+                sys.exit(1)
+        except HistNotFoundException as e:
+                print str(e)
+                sys.exit(1)
+
+        nevents = 0
+        if options["eventselection"] == "nopr":
+                nevents = speclist["EventCounter"].GetBinContent(1)
+        else:
+                nevents = speclist["EventCounter"].GetBinContent(2)
+
+        spectrum = speclist["Spectrum"].ProjectionY("rawspectrum")
+        spectrum.Sumw2()
+        spectrum.Scale(1./nevents)
+        NormaliseBinWidth(spectrum)
+
+        plot = MakePlot(spectrum, options)
+        if len(options["plotfile"]):
+                plot.SaveAs(options["plotfile"])
+        if len(options["outputfile"]):
+                outputfile = TFile(options["outputfile"], "RECREATE")
+                if outputfile:
+                        outputfile.cd()
+                        spectrum.Write(spectrum.GetName())
+                        outputfile.Close()
+
+def run(filename,argstring):
+        """
+        Run plotting in interactive mode.
+        """
+        arglist = argstring.split(" ")
+        launch(filename, arglist)
+
+def main():
+        """
+        Run plotting in batch mode.
+        """
+        if len(sys.argv) < 2:
+                Usage()
+                sys.exit(1)
+
+        filename = sys.argv[len(sys.argv) - 1]
+        
+        launch(filename, sys.argv[1:])
 
 if __name__ == "__main__":
         main()
