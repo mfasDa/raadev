@@ -28,81 +28,81 @@ templateClassImp(EMCalTriggerPtAnalysis::AliCutValueRange)
 
 namespace EMCalTriggerPtAnalysis {
 
-        //______________________________________________________________________________
-        template<typename t>
-        AliCutValueRange<t>::AliCutValueRange():
-                fNegate(false)
-        {
-                /*
-                 * Dummy constructor, producing a range open to both sides
-                 */
-                fHasLimit[0] = fHasLimit[1] = false;
-        }
+	//______________________________________________________________________________
+	template<typename t>
+	AliCutValueRange<t>::AliCutValueRange():
+	fNegate(false)
+	{
+		/*
+		 * Dummy constructor, producing a range open to both sides
+		 */
+		fHasLimit[0] = fHasLimit[1] = false;
+	}
 
-        //______________________________________________________________________________
-        template<typename t>
-        AliCutValueRange<t>::AliCutValueRange(t min, t max):
-                fNegate(false)
-        {
-                /*
-                 * Constructor, producing a range closed to both sides
-                 *
-                 * @param min: lower limit
-                 * @param max: upper limit
-                 */
-                fLimits[0] = min;
-                fLimits[1] = max;
-                fHasLimit[0] = fHasLimit[1] = true;
-        }
+	//______________________________________________________________________________
+	template<typename t>
+	AliCutValueRange<t>::AliCutValueRange(t min, t max):
+	fNegate(false)
+	{
+		/*
+		 * Constructor, producing a range closed to both sides
+		 *
+		 * @param min: lower limit
+		 * @param max: upper limit
+		 */
+		fLimits[0] = min;
+		fLimits[1] = max;
+		fHasLimit[0] = fHasLimit[1] = true;
+	}
 
-        //______________________________________________________________________________
-        template<typename t>
-        AliCutValueRange<t>::AliCutValueRange(t limit, bool isUpper):
-                fNegate(false)
-        {
-                /*
-                 * Constructor, producing a range closed to both sides
-                 *
-                 * @param limit: the limit to be set
-                 * @param isUpper: defining whether the limit is the upper (case true) or lower limit
-                 */
-                if(isUpper){
-                        fLimits[1] = limit;
-                        fHasLimit[0] = false;
-                        fHasLimit[1] = true;
-                } else {
-                        fLimits[0] = limit;
-                        fHasLimit[0] = true;
-                        fHasLimit[1] = false;
-                }
-        }
+	//______________________________________________________________________________
+	template<typename t>
+	AliCutValueRange<t>::AliCutValueRange(t limit, bool isUpper):
+	fNegate(false)
+	{
+		/*
+		 * Constructor, producing a range closed to both sides
+		 *
+		 * @param limit: the limit to be set
+		 * @param isUpper: defining whether the limit is the upper (case true) or lower limit
+		 */
+		if(isUpper){
+			fLimits[1] = limit;
+			fHasLimit[0] = false;
+			fHasLimit[1] = true;
+		} else {
+			fLimits[0] = limit;
+			fHasLimit[0] = true;
+			fHasLimit[1] = false;
+		}
+	}
 
-        //______________________________________________________________________________
-        template<typename t>
-        bool AliCutValueRange<t>::IsInRange(t value) const {
-                /*
-                 * Check whether value is within a given range
-                 *
-                 * @param value: value to be checked
-                 * @return: comparison result
-                 */
-                bool result = true;
-                if(fHasLimit[0] && fHasLimit[1]){
-                        // Double-sided limited
-                        result = fNegate ? (value < fLimits[0] || value > fLimits[1]) : (value > fLimits[0] && value < fLimits[1]);
-                } else if(fHasLimit[1]) {
-                        // only upper bound
-                        result = fNegate ? (value > fLimits[1]) : (value < fLimits[1]);
-                } else if(fHasLimit[0]){
-                        // only lower bound
-                        result = fNegate ? (value < fLimits[0]) : (value > fLimits[0]);
-                }
-                return result;
-        }
+	//______________________________________________________________________________
+	template<typename t>
+	bool AliCutValueRange<t>::IsInRange(t value) const {
+		/*
+		 * Check whether value is within a given range
+		 *
+		 * @param value: value to be checked
+		 * @return: comparison result
+		 */
+		bool result = true;
+		if(fHasLimit[0] && fHasLimit[1]){
+			// Double-sided limited
+			result = fNegate ? (value < fLimits[0] || value > fLimits[1]) : (value > fLimits[0] && value < fLimits[1]);
+		} else if(fHasLimit[1]) {
+			// only upper bound
+			result = fNegate ? (value > fLimits[1]) : (value < fLimits[1]);
+		} else if(fHasLimit[0]){
+			// only lower bound
+			result = fNegate ? (value < fLimits[0]) : (value > fLimits[0]);
+		}
+		return result;
+	}
 
-        template class AliCutValueRange<int>;
-        template class AliCutValueRange<double>;
-        template class AliCutValueRange<float>;
+	template class AliCutValueRange<int>;
+	template class AliCutValueRange<double>;
+	template class AliCutValueRange<float>;
 
 }
 
