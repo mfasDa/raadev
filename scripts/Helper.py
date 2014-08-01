@@ -16,13 +16,13 @@ class FileReaderException(Exception):
                 Constructor, assigning the name of the file which 
                 failed to be read.
                 """
-                self.__filename == filename
+                self.filename = filename
 
         def __str__(self):
                 """
                 Create string representation of the error message
                 """
-                return "Could not open file %s" %(self.__filename)
+                return "Could not open file %s" %(self.filename)
 
 class HistNotFoundException(Exception):
         """
@@ -35,13 +35,13 @@ class HistNotFoundException(Exception):
                 Constructor, assigning the name of the histogram
                 which was not found.
                 """
-                self.__histname = histname
+                self.histname = histname
 
         def __str__(self):
                 """
                 Create string representation of the error message
                 """
-                return "Histogram %s not found" %(self.__histname)
+                return "Histogram %s not found" %(self.histname)
 
 def NormaliseBinWidth(hist):
         """
