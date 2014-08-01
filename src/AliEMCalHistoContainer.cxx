@@ -277,26 +277,15 @@ namespace EMCalTriggerPtAnalysis {
 			throw HistoContainerContentException(hname.Data(), dirname.Data(), HistoContainerContentException::kHistDuplicationException);
 		TArrayD xmin(ndim), xmax(ndim);
 		TArrayI nbins(ndim);
-		std::vector<TArrayD> binEdges;
 		for(int idim = 0; idim < ndim; ++idim){
 			TAxis &myaxis = *(axes[idim]);
 			nbins[idim] = myaxis.GetNbins();
 			xmin[idim] = myaxis.GetXmin();
 			xmax[idim] = myaxis.GetXmax();
-			TArrayD binning(nbins[idim] + 1);
-			for(int ib = 0; ib < nbins[idim]; ++ib)
-				binning[ib] = myaxis.GetBinLowEdge(ib);
-			binning[nbins[idim]] = myaxis.GetBinUpEdge(nbins[idim]-1);
-			binEdges[idim] = binning;
 		}
 		THnSparseD *hsparse = new THnSparseD(hname.Data(), title, ndim, nbins.GetArray(), xmin.GetArray(), xmax.GetArray());
-		for(int id = 0; id < ndim; ++id){
-			TArrayD binning = binEdges[id];
-			hsparse->SetBinEdges(id, binning.GetArray());
-			if(strlen(axes[id]->GetTitle())){
-				hsparse->GetAxis(id)->SetTitle(axes[id]->GetTitle());
-			}
-		}
+		for(int id = 0; id < ndim; ++id)
+			*(hsparse->GetAxis(id)) = *(axes[id]);
 		parent->Add(hsparse);
 	}
 

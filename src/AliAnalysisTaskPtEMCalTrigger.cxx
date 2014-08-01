@@ -103,13 +103,22 @@ namespace EMCalTriggerPtAnalysis {
 		CreateDefaultPtBinning(ptbinning);
 		CreateDefaultZVertexBinning(zvertexBinning);
 		std::map<std::string, std::string> triggerCombinations;
+		const char *triggernames[6] = {"MinBias", "EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow", "NoEMCal"};
+		TAxis *triggeraxis[5]; memset(triggeraxis, 0, sizeof(TAxis *) * 5);
+		for(int itrg = 0; itrg < 5; ++itrg){
+			TAxis &dimaxis = *(triggeraxis[itrg] = new TAxis(2, -0.5, 1.5));
+			dimaxis.SetName(triggernames[itrg]);
+			dimaxis.SetTitle(triggernames[itrg]);
+			dimaxis.SetBinLabel(1, "OFF");
+			dimaxis.SetBinLabel(2, "ON");
+		}
 		// Define names and titles for different triggers in the histogram container
-		triggerCombinations.insert(std::pair<std::string,std::string>("MinBias", "min. bias events"));
-		triggerCombinations.insert(std::pair<std::string,std::string>("EMCJLow", "jet-triggered events (low threshold)"));
-		triggerCombinations.insert(std::pair<std::string,std::string>("EMCJHigh", "jet-triggered events (high threshold)"));
-		triggerCombinations.insert(std::pair<std::string,std::string>("EMCGLow", "jet-triggered events (low threshold)"));
-		triggerCombinations.insert(std::pair<std::string,std::string>("EMCGHigh", "jet-triggered events (high threshold)"));
-		triggerCombinations.insert(std::pair<std::string,std::string>("NoEMCal", "non-EMCal-triggered events (low threshold)"));
+		triggerCombinations.insert(std::pair<std::string,std::string>(triggernames[0], "min. bias events"));
+		triggerCombinations.insert(std::pair<std::string,std::string>(triggernames[1], "jet-triggered events (high threshold)"));
+		triggerCombinations.insert(std::pair<std::string,std::string>(triggernames[2], "jet-triggered events (low threshold)"));
+		triggerCombinations.insert(std::pair<std::string,std::string>(triggernames[3], "jet-triggered events (high threshold)"));
+		triggerCombinations.insert(std::pair<std::string,std::string>(triggernames[4], "jet-triggered events (low threshold)"));
+		triggerCombinations.insert(std::pair<std::string,std::string>(triggernames[5], "non-EMCal-triggered events (low threshold)"));
 		try{
 			for(std::map<std::string,std::string>::iterator it = triggerCombinations.begin(); it != triggerCombinations.end(); ++it){
 				const std::string name = it->first, &title = it->second;
@@ -130,11 +139,15 @@ namespace EMCalTriggerPtAnalysis {
 				// Histograms for events without pileup rejection and without cuts
 				fHistos->CreateTH2(Form("hPt%s_failpr_stdcut", name.c_str()), Form("Pt distribution in %s which fail the pileup rejection with standard track cuts", title.c_str()), zvertexBinning, ptbinning);
 			}
+
+			fHistos->CreateTHnSparse("hEventTriggers", "Trigger type per event", 5, triggeraxis);
 		} catch (HistoContainerContentException &e){
 			std::stringstream errormessage;
 			errormessage << "Creation of histogram failed: " << e.what();
 			AliError(errormessage.str().c_str());
 		}
+		for(int id = 0; id < 5; id++)
+			if(triggeraxis[id]) delete triggeraxis[id];
 		fResults->Add(fHistos->GetListOfHistograms());
 		if(fTrackSelection) fResults->Add(fTrackSelection);
 
@@ -156,15 +169,32 @@ namespace EMCalTriggerPtAnalysis {
 		if(!(vtxTracks && vtxSPD)) return;
 		if(vtxTracks->GetNContributors() < 1 || vtxSPD->GetNContributors() < 1) return;
 
+		double triggers[5]; memset(triggers, 0, sizeof(double) *5);
+		if(fInputHandler->IsEventSelected() & AliVEvent::kINT7)
+			triggers[0] = 1.;
+
 		std::vector<std::string> triggerstrings;
 		if(fInputHandler->IsEventSelected() & AliVEvent::kEMC7){
 			// EMCal-triggered event, distinguish types
 			TString trgstr(fInputEvent->GetFiredTriggerClasses());
-			if(trgstr.Contains("EJ1")) triggerstrings.push_back("EMCJHigh");
-			if(trgstr.Contains("EJ1")) triggerstrings.push_back("EMCJLow");
-			if(trgstr.Contains("EG1")) triggerstrings.push_back("EMCGHigh");
-			if(trgstr.Contains("EG2")) triggerstrings.push_back("EMCGLow");
+			if(trgstr.Contains("EJ1")){
+				triggerstrings.push_back("EMCJHigh");
+				triggers[1] = 1;
+			}
+			if(trgstr.Contains("EJ1")){
+				triggerstrings.push_back("EMCJLow");
+				triggers[2] = 1;
+			}
+			if(trgstr.Contains("EG1")){
+				triggerstrings.push_back("EMCGHigh");
+				triggers[3] = 1;
+			}
+			if(trgstr.Contains("EG2")){
+				triggerstrings.push_back("EMCGLow");
+				triggers[4] = 1;
+			}
 		}
+		fHistos->FillTHnSparse("hEventTriggers", triggers);
 
 		// apply event selection: Combine the Pileup cut from SPD with the other pA Vertex selection cuts.
 		bool isPileupEvent = esd->IsPileupFromSPD();
