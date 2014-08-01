@@ -32,6 +32,8 @@ SRCS := $(SRCS)
 OBJS := $(SRCS:.cxx=.o) G__$(PACKAGE).o
 PARFILE = $(PACKAGE).par
 
+all: default-target
+
 default-target: lib$(PACKAGE).so
 
 lib$(PACKAGE).so: $(OBJS)
@@ -45,6 +47,7 @@ else
 	@$(LD) $(SOFLAGS) $(LDFLAGS) $^ -o $@
 endif
 	@chmod a+x $@
+	@rm src/*.o G__$(PACKAGE).*
 	@echo "done"
 
 %.o:    %.cxx %.h
