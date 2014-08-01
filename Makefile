@@ -62,9 +62,6 @@ G__$(PACKAGE).h: ;
 # Creating a PAR file
 $(PARFILE): $(patsubst %,$(PACKAGE)/%,$(filter-out G__%, $(HDRS) $(SRCS) $(DHDR) Makefile Makefile.arch libRAATrigger.pkg src/RAATriggerLinkDef.h PROOF-INF))
 	@echo "Creating archive" $@ ...
-#	@cat libPWG3hfe.pkg | sed -e 's/hfe\///g' >> $(PACKAGE)/libPWG3hfe.pkg
-#	@mv $(PACKAGE)/hfe/* $(PACKAGE)/
-#	@rm -rf $(PACKAGE)/hfe
 	@tar cfzh $@ $(PACKAGE)
 	@rm -rf $(PACKAGE)
 	@echo "done"
