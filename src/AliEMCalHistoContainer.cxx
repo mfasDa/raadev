@@ -17,6 +17,7 @@
  * Container class for histogram objects. Currenly can handle
  *   TH1
  *   TH2
+ *   TH3
  *   THnSparse
  * Histograms can be stored in groups. For this the parent group is 
  * included inside the histogram name, i.e. /base/inheriting/histogram.
