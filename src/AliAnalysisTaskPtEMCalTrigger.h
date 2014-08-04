@@ -38,8 +38,9 @@ public:
 private:
 	AliAnalysisTaskPtEMCalTrigger(const AliAnalysisTaskPtEMCalTrigger &);
 	AliAnalysisTaskPtEMCalTrigger &operator=(const AliAnalysisTaskPtEMCalTrigger &);
-	void CreateDefaultPtBinning(TArrayD &binning);
-	void CreateDefaultZVertexBinning(TArrayD &binning);
+	void CreateDefaultPtBinning(TArrayD &binning) const;
+	void CreateDefaultZVertexBinning(TArrayD &binning) const;
+	void CreateDefaultEtaBinning(TArrayD &binning) const;
 
 	TList                         *fResults;              //! container for results
 	AliEMCalHistoContainer        *fHistos;               //! Histogram container for the task
