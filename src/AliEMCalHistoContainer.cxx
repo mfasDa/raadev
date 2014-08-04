@@ -30,8 +30,9 @@
 #include <vector>
 #include <TArrayD.h>
 #include <TAxis.h>
-#include <TH1D.h>
-#include <TH2D.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TH3.h>
 #include <THnSparse.h>
 #include <THashList.h>
 #include <TObjArray.h>
@@ -122,7 +123,7 @@ namespace EMCalTriggerPtAnalysis {
 	}
 
 	//______________________________________________________________________________
-	void AliEMCalHistoContainer::CreateTH1(const char *name, const char *title, int nbins, double *xbins) throw(HistoContainerContentException){
+	void AliEMCalHistoContainer::CreateTH1(const char *name, const char *title, int nbins, const double *xbins) throw(HistoContainerContentException){
 		/*
 		 * Create a new TH1 within the container. The histogram name also contains the parent group(s) according to the common
 		 * group notation.
@@ -143,7 +144,7 @@ namespace EMCalTriggerPtAnalysis {
 	}
 
 	//______________________________________________________________________________
-	void AliEMCalHistoContainer::CreateTH1(const char *name, const char *title, TArrayD &xbins) throw(HistoContainerContentException){
+	void AliEMCalHistoContainer::CreateTH1(const char *name, const char *title, const TArrayD &xbins) throw(HistoContainerContentException){
 		/*
 		 * Create a new TH1 within the container. The histogram name also contains the parent group(s) according to the common
 		 * group notation.
@@ -176,7 +177,7 @@ namespace EMCalTriggerPtAnalysis {
 		 * @param xmax: max. value of the range in x-direction
 		 * @param nbinsy: number of bins in y-direction
 		 * @param ymin: min. value of the range in y-direction
-		 * @param ymax: max. value of the range in x-direction
+		 * @param ymax: max. value of the range in y-direction
 		 * @throw HistoContainerContentException
 		 */
 		TString dirname(basename(name)), hname(histname(name));
@@ -190,7 +191,7 @@ namespace EMCalTriggerPtAnalysis {
 
 	//______________________________________________________________________________
 	void AliEMCalHistoContainer::CreateTH2(const char *name, const char *title,
-			int nbinsx, double *xbins, int nbinsy, double *ybins) throw(HistoContainerContentException){
+			int nbinsx, const double *xbins, int nbinsy, const double *ybins) throw(HistoContainerContentException){
 		/*
 		 * Create a new TH2 within the container. The histogram name also contains the parent group(s) according to the common
 		 * group notation.
@@ -213,7 +214,7 @@ namespace EMCalTriggerPtAnalysis {
 	}
 
 	//______________________________________________________________________________
-	void AliEMCalHistoContainer::CreateTH2(const char *name, const char *title, TArrayD &xbins, TArrayD &ybins) throw(HistoContainerContentException){
+	void AliEMCalHistoContainer::CreateTH2(const char *name, const char *title, const TArrayD &xbins, const TArrayD &ybins) throw(HistoContainerContentException){
 		/*
 		 * Create a new TH2 within the container. The histogram name also contains the parent group(s) according to the common
 		 * group notation.
@@ -234,8 +235,84 @@ namespace EMCalTriggerPtAnalysis {
 	}
 
 	//______________________________________________________________________________
+	void AliEMCalHistoContainer::CreateTH3(const char* name, const char* title, int nbinsx, double xmin, double xmax,
+			int nbinsy, double ymin, double ymax, int nbinsz, double zmin, double zmax) throw (HistoContainerContentException) {
+		/*
+		 * Create a new TH3 within the container. The histogram name also contains the parent group(s) according to the common
+		 * group notation.
+		 *
+		 * @param nbinsx: number of bins in x-direction
+		 * @param xmin: min. value of the range in x-direction
+		 * @param xmax: max. value of the range in x-direction
+		 * @param nbinsy: number of bins in y-direction
+		 * @param ymin: min. value of the range in y-direction
+		 * @param ymax: max. value of the range in y-direction
+		 * @param nbinsz: number of bins in z-direction
+		 * @param zmin: min. value of the range in z-direction
+		 * @param zmax: max. value of the range in z-direction
+		 * @throw HistoContainerContentException
+		 */
+		TString dirname(basename(name)), hname(histname(name));
+		THashList *parent(FindGroup(dirname.Data()));
+		if(!parent)
+			throw HistoContainerContentException(NULL, dirname.Data(), HistoContainerContentException::kGroupException);
+		if(parent->FindObject(hname.Data()))
+			throw HistoContainerContentException(hname.Data(), dirname.Data(), HistoContainerContentException::kHistDuplicationException);
+		parent->Add(new TH3D(hname.Data(), title, nbinsx, xmin, xmax, nbinsy, ymin, ymax, nbinsz, zmin, zmax));
+	}
+
+	//______________________________________________________________________________
+	void AliEMCalHistoContainer::CreateTH3(const char* name, const char* title, int nbinsx, const double* xbins,
+			int nbinsy, const double* ybins, int nbinsz, const double* zbins) throw (HistoContainerContentException) {
+		/*
+		 * Create a new TH3 within the container. The histogram name also contains the parent group(s) according to the common
+		 * group notation.
+		 *
+		 * @param name: Name of the histogram
+		 * @param title: Title of the histogram
+		 * @param nbinsx: number of bins in x-direction
+		 * @param xbins: array of bin limits in x-direction
+		 * @param nbinsy: number of bins in y-direction
+		 * @param ybins: array of bin limits in y-direction
+		 * @param nbinsz: number of bins in z-direction
+		 * @param zbins: array of bin limits in z-direction
+		 * @throw HistoContainerContentException
+		 */
+		TString dirname(basename(name)), hname(histname(name));
+		THashList *parent(FindGroup(dirname.Data()));
+		if(!parent)
+			throw HistoContainerContentException(NULL, dirname.Data(), HistoContainerContentException::kGroupException);
+		if(parent->FindObject(hname.Data()))
+			throw HistoContainerContentException(hname.Data(), dirname.Data(), HistoContainerContentException::kHistDuplicationException);
+		parent->Add(new TH3D(hname.Data(), title, nbinsx, xbins, nbinsy, ybins, nbinsz, zbins));
+	}
+
+	//______________________________________________________________________________
+	void AliEMCalHistoContainer::CreateTH3(const char* name, const char* title, const TArrayD& xbins, const TArrayD& ybins,
+			const TArrayD& zbins) throw (HistoContainerContentException) {
+		/*
+		 * Create a new TH3 within the container. The histogram name also contains the parent group(s) according to the common
+		 * group notation.
+		 *
+		 * @param name: Name of the histogram
+		 * @param title: Title of the histogram
+		 * @param xbins: array of bin limits in x-direction (contains also the number of bins)
+		 * @param ybins: array of bin limits in y-direction (contains also the number of bins)
+		 * @param zbins: array of bin limits in z-direction (contains also the number of bins)
+		 * @throw HistoContainerContentException
+		 */
+		TString dirname(basename(name)), hname(histname(name));
+		THashList *parent(FindGroup(dirname.Data()));
+		if(!parent)
+			throw HistoContainerContentException(NULL, dirname.Data(), HistoContainerContentException::kGroupException);
+		if(parent->FindObject(hname.Data()))
+			throw HistoContainerContentException(hname.Data(), dirname.Data(), HistoContainerContentException::kHistDuplicationException);
+		parent->Add(new TH3D(hname.Data(), title, xbins.GetSize()-1, xbins.GetArray(), ybins.GetSize()-1, ybins.GetArray(), zbins.GetSize()-1, zbins.GetArray()));
+	}
+
+	//______________________________________________________________________________
 	void AliEMCalHistoContainer::CreateTHnSparse(const char *name, const char *title,
-			int ndim, int *nbins, double *min, double *max) throw(HistoContainerContentException){
+			int ndim, const int *nbins, const double *min, const double *max) throw(HistoContainerContentException){
 		/*
 		 * Create a new THnSparse within the container. The histogram name also contains the parent group(s) according to the common
 		 * group notation.
@@ -258,7 +335,7 @@ namespace EMCalTriggerPtAnalysis {
 	}
 
 	//______________________________________________________________________________
-	void AliEMCalHistoContainer::CreateTHnSparse(const char *name, const char *title, int ndim, TAxis **axes) throw(HistoContainerContentException){
+	void AliEMCalHistoContainer::CreateTHnSparse(const char *name, const char *title, int ndim, const TAxis **axes) throw(HistoContainerContentException){
 		/*
 		 * Create a new THnSparse within the container. The histogram name also contains the parent group(s) according to the common
 		 * group notation.
@@ -278,7 +355,7 @@ namespace EMCalTriggerPtAnalysis {
 		TArrayD xmin(ndim), xmax(ndim);
 		TArrayI nbins(ndim);
 		for(int idim = 0; idim < ndim; ++idim){
-			TAxis &myaxis = *(axes[idim]);
+			const TAxis &myaxis = *(axes[idim]);
 			nbins[idim] = myaxis.GetNbins();
 			xmin[idim] = myaxis.GetXmin();
 			xmax[idim] = myaxis.GetXmax();
@@ -310,7 +387,7 @@ namespace EMCalTriggerPtAnalysis {
 	//______________________________________________________________________________
 	void AliEMCalHistoContainer::FillTH1(const char *name, double x, double weight) throw(HistoContainerContentException){
 		/*
-		 * Fill a  1D histogram within the container. The histogram name also contains the parent group(s) according to the common
+		 * Fill a 1D histogram within the container. The histogram name also contains the parent group(s) according to the common
 		 * group notation.
 		 *
 		 * @param name: Name of the histogram
@@ -331,7 +408,7 @@ namespace EMCalTriggerPtAnalysis {
 	//______________________________________________________________________________
 	void AliEMCalHistoContainer::FillTH2(const char *name, double x, double y, double weight) throw(HistoContainerContentException){
 		/*
-		 * Fill a  2D histogram within the container. The histogram name also contains the parent group(s) according to the common
+		 * Fill a 2D histogram within the container. The histogram name also contains the parent group(s) according to the common
 		 * group notation.
 		 *
 		 * @param name: Name of the histogram
@@ -353,7 +430,7 @@ namespace EMCalTriggerPtAnalysis {
 	//______________________________________________________________________________
 	void AliEMCalHistoContainer::FillTH2(const char *name, double *point, double weight) throw(HistoContainerContentException){
 		/*
-		 * Fill a  2D histogram within the container. The histogram name also contains the parent group(s) according to the common
+		 * Fill a 2D histogram within the container. The histogram name also contains the parent group(s) according to the common
 		 * group notation.
 		 *
 		 * @param name: Name of the histogram
@@ -372,7 +449,43 @@ namespace EMCalTriggerPtAnalysis {
 	}
 
 	//______________________________________________________________________________
-	void AliEMCalHistoContainer::FillTHnSparse(const char *name, double *x, double weight) throw(HistoContainerContentException){
+	void AliEMCalHistoContainer::FillTH3(const char* name, double x, double y, double z, double weight) throw (HistoContainerContentException) {
+		/*
+		 * Fill a 3D histogram within the container. The histogram name also contains the parent group(s) according to the common
+		 * group notation.
+		 *
+		 * @param name: Name of the histogram
+		 * @param x: x-coordinate
+		 * @param y: y-coordinate
+		 * @param z: z-coordinate
+		 * @param weight (@default 1): optional weight of the entry
+		 * @throw HistoContainerContentException
+		 */
+		TString dirname(basename(name)), hname(histname(name));
+		THashList *parent(FindGroup(dirname.Data()));
+		if(!parent)
+			throw HistoContainerContentException(NULL, dirname.Data(), HistoContainerContentException::kGroupException);
+		TH3 *hist = dynamic_cast<TH3 *>(parent->FindObject(hname.Data()));
+		if(!hist)
+			throw HistoContainerContentException(hname.Data(), dirname.Data(), HistoContainerContentException::kHistNotFoundException);
+		hist->Fill(x, y, z, weight);
+	}
+
+	//______________________________________________________________________________
+	void AliEMCalHistoContainer::FillTH3(const char* name, const double* point, double weight) throw (HistoContainerContentException) {
+		TString dirname(basename(name)), hname(histname(name));
+		THashList *parent(FindGroup(dirname.Data()));
+		if(!parent)
+			throw HistoContainerContentException(NULL, dirname.Data(), HistoContainerContentException::kGroupException);
+		TH3 *hist = dynamic_cast<TH3 *>(parent->FindObject(hname.Data()));
+		if(!hist)
+			throw HistoContainerContentException(hname.Data(), dirname.Data(), HistoContainerContentException::kHistNotFoundException);
+		hist->Fill(point[0], point[1], point[2], weight);
+	}
+
+
+	//______________________________________________________________________________
+	void AliEMCalHistoContainer::FillTHnSparse(const char *name, const double *x, double weight) throw(HistoContainerContentException){
 		/*
 		 * Fill a  nD histogram within the container. The histogram name also contains the parent group(s) according to the common
 		 * group notation.

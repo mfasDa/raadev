@@ -104,13 +104,15 @@ namespace EMCalTriggerPtAnalysis {
 		CreateDefaultZVertexBinning(zvertexBinning);
 		std::map<std::string, std::string> triggerCombinations;
 		const char *triggernames[6] = {"MinBias", "EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow", "NoEMCal"};
-		TAxis *triggeraxis[5]; memset(triggeraxis, 0, sizeof(TAxis *) * 5);
+		const TAxis *triggeraxis[5]; memset(triggeraxis, 0, sizeof(const TAxis *) * 5);
+		TAxis *myaxis(NULL);
 		for(int itrg = 0; itrg < 5; ++itrg){
-			TAxis &dimaxis = *(triggeraxis[itrg] = new TAxis(2, -0.5, 1.5));
-			dimaxis.SetName(triggernames[itrg]);
-			dimaxis.SetTitle(triggernames[itrg]);
-			dimaxis.SetBinLabel(1, "OFF");
-			dimaxis.SetBinLabel(2, "ON");
+			myaxis = new TAxis(2, -0.5, 1.5);
+			myaxis->SetName(triggernames[itrg]);
+			myaxis->SetTitle(triggernames[itrg]);
+			myaxis->SetBinLabel(1, "OFF");
+			myaxis->SetBinLabel(2, "ON");
+			triggeraxis[itrg] = myaxis;
 		}
 		// Define names and titles for different triggers in the histogram container
 		triggerCombinations.insert(std::pair<std::string,std::string>(triggernames[0], "min. bias events"));
