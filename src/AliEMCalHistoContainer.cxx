@@ -44,7 +44,6 @@
 
 #include "AliEMCalHistoContainer.h"
 
-//ClassImp(AliEMCalHistoContainer)
 ClassImp(EMCalTriggerPtAnalysis::AliEMCalHistoContainer)
 
 namespace EMCalTriggerPtAnalysis {
