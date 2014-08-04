@@ -43,6 +43,26 @@ class HistNotFoundException(Exception):
                 """
                 return "Histogram %s not found" %(self.histname)
 
+class Style:
+        """ 
+        Class for plot styles (currently only color and marker)
+        """
+        def __init__(self, color, marker):
+                self.__color = color
+                self.__marker = marker
+
+        def SetColor(self, color):
+                self.__color = color
+
+        def SetMarker(self, marker):
+                self.__marker = marker
+
+        def GetColor(self):
+                return self.__color
+
+        def GetMarker(self):
+                return self.__marker
+
 def NormaliseBinWidth(hist):
         """
         Normalise each bin by its width

@@ -4,29 +4,10 @@ from copy import deepcopy
 from getopt import getopt, GetoptError
 from ROOT import TCanvas,TFile,TH1F,TLegend,TPaveText
 from ROOT import gROOT,kRed,kGreen,kBlack,kBlue,kOrange
-from Helper import FileReaderException,HistNotFoundException,NormaliseBinWidth
+from Helper import FileReaderException,HistNotFoundException,Style,NormaliseBinWidth
 
 gObjects = list()
 
-class Style:
-        """ 
-        Class for plot styles (currently only color and marker)
-        """
-        def __init__(self, color, marker):
-                self.__color = color
-                self.__marker = marker
-
-        def SetColor(self, color):
-                self.__color = color
-
-        def SetMarker(self, marker):
-                self.__marker = marker
-
-        def GetColor(self):
-                return self.__color
-
-        def GetMarker(self):
-                return self.__marker
 
 def ReadHistograms(filename, trigger, cuts, pr):
         """
