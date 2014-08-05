@@ -206,7 +206,13 @@ namespace EMCalTriggerPtAnalysis {
 				triggers[4] = 1;
 			}
 		}
-		fHistos->FillTHnSparse("hEventTriggers", triggers);
+		try{
+			fHistos->FillTHnSparse("hEventTriggers", triggers);
+		} catch (HistoContainerContentException &e){
+			std::stringstream errormessage;
+			errormessage << "Filling of histogram failed: " << e.what();
+			AliError(errormessage.str().c_str());
+		}
 
 		// apply event selection: Combine the Pileup cut from SPD with the other pA Vertex selection cuts.
 		bool isPileupEvent = esd->IsPileupFromSPD();
@@ -393,9 +399,21 @@ namespace EMCalTriggerPtAnalysis {
 		 */
 		char histname[1024];
 		sprintf(histname, "hEventHist%s", trigger);
-		fHistos->FillTH2(histname, vz, 0);
+		try{
+			fHistos->FillTH2(histname, vz, 0);
+		} catch (HistoContainerContentException &e){
+			std::stringstream errormessage;
+			errormessage << "Filling of histogram failed: " << e.what();
+			AliError(errormessage.str().c_str());
+		}
 		if(!isPileup){
-			fHistos->FillTH2(histname, vz, 1);
+			try{
+				fHistos->FillTH2(histname, vz, 1);
+			} catch(HistoContainerContentException &e){
+				std::stringstream errormessage;
+				errormessage << "Filling of histogram failed: " << e.what();
+				AliError(errormessage.str().c_str());
+			}
 		}
 	}
 
@@ -414,10 +432,22 @@ namespace EMCalTriggerPtAnalysis {
 		double data[6] = {track->Pt(), track->Eta(), track->Phi(), vz, 0, cut};
 		char histname[1024];
 		sprintf(histname, "hTrackHist%s", trigger);
-		fHistos->FillTHnSparse(histname, data);
+		try{
+			fHistos->FillTHnSparse(histname, data);
+		} catch (HistoContainerContentException &e){
+			std::stringstream errormessage;
+			errormessage << "Filling of histogram failed: " << e.what();
+			AliError(errormessage.str().c_str());
+		}
 		if(!isPileup){
 			data[4] = 1;
-			fHistos->FillTHnSparse(histname, data);
+			try{
+				fHistos->FillTHnSparse(histname, data);
+			} catch (HistoContainerContentException &e){
+				std::stringstream errormessage;
+				errormessage << "Filling of histogram failed: " << e.what();
+				AliError(errormessage.str().c_str());
+			}
 		}
 	}
 
