@@ -137,7 +137,7 @@ namespace EMCalTriggerPtAnalysis {
 		DefineAxis(htrackaxes[2], "phi", "#phi", 100, 0, 2 * TMath::Pi());
 		DefineAxis(htrackaxes[3], "zvertex", "z_{V} (cm)", zvertexBinning);
 		DefineAxis(htrackaxes[4], "pileup", "Pileup rejection", 2, -0.5, 1.5);
-		DefineAxis(htrackaxes[5], "trackcuts", "Track Cuts", 2, -0.5, 1.5);
+		DefineAxis(htrackaxes[5], "trackcuts", "Track Cuts", (fListTrackCuts ? fListTrackCuts->GetEntries() : 0) + 1, -0.5, (fListTrackCuts ? fListTrackCuts->GetEntries() : 0) + 0.5);
 		const TAxis *trackaxes[6];
 		for(int iaxis = 0; iaxis < 6; ++iaxis) trackaxes[iaxis] = htrackaxes + iaxis;
 		try{
@@ -157,8 +157,11 @@ namespace EMCalTriggerPtAnalysis {
 		fResults->Add(fHistos->GetListOfHistograms());
 		if(fListTrackCuts && fListTrackCuts->GetEntries()){
 			TIter cutIter(fListTrackCuts);
-			TObject *cutObject(NULL);
-			while((cutObject = cutIter())) fResults->Add(cutObject);
+			AliESDtrackCuts *cutObject(NULL);
+			while((cutObject = dynamic_cast<AliESDtrackCuts *>(cutIter()))){
+				cutObject->DefineHistograms();
+				fResults->Add(cutObject);
+			}
 		}
 		PostData(1, fResults);
 	}

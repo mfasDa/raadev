@@ -71,7 +71,7 @@ namespace EMCalTriggerPtAnalysis {
 		 * @param name: Name of the object (list named accordingly)
 		 */
 		fHistos = new THashList();
-		fHistos->SetName(Form("List of histograms of container %s", name));
+		fHistos->SetName(Form("histos%s", name));
 		fHistos->SetOwner();
 	}
 
