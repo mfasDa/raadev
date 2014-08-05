@@ -107,10 +107,9 @@ namespace EMCalTriggerPtAnalysis {
 		const TAxis *triggeraxis[5]; memset(triggeraxis, 0, sizeof(const TAxis *) * 5);
 		const char *binlabels[2] = {"OFF", "ON"};
 		TAxis mytrgaxis[5];
-		TAxis *myaxis(NULL);
 		for(int itrg = 0; itrg < 5; ++itrg){
 			DefineAxis(mytrgaxis[itrg], triggernames[itrg], triggernames[itrg], 2, -0.5, 1.5, binlabels);
-			triggeraxis[itrg] = myaxis+itrg;
+			triggeraxis[itrg] = mytrgaxis+itrg;
 		}
 		// Define names and titles for different triggers in the histogram container
 		triggerCombinations.insert(std::pair<std::string,std::string>(triggernames[0], "min. bias events"));
@@ -128,6 +127,7 @@ namespace EMCalTriggerPtAnalysis {
 		// 5. pileup (0 = all events, 1 = after pileup rejection)
 		// 6. track cuts (0 = no cuts; 1 = after std cuts)
 		TArrayD ptbinning, zvertexBinning, etabinning, pileupaxis(3);
+		pileupaxis[0] = -0.5; pileupaxis[1] = 0.5; pileupaxis[2] = 1.5;
 		CreateDefaultPtBinning(ptbinning);
 		CreateDefaultZVertexBinning(zvertexBinning);
 		CreateDefaultEtaBinning(etabinning);
@@ -148,7 +148,6 @@ namespace EMCalTriggerPtAnalysis {
 				// Create track-based histogram
 				fHistos->CreateTHnSparse(Form("hTrackHist%s", name.c_str()), Form("Track-based data for %s events", title.c_str()), 6, trackaxes);
 			}
-
 			fHistos->CreateTHnSparse("hEventTriggers", "Trigger type per event", 5, triggeraxis);
 		} catch (HistoContainerContentException &e){
 			std::stringstream errormessage;
@@ -161,7 +160,6 @@ namespace EMCalTriggerPtAnalysis {
 			TObject *cutObject(NULL);
 			while((cutObject = cutIter())) fResults->Add(cutObject);
 		}
-
 		PostData(1, fResults);
 	}
 
