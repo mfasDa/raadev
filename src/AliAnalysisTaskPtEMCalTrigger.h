@@ -9,7 +9,9 @@
 #include "AliCutValueRange.h"
 
 class TArrayD;
+class Axis;
 class TList;
+class AliESDtrack;
 class AliESDtrackCuts;
 
 namespace EMCalTriggerPtAnalysis {
@@ -33,7 +35,6 @@ public:
 
 	void SetTrackCuts(AliESDtrackCuts *trackCuts) { fTrackSelection = trackCuts; }
 	void SetEtaRange(double etamin, double etamax) { fEtaRange.SetLimits(etamin, etamax); }
-	void SetVertexZRange(double zmin, double zmax) { fVertexZRange.SetLimits(zmin, zmax); }
 
 private:
 	AliAnalysisTaskPtEMCalTrigger(const AliAnalysisTaskPtEMCalTrigger &);
@@ -41,6 +42,10 @@ private:
 	void CreateDefaultPtBinning(TArrayD &binning) const;
 	void CreateDefaultZVertexBinning(TArrayD &binning) const;
 	void CreateDefaultEtaBinning(TArrayD &binning) const;
+	void DefineAxis(TAxis &axis, const char *name, const char *title, const TArrayD &binning, const char **labels = NULL);
+	void DefineAxis(TAxis &axis, const char *name, const char *title, int nbins, double min, double max, const char **labels = NULL);
+	void FillEventHist(const char *trigger, double vz, bool isPileup);
+	void FillTrackHist(const char *trigger, const AliESDtrack *track, double vz, bool isPileup, int cut);
 
 	TList                         *fResults;              //! container for results
 	AliEMCalHistoContainer        *fHistos;               //! Histogram container for the task
@@ -48,7 +53,6 @@ private:
 
 	// Cuts
 	AliCutValueRange<double>      fEtaRange;              // Eta Selection Range
-	AliCutValueRange<double>      fVertexZRange;          // Z-Vertex selection range
 
 	ClassDef(AliAnalysisTaskPtEMCalTrigger, 1);           // Analysis of EMCal triggered events
 };

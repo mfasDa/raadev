@@ -32,6 +32,7 @@
 #include <THashList.h>
 #include <TKey.h>
 #include <TList.h>
+#include <TMath.h>
 #include <TObjArray.h>
 #include <TString.h>
 
@@ -73,7 +74,6 @@ namespace EMCalTriggerPtAnalysis {
 		DefineOutput(1, TList::Class());
 
 		// Set default cuts
-		fVertexZRange.SetLimits(-10, 10);
 		fEtaRange.SetLimits(-0.8, 0.8);
 
 	}
@@ -99,21 +99,16 @@ namespace EMCalTriggerPtAnalysis {
 		fHistos = new AliEMCalHistoContainer("PtEMCalTriggerHistograms");
 		fHistos->ReleaseOwner();
 
-		TArrayD ptbinning, zvertexBinning, etabinning;
-		CreateDefaultPtBinning(ptbinning);
-		CreateDefaultZVertexBinning(zvertexBinning);
-		CreateDefaultEtaBinning(etabinning);
 		std::map<std::string, std::string> triggerCombinations;
 		const char *triggernames[6] = {"MinBias", "EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow", "NoEMCal"};
+		// Define axes for the trigger correlation histogram
 		const TAxis *triggeraxis[5]; memset(triggeraxis, 0, sizeof(const TAxis *) * 5);
+		const char *binlabels[2] = {"OFF", "ON"};
+		TAxis mytrgaxis[5];
 		TAxis *myaxis(NULL);
 		for(int itrg = 0; itrg < 5; ++itrg){
-			myaxis = new TAxis(2, -0.5, 1.5);
-			myaxis->SetName(triggernames[itrg]);
-			myaxis->SetTitle(triggernames[itrg]);
-			myaxis->SetBinLabel(1, "OFF");
-			myaxis->SetBinLabel(2, "ON");
-			triggeraxis[itrg] = myaxis;
+			DefineAxis(mytrgaxis[itrg], triggernames[itrg], triggernames[itrg], 2, -0.5, 1.5, binlabels);
+			triggeraxis[itrg] = myaxis+itrg;
 		}
 		// Define names and titles for different triggers in the histogram container
 		triggerCombinations.insert(std::pair<std::string,std::string>(triggernames[0], "min. bias events"));
@@ -122,25 +117,34 @@ namespace EMCalTriggerPtAnalysis {
 		triggerCombinations.insert(std::pair<std::string,std::string>(triggernames[3], "jet-triggered events (high threshold)"));
 		triggerCombinations.insert(std::pair<std::string,std::string>(triggernames[4], "jet-triggered events (low threshold)"));
 		triggerCombinations.insert(std::pair<std::string,std::string>(triggernames[5], "non-EMCal-triggered events (low threshold)"));
+		// Define axes for the pt histogram
+		// Dimensions:
+		// 1. pt
+		// 2. eta
+		// 3. phi
+		// 4. vertex
+		// 5. pileup (0 = all events, 1 = after pileup rejection)
+		// 6. track cuts (0 = no cuts; 1 = after std cuts)
+		TArrayD ptbinning, zvertexBinning, etabinning, pileupaxis(3);
+		CreateDefaultPtBinning(ptbinning);
+		CreateDefaultZVertexBinning(zvertexBinning);
+		CreateDefaultEtaBinning(etabinning);
+		TAxis htrackaxes[6];
+		DefineAxis(htrackaxes[0], "pt", "p_{t} (GeV/c)", ptbinning);
+		DefineAxis(htrackaxes[1], "eta", "#eta", etabinning);
+		DefineAxis(htrackaxes[2], "phi", "#phi", 100, 0, 2 * TMath::Pi());
+		DefineAxis(htrackaxes[3], "zvertex", "z_{V} (cm)", zvertexBinning);
+		DefineAxis(htrackaxes[4], "pileup", "Pileup rejection", 2, -0.5, 1.5);
+		DefineAxis(htrackaxes[5], "trackcuts", "Track Cuts", 2, -0.5, 1.5);
+		const TAxis *trackaxes[6];
+		for(int iaxis = 0; iaxis < 6; ++iaxis) trackaxes[iaxis] = htrackaxes + iaxis;
 		try{
 			for(std::map<std::string,std::string>::iterator it = triggerCombinations.begin(); it != triggerCombinations.end(); ++it){
 				const std::string name = it->first, &title = it->second;
-				// Event counter
-				fHistos->CreateTH1(Form("hEvents%s", name.c_str()), Form("Event counter for %s", title.c_str()), 2, -0.5, 1.5);
-				// Vertex position
-				fHistos->CreateTH1(Form("hZVertex%s", name.c_str()), Form("Distribution of the z-vertex position in %s", title.c_str()), zvertexBinning);
-				// Histograms for events without pileup rejection and without cuts
-				fHistos->CreateTH3(Form("hPt%s_nopr_nocut", name.c_str()), Form("Pt distribution in %s without pileup rejection without track cuts", title.c_str()), zvertexBinning, ptbinning, etabinning);
-				// Histograms for events without pileup rejection and with stand
-				fHistos->CreateTH3(Form("hPt%s_nopr_stdcut", name.c_str()), Form("Pt distribution in %s without pileup rejection with standard track cuts", title.c_str()), zvertexBinning, ptbinning, etabinning);
-				// Histograms for events without pileup rejection and without cuts
-				fHistos->CreateTH3(Form("hPt%s_wpr_nocut", name.c_str()), Form("Pt distribution in %s with pileup rejection without track cuts", title.c_str()), zvertexBinning, ptbinning, etabinning);
-				// Histograms for events without pileup rejection and without cuts
-				fHistos->CreateTH3(Form("hPt%s_wpr_stdcut", name.c_str()), Form("Pt distribution in %s with pileup rejection with standard track cuts", title.c_str()), zvertexBinning, ptbinning, etabinning);
-				// Histograms for events without pileup rejection and without cuts
-				fHistos->CreateTH3(Form("hPt%s_failpr_nocut", name.c_str()), Form("Pt distribution in %s which fail the pileup rejection without track cuts", title.c_str()), zvertexBinning, ptbinning, etabinning);
-				// Histograms for events without pileup rejection and without cuts
-				fHistos->CreateTH3(Form("hPt%s_failpr_stdcut", name.c_str()), Form("Pt distribution in %s which fail the pileup rejection with standard track cuts", title.c_str()), zvertexBinning, ptbinning, etabinning);
+				// Create event-based histogram
+				fHistos->CreateTH2(Form("hEventHist%s", name.c_str()), Form("Event-based data for %s events; pileup rejection; z_{V} (cm)", title.c_str()), pileupaxis, zvertexBinning);
+				// Create track-based histogram
+				fHistos->CreateTHnSparse(Form("hTrackHist%s", name.c_str()), Form("Track-based data for %s events", title.c_str()), 6, trackaxes);
 			}
 
 			fHistos->CreateTHnSparse("hEventTriggers", "Trigger type per event", 5, triggeraxis);
@@ -149,8 +153,6 @@ namespace EMCalTriggerPtAnalysis {
 			errormessage << "Creation of histogram failed: " << e.what();
 			AliError(errormessage.str().c_str());
 		}
-		for(int id = 0; id < 5; id++)
-			if(triggeraxis[id]) delete triggeraxis[id];
 		fResults->Add(fHistos->GetListOfHistograms());
 		if(fTrackSelection) fResults->Add(fTrackSelection);
 
@@ -184,7 +186,7 @@ namespace EMCalTriggerPtAnalysis {
 				triggerstrings.push_back("EMCJHigh");
 				triggers[1] = 1;
 			}
-			if(trgstr.Contains("EJ1")){
+			if(trgstr.Contains("EJ2")){
 				triggerstrings.push_back("EMCJLow");
 				triggers[2] = 1;
 			}
@@ -205,77 +207,30 @@ namespace EMCalTriggerPtAnalysis {
 		double covSPD[6]; vtxSPD->GetCovarianceMatrix(covSPD);
 		isPileupEvent = isPileupEvent || (TString(vtxSPD->GetTitle()).Contains("vertexer:Z") && TMath::Sqrt(covSPD[5]) > 0.25);
 
-		// Fill the zVertex of the event
+		// Fill event-based histogram
 		const double &zv = vtxTracks->GetZ();
-		fHistos->FillTH1("hZVertexMinBias", zv);
-		char histname[1024];      // for string operations
-		if(!triggerstrings.size())
-			// Non-EMCal-triggered
-			fHistos->FillTH1("hZVertexNoEMCal", zv);
+		if(triggers[0]) FillEventHist("MinBias", zv, isPileupEvent);
+		if(!triggerstrings.size()) // Non-EMCal-triggered
+			FillEventHist("NoEMCal", zv, isPileupEvent);
 		else{
 			// EMCal-triggered events
-			for(std::vector<std::string>::iterator it = triggerstrings.begin(); it != triggerstrings.end(); ++it){
-				sprintf(histname, "hZVertex%s", it->c_str());
-				fHistos->FillTH1(histname, zv);
-			}
-		}
-
-		// Reject events which have a vertex outside the limits
-		if(!fVertexZRange.IsInRange(vtxTracks->GetZ())){
-			PostData(1, fResults);
-			return;
-		}
-
-		// simple event counter: with/without pileup rejection
-		fHistos->FillTH1("hEventsMinBias", 0);
-		if(!triggerstrings.size()) fHistos->FillTH1("hEventsNoEMCal", 0);
-		else{
-			for(std::vector<std::string>::iterator it = triggerstrings.begin(); it != triggerstrings.end(); ++it){
-				sprintf(histname, "hEvents%s", it->c_str());
-				fHistos->FillTH1(histname,0);
-			}
-		}
-		if(!isPileupEvent){
-			fHistos->FillTH1("hEventsMinBias", 1);
-			if(!triggerstrings.size()) fHistos->FillTH1("hEventsNoEMCal", 1);
-			else{
-				for(std::vector<std::string>::iterator it = triggerstrings.begin(); it != triggerstrings.end(); ++it){
-					sprintf(histname, "hEvents%s", it->c_str());
-					fHistos->FillTH1(histname, 1);
-				}
-			}
+			for(std::vector<std::string>::iterator it = triggerstrings.begin(); it != triggerstrings.end(); ++it)
+				FillEventHist(it->c_str(), zv, isPileupEvent);
 		}
 
 		AliESDtrack *track(NULL);
-		// Loop over all tracks
+		// Loop over all tracks (No cuts applied)
 		for(int itrk = 0; itrk < fInputEvent->GetNumberOfTracks(); ++itrk){
 			track = dynamic_cast<AliESDtrack *>(fInputEvent->GetTrack(itrk));
 			// first fill without pielup cut
 			if(fEtaRange.IsInRange(track->Eta())) continue;
-			const double &pt = track->Pt(), &eta = track->Eta();
-			fHistos->FillTH3("hPtMinBias_nopr_nocut", zv, pt, eta);
-			if(!isPileupEvent)
-				fHistos->FillTH3("hPtMinBias_wpr_nocut", zv, pt, eta);
-			else
-				fHistos->FillTH3("hPtMinBias_failpr_nocut", zv, pt, eta);
-			if(!triggerstrings.size()){
-				fHistos->FillTH3("hPtNoEMCal_nopr_nocut", zv, pt, eta);
-				if(!isPileupEvent)
-					fHistos->FillTH3("hPtNoEMCal_wpr_nocut", zv, pt, eta);
-				else
-					fHistos->FillTH3("hPtNoEMCal_failpr_nocut", zv, pt, eta);
-			} else {
-				for(std::vector<std::string>::iterator it = triggerstrings.begin(); it != triggerstrings.end(); ++it){
-					sprintf(histname, "hPt%s_nopr_nocut", it->c_str());
-					fHistos->FillTH3(histname, zv, pt, eta);
-					if(!isPileupEvent){
-						sprintf(histname, "hPt%s_wpr_nocut", it->c_str());
-						fHistos->FillTH3(histname, zv, pt, eta);
-					} else {
-						sprintf(histname, "hPt%s_failpr_nocut", it->c_str());
-						fHistos->FillTH3(histname, zv, pt, eta);
-					}
-				}
+			if(triggers[0]) FillTrackHist("MinBias", track, zv, isPileupEvent, 0);
+			if(!triggerstrings.size()) // Non-EMCal-triggered
+				FillTrackHist("NoEMCal", track, zv, isPileupEvent, 0);
+			else {
+				// EMCal-triggered events
+				for(std::vector<std::string>::iterator it = triggerstrings.begin(); it != triggerstrings.end(); ++it)
+					FillTrackHist(it->c_str(), track, zv, isPileupEvent, 0);
 			}
 		}
 
@@ -285,31 +240,13 @@ namespace EMCalTriggerPtAnalysis {
 			TIter trackIter(acceptedTracks.get());
 			while((track = dynamic_cast<AliESDtrack *>(trackIter()))){
 				if(!fEtaRange.IsInRange(track->Eta())) continue;
-				const double &pt = track->Pt(), &eta = track->Eta();
-				fHistos->FillTH3("hPtMinBias_nopr_stdcut", zv, pt, eta);
-				if(!isPileupEvent)
-					fHistos->FillTH3("hPtMinBias_wpr_stdcut", zv, pt, eta);
-				else
-					fHistos->FillTH3("hPtMinBias_failpr_stdcut", zv, pt, eta);
-				if(!triggerstrings.size()){
-					fHistos->FillTH3("hPtNoEMCal_nopr_stdcut", zv, pt, eta);
-					if(!isPileupEvent){
-						fHistos->FillTH3("hPtNoEMCal_wpr_stdcut", zv, pt, eta);
-					} else {
-						fHistos->FillTH3("hPtNoEMCal_failpr_stdcut", zv, pt, eta);
-					}
-				} else {
-					for(std::vector<std::string>::iterator it = triggerstrings.begin(); it != triggerstrings.end(); ++it){
-						sprintf(histname, "hPt%s_nopr_stdcut", it->c_str());
-						fHistos->FillTH3(histname, zv, pt, eta);
-						if(!isPileupEvent){
-							sprintf(histname, "hPt%s_wpr_stdcut", it->c_str());
-							fHistos->FillTH3(histname, zv, pt, eta);
-						} else {
-							sprintf(histname, "hPt%s_failpr_stdcut", it->c_str());
-							fHistos->FillTH3(histname, zv, pt, eta);
-						}
-					}
+				if(triggers[0]) FillTrackHist("MinBias", track, zv, isPileupEvent, 1);
+				if(!triggerstrings.size()) // Non-EMCal-triggered
+					FillTrackHist("NoEMCal", track, zv, isPileupEvent, 1);
+				else {
+					// EMCal-triggered events
+					for(std::vector<std::string>::iterator it = triggerstrings.begin(); it != triggerstrings.end(); ++it)
+						FillTrackHist(it->c_str(), track, zv, isPileupEvent, 1);
 				}
 			}
 		}
@@ -384,6 +321,91 @@ namespace EMCalTriggerPtAnalysis {
 		int ib = 0;
 		for(std::vector<double>::iterator it = mybinning.begin(); it != mybinning.end(); ++it)
 			binning[ib++] = *it;
+	}
+
+	//______________________________________________________________________________
+	void AliAnalysisTaskPtEMCalTrigger::DefineAxis(TAxis& axis, const char* name,
+			const char* title, const TArrayD& binning, const char** labels) {
+		/*
+		 * Define an axis with a given binning
+		 *
+		 * @param axis: Axis to be defined
+		 * @param name: Name of the axis
+		 * @param title: Title of the axis
+		 * @param binning: axis binning
+		 * @param labels (@optional): array of bin labels
+		 */
+		axis.Set(binning.GetSize()-1, binning.GetArray());
+		axis.SetName(name);
+		axis.SetTitle(title);
+		if(labels){
+			for(int ib = 1; ib <= axis.GetNbins(); ++ib)
+				axis.SetBinLabel(ib, labels[ib]);
+		}
+	}
+
+	//______________________________________________________________________________
+	void AliAnalysisTaskPtEMCalTrigger::DefineAxis(TAxis& axis, const char* name,
+			const char* title, int nbins, double min, double max,
+			const char** labels) {
+		/*
+		 * Define an axis with number of bins from min to max
+		 *
+		 * @param axis: Axis to be defined
+		 * @param name: Name of the axis
+		 * @param title: Title of the axis
+		 * @param nbins: Number of bins
+		 * @param min: lower limit of the axis
+		 * @param max: upper limit of the axis
+		 * @param labels (@optional): array of bin labels
+		 */
+		axis.Set(nbins, min, max);
+		axis.SetName(name);
+		axis.SetTitle(title);
+		if(labels){
+			for(int ib = 1; ib <= axis.GetNbins(); ++ib)
+				axis.SetBinLabel(ib, labels[ib]);
+		}
+	}
+
+	//______________________________________________________________________________
+	void AliAnalysisTaskPtEMCalTrigger::FillEventHist(const char* trigger,
+			double vz, bool isPileup) {
+		/*
+		 * Fill event-based histogram
+		 *
+		 * @param trigger: name of the trigger configuration to be processed
+		 * @param vz: z-position of the vertex
+		 * @param isPileup: signalises if the event is flagged as pileup event
+		 */
+		char histname[1024];
+		sprintf(histname, "hEventHist%s", trigger);
+		fHistos->FillTH2(histname, vz, 0);
+		if(!isPileup){
+			fHistos->FillTH2(histname, vz, 1);
+		}
+	}
+
+	//______________________________________________________________________________
+	void AliAnalysisTaskPtEMCalTrigger::FillTrackHist(const char* trigger,
+			const AliESDtrack* track, double vz, bool isPileup, int cut) {
+		/*
+		 * Fill track-based histogram with corresponding information
+		 *
+		 * @param trigger: name of the trigger
+		 * @param track: ESD track selected
+		 * @param vz: z-position of the vertex
+		 * @param isPileup: flag event as pileup event
+		 * @param cut: id of the cut (0 = no cut)
+		 */
+		double data[6] = {track->Pt(), track->Eta(), track->Phi(), vz, 0, cut};
+		char histname[1024];
+		sprintf(histname, "hTrackHist%s", trigger);
+		fHistos->FillTHnSparse(histname, data);
+		if(!isPileup){
+			data[4] = 1;
+			fHistos->FillTHnSparse(histname, data);
+		}
 	}
 
 }
