@@ -185,12 +185,12 @@ void Generate_Sample_Lookup(TMap &lookup){
         AddSample(lookup, "LHC13b2plus", "/alice/sim/2013/LHC13b2_plus", "*/*/AliESDs.root", "MC", "ESD");
         AddSample(lookup, "LHC13b2plus.AOD", "/alice/sim/2013/LHC13b2_plus", "*/AliAOD.root", "MC", "AOD");
         AddSample(lookup, "LHC13b3", "/alice/sim/2013/LHC13b3", "*/*/AliESDs.root", "MC", "ESD");
-	      AddSample(lookup, "LHC13b3.AOD", "/alice/sim/2013/LHC13b3", "*/AliAOD.root", "MC", "AOD");
-	      AddSample(lookup, "LHC13d.pass1", "/alice/data/2013/LHC13d/", "pass1/*/AliESDs.root", "Data", "ESD");
-	      AddSample(lookup, "LHC13d.pass2", "/alice/data/2013/LHC13d/", "pass2/*/AliESDs.root", "Data", "ESD");
-	      AddSample(lookup, "LHC13e.pass1", "/alice/data/2013/LHC13e/", "pass1/*/AliESDs.root", "Data", "ESD");
-	      AddSample(lookup, "LHC13e.pass2", "/alice/data/2013/LHC13e/", "pass2/*/AliESDs.root", "Data", "ESD");
-	      AddSample(lookup, "LHC13f.pass1", "/alice/data/2013/LHC13f/", "pass1/*/AliESDs.root", "Data", "ESD");
+        AddSample(lookup, "LHC13b3.AOD", "/alice/sim/2013/LHC13b3", "*/AliAOD.root", "MC", "AOD");
+        AddSample(lookup, "LHC13d.pass1", "/alice/data/2013/LHC13d/", "pass1/*/AliESDs.root", "Data", "ESD");
+        AddSample(lookup, "LHC13d.pass2", "/alice/data/2013/LHC13d/", "pass2/*/AliESDs.root", "Data", "ESD");
+        AddSample(lookup, "LHC13e.pass1", "/alice/data/2013/LHC13e/", "pass1/*/AliESDs.root", "Data", "ESD");
+        AddSample(lookup, "LHC13e.pass2", "/alice/data/2013/LHC13e/", "pass2/*/AliESDs.root", "Data", "ESD");
+        AddSample(lookup, "LHC13f.pass1", "/alice/data/2013/LHC13f/", "pass1/*/AliESDs.root", "Data", "ESD");
         printf("Lookup table with sample information generated\n");
 }
 
