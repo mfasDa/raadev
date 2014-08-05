@@ -31,14 +31,12 @@
 #include <TH1.h>
 #include <THashList.h>
 #include <TKey.h>
-#include <TList.h>
 #include <TMath.h>
 #include <TObjArray.h>
 #include <TString.h>
 
 #include "AliESDEvent.h"
 #include "AliESDInputHandler.h"
-#include "AliESDtrackCuts.h"
 #include "AliESDtrack.h"
 #include "AliESDVertex.h"
 
@@ -54,7 +52,7 @@ namespace EMCalTriggerPtAnalysis {
                 		AliAnalysisTaskSE(),
                 		fResults(NULL),
                 		fHistos(NULL),
-                		fTrackSelection(NULL)
+                		fListTrackCuts(NULL)
 	{
 		/*
 		 * Dummy constructor, initialising the values with default (NULL) values
@@ -66,12 +64,15 @@ namespace EMCalTriggerPtAnalysis {
                 		AliAnalysisTaskSE(name),
                 		fResults(NULL),
                 		fHistos(NULL),
-                		fTrackSelection(NULL)
+                		fListTrackCuts(NULL)
 	{
 		/*
 		 * Main constructor, setting default values for eta and zvertex cut
 		 */
 		DefineOutput(1, TList::Class());
+
+		fListTrackCuts = new TList;
+		fListTrackCuts->SetOwner(false);
 
 		// Set default cuts
 		fEtaRange.SetLimits(-0.8, 0.8);
@@ -85,6 +86,7 @@ namespace EMCalTriggerPtAnalysis {
 		 */
 		//if(fTrackSelection) delete fTrackSelection;
 		if(fHistos) delete fHistos;
+		if(fListTrackCuts) delete fListTrackCuts;
 	}
 
 	//______________________________________________________________________________
@@ -154,7 +156,11 @@ namespace EMCalTriggerPtAnalysis {
 			AliError(errormessage.str().c_str());
 		}
 		fResults->Add(fHistos->GetListOfHistograms());
-		if(fTrackSelection) fResults->Add(fTrackSelection);
+		if(fListTrackCuts && fListTrackCuts->GetEntries()){
+			TIter cutIter(fListTrackCuts);
+			TObject *cutObject(NULL);
+			while((cutObject = cutIter())) fResults->Add(cutObject);
+		}
 
 		PostData(1, fResults);
 	}
@@ -235,18 +241,24 @@ namespace EMCalTriggerPtAnalysis {
 		}
 
 		// Now apply track selection cuts
-		if(fTrackSelection){
-			std::auto_ptr<TObjArray> acceptedTracks(fTrackSelection->GetAcceptedTracks(esd));
-			TIter trackIter(acceptedTracks.get());
-			while((track = dynamic_cast<AliESDtrack *>(trackIter()))){
-				if(!fEtaRange.IsInRange(track->Eta())) continue;
-				if(triggers[0]) FillTrackHist("MinBias", track, zv, isPileupEvent, 1);
-				if(!triggerstrings.size()) // Non-EMCal-triggered
-					FillTrackHist("NoEMCal", track, zv, isPileupEvent, 1);
-				else {
-					// EMCal-triggered events
-					for(std::vector<std::string>::iterator it = triggerstrings.begin(); it != triggerstrings.end(); ++it)
-						FillTrackHist(it->c_str(), track, zv, isPileupEvent, 1);
+		// allow for several track selections to be tested at the same time
+		// each track selection gets a different cut ID starting from 1
+		// cut ID 0 is reserved for the case of no cuts
+		if(fListTrackCuts && fListTrackCuts->GetEntries()){
+			for(int icut = 0; icut < fListTrackCuts->GetEntries(); icut++){
+				AliESDtrackCuts *trackSelection = static_cast<AliESDtrackCuts *>(fListTrackCuts->At(icut));
+				std::auto_ptr<TObjArray> acceptedTracks(trackSelection->GetAcceptedTracks(esd));
+				TIter trackIter(acceptedTracks.get());
+				while((track = dynamic_cast<AliESDtrack *>(trackIter()))){
+					if(!fEtaRange.IsInRange(track->Eta())) continue;
+					if(triggers[0]) FillTrackHist("MinBias", track, zv, isPileupEvent, icut + 1);
+					if(!triggerstrings.size()) // Non-EMCal-triggered
+						FillTrackHist("NoEMCal", track, zv, isPileupEvent, icut + 1);
+					else {
+						// EMCal-triggered events
+						for(std::vector<std::string>::iterator it = triggerstrings.begin(); it != triggerstrings.end(); ++it)
+							FillTrackHist(it->c_str(), track, zv, isPileupEvent, icut + 1);
+					}
 				}
 			}
 		}

@@ -7,12 +7,12 @@
 
 #include "AliAnalysisTaskSE.h"
 #include "AliCutValueRange.h"
+#include "AliESDtrackCuts.h"
+#include <TList.h>
 
 class TArrayD;
 class Axis;
-class TList;
 class AliESDtrack;
-class AliESDtrackCuts;
 
 namespace EMCalTriggerPtAnalysis {
 class AliEMCalHistoContainer;
@@ -33,7 +33,7 @@ public:
 	void UserExec(Option_t* /*option*/);
 	void Terminate(Option_t * /*option*/) {}
 
-	void SetTrackCuts(AliESDtrackCuts *trackCuts) { fTrackSelection = trackCuts; }
+	void AddTrackCuts(AliESDtrackCuts *trackCuts) { fListTrackCuts->Add(trackCuts); }
 	void SetEtaRange(double etamin, double etamax) { fEtaRange.SetLimits(etamin, etamax); }
 
 private:
@@ -49,7 +49,7 @@ private:
 
 	TList                         *fResults;              //! container for results
 	AliEMCalHistoContainer        *fHistos;               //! Histogram container for the task
-	AliESDtrackCuts               *fTrackSelection;
+	TList 						  *fListTrackCuts;		  // List of track cuts
 
 	// Cuts
 	AliCutValueRange<double>      fEtaRange;              // Eta Selection Range
