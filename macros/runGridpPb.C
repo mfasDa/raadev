@@ -1,3 +1,18 @@
+#if !defined (__CINT__) || defined (__MAKECINT__)
+#include <TArrayI.h>
+#include <TGrid.h>
+#include <TGridResult.h>
+#include <TMap.h>
+#include <TObjArray.h>
+#include <TObjString.h>
+#include <TROOT.h>
+#include <TString.h>
+#include <TSystem.h>
+
+#include "AliAnalysisAlien.h"
+#include "AliAnalysisManager.h"
+#endif
+
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -87,7 +102,7 @@ void SplitConfigEntry(const std::string &input, TString &key, TString &value){
         //
         // Decode key and value of a config entry
         //
-        std::istringstream stream(input, istringstream::in);
+        std::istringstream stream(input, std::istringstream::in);
         std::string tmp;
         stream >> tmp;
         key = tmp.c_str();
@@ -281,7 +296,7 @@ bool CreateTrainDir(AliAnalysisAlien *plugin, const TMap &lookup){
         if(!g_train_dir.Length()){
                 // Query number of train runs before
                 const char *gridhome = gGrid->GetHomeDirectory();
-                const char gridoutdir[256];
+                char gridoutdir[256];
                 sprintf(gridoutdir, "%s%s/%s", gridhome, grid_base.Data(), type.Data());
                 TGridResult *trainruns = gGrid->Ls(gridoutdir);
                 int nruns = trainruns->GetEntries();
@@ -315,7 +330,7 @@ void SetupUtil(bool isMC, bool isAOD){
         //==== Physics Selection ====
         if(!isAOD){
                 gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPhysicsSelection.C");
-                AliPhysicsSelectionTask* physSelTask = AddTaskPhysicsSelection(isMC);
+                AddTaskPhysicsSelection(isMC);
         }
 
         //===== ADD CENTRALITY: =====
@@ -325,7 +340,7 @@ void SetupUtil(bool isMC, bool isAOD){
         //}
 }
 
-void SetupPar(char* pararchivename){
+int SetupPar(char* pararchivename){
         //Load par files, create analysis libraries
         //For testing, if par file already decompressed and modified
         //classes then do not decompress.
@@ -344,7 +359,7 @@ void SetupPar(char* pararchivename){
         if (!gSystem->AccessPathName("PROOF-INF/BUILD.sh")) {
                 printf("*******************************\n");
                 printf("*** Building PAR archive    ***\n");
-                cout<<pararchivename<<endl;
+                std::cout<<pararchivename<<std::endl;
                 printf("*******************************\n");
     
                 if (gSystem->Exec("PROOF-INF/BUILD.sh")) {
@@ -356,13 +371,14 @@ void SetupPar(char* pararchivename){
         if (!gSystem->AccessPathName("PROOF-INF/SETUP.C")) {
                 printf("*******************************\n");
                 printf("*** Setup PAR archive       ***\n");
-                cout<<pararchivename<<endl;
+                std::cout<<pararchivename<<std::endl;
                 printf("*******************************\n");
                 gROOT->Macro("PROOF-INF/SETUP.C");
         }
   
         gSystem->ChangeDirectory(ocwd.Data());
         printf("Current dir: %s\n", ocwd.Data());
+        return 0;
 }
 
 void SetupHandlers(bool isMC, bool isAOD){
