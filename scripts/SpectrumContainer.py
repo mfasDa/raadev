@@ -9,30 +9,54 @@ class DataContainer:
         Helper structure storing a  cut definition for a given dimension
         """
         def __init__(self):
+            """
+            Constructor
+            """
             self.__dimension = dimension
             self.__min = min
             self.__max = max
             
         def SetDimension(self, dimension):
+            """
+            Set the dimension where we want to apply the cut
+            """
             self.__dimension = dimension
             
         def GetDimension(self):
+            """
+            Return the value of the cut
+            """
             return self.__dimension
         
         def SetLimits(self, min, max):
+            """
+            Set the cut range
+            """
             self.__min = min
             self.__max = max
             
         def SetMinimum(self, min):
+            """
+            Set the minimum of the range
+            """
             self.__min = min
             
         def SetMaximum(self, max):
+            """
+            Set the maximum of the range
+            """
             self.__max = max
             
         def GetMinimum(self):
+            """
+            Return minimum value
+            """
             return self.__min
         
         def GetMaximum(self):
+            """
+            Return maximum value
+            """
             return self.__max
     
     
@@ -41,9 +65,15 @@ class DataContainer:
         Exception handling incomplete data
         """
         def __init__(self, object):
+            """
+            constructor
+            """
             self.__object = object
             
         def __str__(self):
+            """
+            Produce error string
+            """
             return "Container %s missing" 
     
     
