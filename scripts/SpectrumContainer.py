@@ -5,6 +5,9 @@ from Helper import NormaliseBinWidth
 class DataContainer:
     
     class SpectumCut(self, dimension, min, max):
+        """
+        Helper structure storing a  cut definition for a given dimension
+        """
         def __init__(self):
             self.__dimension = dimension
             self.__min = min
@@ -34,6 +37,9 @@ class DataContainer:
     
     
     class DataException(exception):
+        """
+        Exception handling incomplete data
+        """
         def __init__(self, object):
             self.__object = object
             
@@ -42,6 +48,9 @@ class DataContainer:
     
     
     def __init__(self, eventHist = None, trackHist = None):
+        """
+        Construct spectrum container
+        """
         self.__events = None
         self.__spectrum = None
         if trackHist:
@@ -51,18 +60,30 @@ class DataContainer:
         self.__vertexrange = {}
         
     def SetEventHist(self, eventHist):
+        """
+        Set the event hist
+        """
         self.__eventHist = eventHist
         
     def SetTrackHist(self, trackhist):
+        """
+        Set the track hist
+        """
         self.__trackHist = SpectrumContainer(trackhist)
         
     def AddCut(self, dimension, min, max):
+        """
+        Add cut for a given dimension
+        """
         for cut in self.__cutList:
             if cut.GetDimension() == dimension:
                 #cut needs to be changed
                 cut.SetLimits(min, max)
                 
     def SetVertexRange(self, min, max):
+        """
+        Apply vertex selection both to the event counter and the track hist
+        """
         self.__vertexrange["min"] = min
         self.__vertexrange["max"] = max
         self.AddCut(3, min, max)
@@ -73,7 +94,16 @@ class DataContainer:
         else:
             self.__usePileupRejected = False
             
+    def SelectTrackCuts(self, cutID):
+        """
+        Select a set of track cuts
+        """
+        self.AddCut(5, cutID, cutID)
+            
     def MakeProjection(self, dim, histname = None, xtitle = None, ytitle = None):
+        """
+        Make event-normalised projection to 1D
+        """
         if not self.__trackHist:
             raise DataException("TrackHist")
         if not self.__eventHist:
