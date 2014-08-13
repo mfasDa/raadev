@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-from ROOT import TFile,TCanvas,TH1F,TPaveText,kRed
+from ROOT import TFile,TCanvas,TH1F,TPaveText,kRed,gROOT
 from Helper import FileReaderException, HistNotFoundException
 from SpectrumContainer import DataContainer, SpectrumContainer
 import sys
@@ -18,6 +18,7 @@ def ReadSpectrum(filename, trigger):
         raise FileReaderException("%s#results/histosPtEMCalTriggerHistograms" %(filename))
     htrack = hlist.FindObject("hTrackHist%s" %(trigger))
     hevent = hlist.FindObject("hEventHist%s" %(trigger))
+    hevent.SetDirectory(gROOT)
     if not htrack:
         raise HistNotFoundException("hTrackHist%s" %(trigger))
     if not hevent:

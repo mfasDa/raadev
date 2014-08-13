@@ -295,3 +295,15 @@ class SpectrumContainer:
                 result = axis
                 break
         return result
+    
+    def GetDimension(self, axisname):
+        """
+        Find dimension for a given name
+        """
+        result = -1
+        for r in range (0, self.__hsparse.GetNdimensions()):
+            if name == self.__hsparse.GetAxis(r).GetName():
+                result = r
+                break
+        return result
+        
