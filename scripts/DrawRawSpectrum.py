@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 # 
 # Script plotting the raw spectrum for different trigger classes and event selections
 # Can run in batch mode or in interactive mode. For the interactive mode load the script

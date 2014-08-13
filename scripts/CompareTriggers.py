@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 import sys
 from copy import deepcopy
 from getopt import getopt, GetoptError
