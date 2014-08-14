@@ -151,9 +151,9 @@ def launch(filename, arglist):
                 elif o in ("-s", "--standardcuts"):
                         options["Trackselection"] = "stdcut"
                 elif o in ("-r", "-pileupreject"):
-                        options["eventselection"] = "wpr"
+                        options["Eventselection"] = "wpr"
                 elif o in ("-w", "-withpileup"):
-                        options["eventselection"] = "nopr"
+                        options["Eventselection"] = "nopr"
 
         try:
                 speclist = ReadFromFile(filename, options);
@@ -165,7 +165,7 @@ def launch(filename, arglist):
                 sys.exit(1)
 
         nevents = 0
-        if options["eventselection"] == "nopr":
+        if options["Eventselection"] == "nopr":
                 nevents = speclist["EventCounter"].GetBinContent(1)
         else:
                 nevents = speclist["EventCounter"].GetBinContent(2)
