@@ -233,6 +233,7 @@ class SpectrumContainer:
         """
         Apply restrictions in one axis
         """
+        kVerySmall = 1e-7
         cutaxis = None
         if isinstance(dim, int):
             cutaxis = self.__FindAxisByNumber(dim)
@@ -242,8 +243,8 @@ class SpectrumContainer:
             raise RangeException(dim, min, cutaxis.GetMinimum(), cutaxis.GetMaximum())
         if not self.__IsInRange(max, cutaxis):
             raise RangeException(max, cutaxis.GetMinimum(), cutaxis.GetMaximum())
-        binmin = cutaxis.FindBin(min)
-        binmax = cutaxis.FindBin(max)
+        binmin = cutaxis.FindBin(min + kVerySmall)
+        binmax = cutaxis.FindBin(max - kVerySmall)
         print "Setting range in axis %d from %.f [%d] to %.f [%d]" %(dim, min, binmin, max, binmax)
         self.__hsparse.GetAxis(dim).SetRange(binmin, binmax)
         
@@ -251,7 +252,7 @@ class SpectrumContainer:
         """
         Remove all cuts
         """
-        for iaxis in range(0,self._hsparse.GetNdimensions()):
+        for iaxis in range(0,self.__hsparse.GetNdimensions()):
             self.__hsparse.GetAxis(iaxis).SetRange()
             
     def ProjectToDimension(self, dimension, histname, xtitle = "", ytitle = ""):
@@ -302,7 +303,7 @@ class SpectrumContainer:
         """
         result = -1
         for r in range (0, self.__hsparse.GetNdimensions()):
-            if name == self.__hsparse.GetAxis(r).GetName():
+            if axisname == self.__hsparse.GetAxis(r).GetName():
                 result = r
                 break
         return result

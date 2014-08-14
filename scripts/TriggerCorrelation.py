@@ -20,10 +20,10 @@ class TriggerCorrelation:
         self.__otherclasses[triggername] = nevents
         
     def CreateHistogram(self, style):
-        result = TH1F("%hcorrTrigger%s" %(self.__mainclass), "Number of events with trigger where %s is fired" %(self.__mainclass), 5, -0.5, 4.5)
+        result = TH1F("hcorrTrigger%s" %(self.__mainclass), "Number of events with trigger where %s is fired" %(self.__mainclass), 5, -0.5, 4.5)
         result.GetXaxis().SetBinLabel(1, self.__mainclass)
         result.SetBinContent(1, self.__nevents)
-        counter = 0
+        counter = 1
         for icls in self.__otherclasses.keys():
             result.GetXaxis().SetBinLabel(counter + 1, icls)
             result.SetBinContent(counter + 1, self.__otherclasses[icls])
@@ -31,6 +31,7 @@ class TriggerCorrelation:
         result.GetXaxis().SetTitle("Trigger Class")
         result.GetYaxis().SetTitle("Number of events")
         result.SetLineColor(style.GetColor())
+        result.SetStats(False)
         return result
 
 def ReadHistogram(filename):
@@ -39,25 +40,26 @@ def ReadHistogram(filename):
         raise FileReaderException(filename)
     rlist = inputfile.Get("results")
     hlist = rlist.FindObject("histosPtEMCalTriggerHistograms")
-    triggerhist = hlist.FindObject("hEventTrigger")
+    triggerhist = hlist.FindObject("hEventTriggers")
     if not triggerhist:
-        raise HistNotFoundException(triggerhist)
-    return triggerhist
+        raise HistNotFoundException("hEventTriggers")
+    return SpectrumContainer(triggerhist)
     
 def CorrelateToTrigger(data, mainclass):
     trgclasses = ["MinBias", "EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow"]
     result = TriggerCorrelation(mainclass)
-    dataCont = SpectrumContainer(data)
-    axisMain = dataCont.GetDimension(mainclass)
+    axisMain = data.GetDimension(mainclass)
     # get the number of events
-    proj = dataCont.ProjectToDimension(axisMain, "h%s" %(mainclass))
+    proj = data.ProjectToDimension(axisMain, "h%s" %(mainclass))
     result.SetMainNumberOfEvents(proj.GetBinContent(2))
+    data.ApplyCut(axisMain, 1, 1)
     for cls in trgclasses:
         if cls == mainclass:
             continue
-        axiscls = dataCont.GetDimension(cls)
-        proj = dataCont.ProjectToDimension(axiscls, "h%s" %(cls))
+        axiscls = data.GetDimension(cls)
+        proj = data.ProjectToDimension(axiscls, "h%s" %(cls))
         result.AddTrigger(cls, proj.GetBinContent(2))
+    data.Reset()
     return result
 
 def MakeCorrelationPlot(filename, savePlot = False):
@@ -74,6 +76,7 @@ def MakeCorrelationPlot(filename, savePlot = False):
         gPad.SetGrid(False,False)
         hist.Draw("box")
         gObjects.append(hist)
+        counter = counter + 1
     result.cd()
     gObjects.append(result)
     if savePlot:
