@@ -116,6 +116,7 @@ namespace EMCalTriggerPtAnalysis {
 			triggeraxis[itrg] = mytrgaxis+itrg;
 			if(itrg < 4){
 				DefineAxis(mybitaxis[itrg], bitnames[itrg], bitnames[itrg], 2, -0.5, 1.5, binlabels);
+				bitaxes[itrg] = mybitaxis+itrg;
 			}
 		}
 		// Define names and titles for different triggers in the histogram container
@@ -207,7 +208,7 @@ namespace EMCalTriggerPtAnalysis {
 			triggerbits[3] = 1.;
 		}
 		try{
-			fHistos->FillTHnSparse("hTriggerBits", triggerbits);
+			fHistos->FillTHnSparse("hEventsTriggerbit", triggerbits);
 		} catch(HistoContainerContentException &e) {
 			std::stringstream errormessage;
 			errormessage << "Filling of histogram failed: " << e.what();
