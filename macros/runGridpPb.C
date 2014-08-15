@@ -493,6 +493,7 @@ void runGridpPb(const char *config = "config.txt"){
 
         AliAnalysisManager *mgr = new AliAnalysisManager("raaanalysis");
         mgr->SetGridHandler(plugin);
+        mgr->SetCommonFileName("AnalysisResults.root");
         
         SetupTrain(sampleinfos);
 
