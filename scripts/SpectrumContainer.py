@@ -128,6 +128,7 @@ class DataContainer:
     def SetPileupRejection(self, on):
         if on == True:
             self.__usePileupRejected = True
+            self.AddCut(4, 1., 1.)
         else:
             self.__usePileupRejected = False
             
@@ -147,7 +148,7 @@ class DataContainer:
             raise DataException("EventHist")
         # Apply cuts
         for cut in self.__cutList:
-            print "Processing next cut"
+            #print "Processing next cut"
             self.__spectrum.ApplyCut(cut.GetDimension(), cut.GetMinimum(), cut.GetMaximum())
         if not histname:
             histname = "%s/" %(self.__spectrum.GetData().GetName())
@@ -173,6 +174,12 @@ class DataContainer:
         nevents = eventcounter.GetBinContent(pileupbin)
         projected.Scale(1./nevents)
         return projected             
+        
+    def Reset(self):
+        """ 
+        Reset underlying spectrum
+        """
+        self.__spectrum.Reset()
             
 class SpectrumContainer:
     """
@@ -245,7 +252,7 @@ class SpectrumContainer:
             raise RangeException(max, cutaxis.GetMinimum(), cutaxis.GetMaximum())
         binmin = cutaxis.FindBin(min + kVerySmall)
         binmax = cutaxis.FindBin(max - kVerySmall)
-        print "Setting range in axis %d from %.f [%d] to %.f [%d]" %(dim, min, binmin, max, binmax)
+        #print "Setting range in axis %d from %.f [%d] to %.f [%d]" %(dim, min, binmin, max, binmax)
         self.__hsparse.GetAxis(dim).SetRange(binmin, binmax)
         
     def Reset(self):

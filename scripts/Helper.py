@@ -5,6 +5,9 @@
 #    Author: Markus Fasel
 #
 
+from ROOT import TFile, TH1F, gDirectory
+from copy import deepcopy
+
 class FileReaderException(Exception):
         """
         Exception class handling root files which are
@@ -42,9 +45,29 @@ class HistNotFoundException(Exception):
                 Create string representation of the error message
                 """
                 return "Histogram %s not found" %(self.histname)
+            
+class Frame:
+        """
+        Helper class handling frame drawing in plots
+        """
+    
+        def __init__(self, name, min, max, ymin, ymax):
+                self.__framehist = TH1F(name, "", 100, min, max)
+                self.__framehist.SetStats(False)
+                self.__framehist.GetYaxis().SetRangeUser(ymin, ymax)
+                        
+        def SetXtitle(self, title):
+                self.__framehist.GetXaxis().SetTitle(title)
+    
+        def SetYtitle(self, title):
+                self.__framehist.GetYaxis().SetTitle(title)
+        
+        def Draw(self):
+                self.__framehist.Draw("axis")
 
 class Style:
         """ 
+        
         Class for plot styles (currently only color and marker)
         """
         def __init__(self, color, marker):
@@ -71,3 +94,42 @@ def NormaliseBinWidth(hist):
                 bw = hist.GetXaxis().GetBinWidth(mybin)
                 hist.SetBinContent(mybin, hist.GetBinContent(mybin)/bw)
                 hist.SetBinError(mybin, hist.GetBinError(mybin)/bw)
+
+def ReadHistList(filename, directory = None):
+    """
+    Read the list of histograms from a given rootfile
+    optionally the list can be wihtin a directory (i.e. when analysing lego train output)
+    """
+    inputfile = TFile.Open(filename)
+    if not inputfile or inputfile.IsZombie():
+        raise FileReaderException(filename)
+    mydirectory = None
+    path = filename
+    if directory:
+        path += "#%s" %(directory)
+        if not inputfile.cd("PtEMCalTriggerTask"):
+            inputfile.Close()
+            raise FileReaderException(path)
+        else:
+            mydirectory = gDirectory
+    else:
+        mydirectory = inputfile
+        path += "#"
+    rlist = mydirectory.Get("results")
+    hlist = rlist.FindObject("histosPtEMCalTriggerHistograms")
+    inputfile.Close()
+    if not hlist:
+        raise FileReaderException("%s/histosPtEMCalTriggerHistograms" %(path))
+    return hlist
+    
+def MakeRatio(num, den, isBinomial = False):
+    """
+    Calculate ratio between 2 histograms
+    Option indicates whether we use binomial error calculation or gaussian error calculation
+    """
+    result = deepcopy(num)
+    option = ""
+    if isBinomial:
+        option = "B"
+    result.Divide(num, den, 1., 1., option)
+    return result

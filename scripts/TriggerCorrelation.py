@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
-from ROOT import TFile, TH1F, TCanvas, gPad, kBlack, kRed, kBlue, kGreen, kMagenta
-from Helper import FileReaderException, HistNotFoundException, Style
+from ROOT import TFile, TH1F, TCanvas, gPad, gDirectory, kBlack, kRed, kBlue, kGreen, kMagenta
+from Helper import FileReaderException, HistNotFoundException, ReadHistList, Style
 from SpectrumContainer import SpectrumContainer
 import sys
 
@@ -35,11 +35,7 @@ class TriggerCorrelation:
         return result
 
 def ReadHistogram(filename):
-    inputfile = TFile.Open(filename)
-    if not inputfile or inputfile.IsZombie():
-        raise FileReaderException(filename)
-    rlist = inputfile.Get("results")
-    hlist = rlist.FindObject("histosPtEMCalTriggerHistograms")
+    hlist = ReadHistList(filename, "PtEMCalTriggerTask")
     triggerhist = hlist.FindObject("hEventTriggers")
     if not triggerhist:
         raise HistNotFoundException("hEventTriggers")
