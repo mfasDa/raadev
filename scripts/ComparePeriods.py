@@ -4,7 +4,8 @@ from copy import deepcopy
 from getopt import getopt,GetoptError
 from ROOT import TCanvas,TFile,TH1F,TLegend,TPaveText
 from ROOT import gROOT,kRed,kBlue,kBlack
-from Helper import FileReaderException,HistNotFoundException,Style,NormaliseBinWidth
+from Helper import FileReaderException,HistNotFoundException,Style,ReadHistList
+from SpectrumContainer import DataContainer
 
 gObjects = list()
 
@@ -12,30 +13,37 @@ class ComparisonPlot:
     """
     Comparison plot of spectra from 2 periods
     """
-    def __init__(self, spectruma, spectrumb):
+    def __init__(self, spectraa, spectrab):
         """
         Constructor, basic initialisation for the plot
         """
         # Data
-        self.__spectrumA = spectruma
-        self.__spectrumB = spectrumb
-        self.__ratio = Ratio(self.__spectrumA, self.__spectrumB)
+        self.__spectraA = spectraa
+        self.__spectraB = spectrab
+        self.__ratio = self.MakeRatios(self.__spectraA, self.__spectraB)
         self.__options = None
         
         # Graphics objects
         self.__comparisonPlot = None
-        self.__axisspec = None
-        self.__axisrat = None
+        self.__axisspec = {}
+        self.__axisrat = {}
         self.__legend = None
-        self.__label = None
+        self.__label = {}
         
-        # Titles and ranges (changable)
-        self.__xtitle = self.__spectrumA.GetHistogram().GetXaxis().GetTitle()
-        self.__ytitle = self.__spectrumA.GetHistogram().GetYaxis().GetTitle()
-        self.__xrange = [self.__spectrumA.GetHistogram().GetXaxis().GetXmin(), self.__spectrumA.GetHistogram().GetXaxis().GetXmax()]
-        self.__yrange = [min(self.__spectrumA.GetHistogram().GetMinimum(), self.__spectrumB.GetHistogram().GetMinimum()), \
-                          max(self.__spectrumA.GetHistogram().GetMaximum(), self.__spectrumB.GetHistogram().GetMaximum())]
-        self.__ratioyrange = [self.__ratio.GetRatioHist().GetMinimum(), self.__ratio.GetRatioHist().GetMaximum()]
+        # Titles and ranges (default, changable) 
+        tmpkey = self.__spectraA.keys()[0]
+        self.__xtitle = self.__spectraA[tmpkey].GetHistogram().GetXaxis().GetTitle()
+        self.__ytitle = self.__spectraA[tmpkey].GetHistogram().GetYaxis().GetTitle()
+        self.__xrange = [self.__spectraA[tmpkey].GetHistogram().GetXaxis().GetXmin(), self.__spectraA[tmpkey].GetHistogram().GetXaxis().GetXmax()]
+        self.__yrange = [min(self.__spectraA[tmpkey].GetHistogram().GetMinimum(), self.__spectraB[tmpkey].GetHistogram().GetMinimum()), \
+                          max(self.__spectraA[tmpkey].GetHistogram().GetMaximum(), self.__spectraB[tmpkey].GetHistogram().GetMaximum())]
+        self.__ratioyrange = [self.__ratio[tmpkey].GetRatioHist().GetMinimum(), self.__ratio[tmpkey].GetRatioHist().GetMaximum()]
+        
+    def MakeRatios(self, specnum, specden):
+        result = {}
+        for k in specnum.keys():
+            result[k] = Ratio(specnum[k], specden[k])
+        return result
         
     def SetXTitle(self, title):
         """
@@ -70,49 +78,62 @@ class ComparisonPlot:
         self.__ratioyrange[0] = ymin
         self.__ratioyrange[1] = ymax
         
-    def SetLabel(self, label):
+    def SaveAs(self, filenamebase):
         """
-        Label left side of the plot
-        label needs to be set from outside
+        Save plot as image file
         """
-        self.__label = label
-    
+        types = ["eps", "pdf", "jpeg", "gif", "png"]
+        for t in types:
+            self.__comparisonPlot.SaveAs("%s.%s" %(filenamebase, t))
+
+            
     def MakePlot(self):
         """
         Produce comparison plot
         Left panel: 2 spectra
         Right panel: ratio of the spectra
         """
-        self.__comparisonPlot = TCanvas("comparisonPlot", "Comparison Periods", 1000, 400)
-        self.__comparisonPlot.Divide(2,1)
+        self.__comparisonPlot = TCanvas("comparisonPlot", "Comparison Periods", 600, 300 *len(self.__spectraA))
+        self.__comparisonPlot.Divide(2,len(self.__spectraA))
+        row = 0
+        for trg in self.__spectraA.keys():
+            print "Doing trigger %s" %(trg)
+            self.__DrawTrigger(trg, row)
+            row = row + 1
+        self.__comparisonPlot.cd()
         
-        padspec = self.__comparisonPlot.cd(1)
+    def __DrawTrigger(self, trg, row):
+        
+        padspec = self.__comparisonPlot.cd(row * 2 + 1)
         padspec.SetGrid(False, False)
         padspec.SetLogy()
         padspec.SetLogx()
-        self.__legend = self.__CreateLegend(0.15, 0.15, 0.35, 0.25)
-        self.__axisspec = TH1F("axisspec", ";%s;%s" %(self.__xtitle, self.__ytitle), 1000, self.__xrange[0], self.__xrange[1])
-        self.__axisspec.SetStats(False)
-        self.__axisspec.GetYaxis().SetRangeUser(self.__yrange[0], self.__yrange[1])
-        self.__axisspec.Draw("axis")
-        self.__spectrumA.Draw()
-        self.__spectrumB.Draw()
-        self.__AddToLegend(self.__spectrumA)
-        self.__AddToLegend(self.__spectrumB)
-        self.__legend.Draw()
+        drawlegend = False
+        if not self.__legend:
+            self.__legend = self.__CreateLegend(0.15, 0.15, 0.35, 0.25)
+            drawlegend = True
+        self.__axisspec[trg] = TH1F("axisspec", ";%s;%s" %(self.__xtitle, self.__ytitle), 1000, self.__xrange[0], self.__xrange[1])
+        self.__axisspec[trg].SetStats(False)
+        self.__axisspec[trg].GetYaxis().SetRangeUser(self.__yrange[0], self.__yrange[1])
+        self.__axisspec[trg].Draw("axis")
+        self.__spectraA[trg].Draw()
+        self.__spectraB[trg].Draw()
+        if drawlegend:
+            self.__AddToLegend(self.__spectraA[trg])
+            self.__AddToLegend(self.__spectraB[trg])
+            self.__legend.Draw()
         
-        if self.__label:
-            self.__label.Draw()
+        self.__label[trg] = self.__MakeLabel(0.5,0.7,0.89,0.85,trg)
+        self.__label[trg].Draw()
         
-        padratio = self.__comparisonPlot.cd(2)
+        padratio = self.__comparisonPlot.cd(row * 2 + 2)
         padratio.SetGrid(False, False)
         padratio.SetLogx()
-        self.__axisrat = TH1F("axirat", ";%s;%s" %(self.__xtitle, self.__ratio.GetRatioTitle()), 1000, self.__xrange[0], self.__xrange[1])
-        self.__axisrat.SetStats(False)
-        self.__axisrat.GetYaxis().SetRangeUser(self.__ratioyrange[0], self.__ratioyrange[1])
-        self.__axisrat.Draw("axis")
-        self.__ratio.Draw()
-        self.__comparisonPlot.cd()
+        self.__axisrat[trg] = TH1F("axirat", ";%s;%s" %(self.__xtitle, self.__ratio[trg].GetRatioTitle()), 1000, self.__xrange[0], self.__xrange[1])
+        self.__axisrat[trg].SetStats(False)
+        self.__axisrat[trg].GetYaxis().SetRangeUser(self.__ratioyrange[0], self.__ratioyrange[1])
+        self.__axisrat[trg].Draw("axis")
+        self.__ratio[trg].Draw()
     
     def __CreateLegend(self, xmin, ymin, xmax, ymax):
         """
@@ -129,6 +150,19 @@ class ComparisonPlot:
         Add spectrum object to legend
         """
         self.__legend.AddEntry(spectrum.GetHistogram(), spectrum.GetTitle(), "lep")
+        
+    def __MakeLabel(self, xmin, xmax, ymin, ymax, trigger):
+        """
+        Add label with trigger, cuts and pileup
+        """
+        lab = TPaveText(xmin, xmax, ymin, ymax, "NDC")
+        lab.SetBorderSize(0)
+        lab.SetFillStyle(0)
+        lab.SetTextFont(42)
+        lab.SetTextAlign(12)
+        lab.AddText("Trigger: %s" %(trigger))
+        return lab
+
     
 class Spectrum:
     """
@@ -234,115 +268,44 @@ class Ratio:
         result.Divide(result, specden.GetHistogram(), 1., 1., optstring)
         return result
     
-def ReadHistograms(filename, options):
-        """
-        Read histogram with input spectrum from file.
-        """
-        infile = TFile.Open(filename)
-        if not infile or infile.IsZombie():
-                raise FileReaderException(filename)
-        myresultlist = infile.Get("results")
-        histlist = myresultlist.FindObject("List of histograms of container PtEMCalTriggerHistograms")
-
-        resultlist = dict()
-        histos = {"EventCounter":"hEvents%s" %(options["trigger"]),\
-                        "Spectrum":"hPt%s_%s_%s" %(options["trigger"], options["pileuprejection"], options["cuts"])}
-        for key,hname in histos.iteritems():
-                hist = histlist.FindObject(hname)
-                if not hist:
-                        raise HistNotFoundException(hname)
-                else:
-                        hist.SetDirectory(gROOT)
-                        resultlist[key] = hist
-        return resultlist
     
-def MakeLabel(xmin, xmax, ymin, ymax, options):
-    """
-    Add label with trigger, cuts and pileup
-    """
-    lab = TPaveText(xmin, xmax, ymin, ymax, "NDC")
-    lab.SetBorderSize(0)
-    lab.SetFillStyle(0)
-    lab.SetTextFont(42)
-    lab.SetTextAlign(12)
-    lab.AddText("Trigger: %s" %(options["trigger"]))
-    lab.AddText("Cuts: %s" %(options["cuts"]))
-    lab.AddText("Pileup rejection: %s" %(options["pileuprejection"]))
-    return lab
-    
-def MakeNormalisedSpectrum(histos, options, name):
+def MakeNormalisedSpectrum(inputdata, name):
     """
     Normalise spectrum by the number of events and by the bin width
     """
-    eventbin = 2
-    if options["pileuprejection"] == "nopr":
-        eventbin = 1
-    spectrum = histos["Spectrum"].ProjectionY(name)
-    spectrum.Sumw2()
-    spectrum.Scale(1./histos["EventCounter"].GetBinContent(eventbin))
-    NormaliseBinWidth(spectrum)
-    return spectrum
-    
-def ComparePeriods(filea, fileb, arglist):
-    
-    try:
-        opt,arg = getopt(arglist, "e:mns", ["emcal=", "minBias", "nnum=", "ndenom=", "nocut", "stdcut", "nopr", "withpr"])
-    except GetoptError as e:
-        print str(e)
-        sys.exit(1)
-     
-    emctriggers = ["EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow"]
-    options = {"trigger":"MinBias", "cuts":"stdcut", "pileuprejection":"wpr"}
-    nameA = "numerator"
-    nameB = "denominator"
-    for o,a in opt:
-        if o in ("-e", "--emcal"):
-            mytrg = int(a)
-            if not mytrg in range(1, 5):
-                print "Trigger out of range"
-                sys.exit(1)
-            else:
-                options["trigger"] = emctriggers[mytrg-1]
-        elif o in ("-m", "--minbias"):
-            options["trigger"] = "MinBias"
-        elif o in ("-n", "--nocut"):
-            options["cuts"] = "nocut"
-        elif o in ("-s", "--stdcut"):
-            options["cuts"] = "stdcut"
-        elif o == "--nopr":
-            options["pileuprejection"] = "nopr"
-        elif o == "--withpr":
-            options["pileuprejection"] ="wpr"
-        elif o == "--nnum":
-            nameA = str(a)
-        elif o == "--ndenom":
-            nameB = str(a)
+    inputdata.SetVertexRange(-10., 10.)
+    inputdata.SetPileupRejection(True)
+    inputdata.SelectTrackCuts(1)
+    return inputdata.MakeProjection(0, "ptSpectrum%s" %(name), "p_{t} (GeV/c)", "1/N_{event} 1/(#Delta p_{t}) dN/dp_{t} ((GeV/c)^{-2})")
 
-    # Read spectra
-    try:        
-        dataA = ReadHistograms(filea, options)
-    except FileReaderException as e:
-        print str(e)
-        sys.exit(1)
-    except HistNotFoundException as e:
-        print str(e)
-        sys.exit(1)
-    try:
-        dataB = ReadHistograms(fileb, options)
-    except FileReaderException as e:
-        print str(e)
-        sys.exit(1)
-    except HistNotFoundException as e:
-        print str(e)
-        sys.exit(1)
-        
-    resultplot = ComparisonPlot(Spectrum(MakeNormalisedSpectrum(dataA, options, nameA), nameA, Style(kBlue, 24)), \
-                                 Spectrum(MakeNormalisedSpectrum(dataB, options, nameB), nameB, Style(kRed, 25)))
+def ReadSpectra(filename, triggers):
+    """
+    Read the spectra for different trigger classes from the root file
+    Returns a dictionary of triggers - spectrum container
+    """
+    hlist = ReadHistList(filename, "PtEMCalTriggerTask")
+    result = {}
+    for trg in triggers:
+        result[trg] = DataContainer(eventHist = hlist.FindObject("hEventHist%s" %(trg)), trackHist = hlist.FindObject("hTrackHist%s" %(trg)))
+    return result
+
+def ComparePeriods(filea, fileb, nnum, nden):
+    
+    triggers = ["MinBias", "EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow"]
+    dataA = ReadSpectra(filea, triggers)
+    dataB = ReadSpectra(filea, triggers)
+    
+    spectraA = {}
+    spectraB = {}
+    for trg in triggers:
+        spectraA[trg] = Spectrum(MakeNormalisedSpectrum(dataA[trg], trg), nnum, Style(kBlue, 24))
+        spectraB[trg] = Spectrum(MakeNormalisedSpectrum(dataB[trg], trg), nnum, Style(kRed, 25))
+
+    resultplot = ComparisonPlot(spectraA, spectraB)
     resultplot.SetXTitle("p_{t} (GeV/c)")
     resultplot.SetYTitle("1/N_{events} 1/#delta p_{T} dN/dp_{t} ((GeV/c)^{-2})")
     resultplot.SetYRange(1e-10, 100)
     resultplot.SetYRangeRatio(0., 3)
-    resultplot.SetLabel(MakeLabel(0.5,0.7,0.89,0.85, options))
     resultplot.MakePlot()
     gObjects.append(resultplot)
 
