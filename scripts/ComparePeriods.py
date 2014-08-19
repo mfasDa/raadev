@@ -289,11 +289,14 @@ def ReadSpectra(filename, triggers):
         result[trg] = DataContainer(eventHist = hlist.FindObject("hEventHist%s" %(trg)), trackHist = hlist.FindObject("hTrackHist%s" %(trg)))
     return result
 
-def ComparePeriods(filea, fileb, nnum, nden):
-    
-    triggers = ["MinBias", "EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow"]
+def ComparePeriods(filea, fileb, nnum, nden, useEMCAL = False):
+    triggers = None
+    if useEMCAL:
+        triggers = ["MinBias", "EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow"]
+    else:
+        triggers = ["MinBias"]
     dataA = ReadSpectra(filea, triggers)
-    dataB = ReadSpectra(filea, triggers)
+    dataB = ReadSpectra(fileb, triggers)
     
     spectraA = {}
     spectraB = {}
@@ -304,7 +307,8 @@ def ComparePeriods(filea, fileb, nnum, nden):
     resultplot = ComparisonPlot(spectraA, spectraB)
     resultplot.SetXTitle("p_{t} (GeV/c)")
     resultplot.SetYTitle("1/N_{events} 1/#delta p_{T} dN/dp_{t} ((GeV/c)^{-2})")
-    resultplot.SetYRange(1e-10, 100)
+    resultplot.SetXRange(1., 100.)
+    resultplot.SetYRange(1e-7, 100)
     resultplot.SetYRangeRatio(0., 3)
     resultplot.MakePlot()
     gObjects.append(resultplot)
