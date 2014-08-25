@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 
-from ROOT import TGraphErrors, TCanvas, TF1, TLegend, TMath, TPaveText, kRed, kBlue, kBlack
+from ROOT import TGraphErrors, TCanvas, TF1, TLegend, TMath, TPaveText, kRed, kBlue, kBlack, kGreen
 from copy import deepcopy
-from Helper import Style, Frame, ReadHistList
+from Helper import Style, Frame, ReadHistList, HistToGraph
 from SpectrumContainer import DataContainer
 
 class ComparisonPlot:
@@ -61,6 +61,89 @@ class ComparisonPlot:
         for t in types:
             self.__canvas.SaveAs("%s.%s" %(filenamebase, t))
 
+class MultipleFitPlot:
+    
+    def __init__(self):
+        self.__data = {}
+        self.__ratios = {}
+        self.__reference = None
+        
+        self.__canvas = None
+        self.__legend = None
+        self.__Frames = {}
+        self.__gRatios = {}
+        
+    def SetData(self, mycomp, fitmin, isReference):
+        self.__data[fitmin] = mycomp
+        if isReference:
+            self.__reference = fitmin
+            
+    def RatiosToReference(self):
+        for param in self.__data.keys():
+            if param == self.__reference:
+                continue
+            self.__CalculateRatio(self.__data[param].GetRawParameterisation(), self.__data[self.__reference].GetRawParameterisation(), param)
+    
+    def Create(self):
+        self.__canvas = TCanvas("comparisonFitRange", "Comparison of the fit ranges", 1000, 600)
+        self.__canvas.Divide(2,1)
+
+        self.__legend = TLegend(0.15, 0.15, 0.55, 0.35)
+        self.__legend.SetBorderSize(0)
+        self.__legend.SetFillStyle(0)
+        self.__legend.SetTextFont(42)
+        
+        specpad = self.__canvas.cd(1)
+        specpad.SetGrid(False, False)
+        specpad.SetLogx(True)
+        specpad.SetLogy(True)
+        
+        self.__Frames["specframe"] = Frame("specframe", 0, 100, 1e-10, 100)
+        self.__Frames["specframe"].SetXtitle("p_{t} (GeV/c)")
+        self.__Frames["specframe"].SetYtitle("1/N_{event} 1/(#Delta p_{t}) dN/dp_{t} ((GeV/c)^{-2})")
+        self.__Frames["specframe"].Draw()
+        
+        for param in sorted(self.__data.keys()):
+            self.__data[param].DrawBinnedParameterisation()
+            self.__data[param].AddToLegend(self.__legend, "Param", "%.1f GeV/c - 50 GeV/c" %(param))
+            
+        self.__legend.Draw()      
+        
+        self.RatiosToReference()
+        
+        rpad = self.__canvas.cd(2)
+        rpad.SetGrid(False, False)
+        self.__Frames["rframe"] = Frame("rframe", 0, 100, 0.5, 1.5)
+        self.__Frames["rframe"].SetXtitle("p_{t} (GeV/c)")
+        self.__Frames["rframe"].SetYtitle("Ratio to %.1f GeV/c - 50 GeV/c" %(self.__reference))
+        self.__Frames["rframe"].Draw()
+        for ratio in sorted(self.__ratios.keys()):
+            self.__DrawRatioGraph(ratio, self.__data[ratio].GetStyle("Param"), self.__data[ratio].GetXrange())
+        self.__canvas.cd()
+
+    def SaveAs(self, filenamebase):
+        """
+        Save plot as image file
+        """
+        types = ["eps", "pdf", "jpeg", "gif", "png"]
+        for t in types:
+            self.__canvas.SaveAs("%s.%s" %(filenamebase, t))
+        
+    def __DrawRatioGraph(self, param, style, range = None):
+        xmin = None
+        xmax = None
+        if range:
+            xmin = range["min"]
+            xmax = range["max"]
+        self.__gRatios[param] = HistToGraph(self.__ratios[param], xmin, xmax)
+        self.__gRatios[param].SetMarkerColor(style.GetColor())
+        self.__gRatios[param].SetMarkerStyle(style.GetMarker())
+        self.__gRatios[param].SetLineColor(style.GetColor())
+        self.__gRatios[param].Draw("epsame")
+          
+    def __CalculateRatio(self, num, den, tag):
+        self.__ratios[tag] = deepcopy(num)
+        self.__ratios[tag].Divide(den)
 
 class DataFitComparison:
     
@@ -77,9 +160,17 @@ class DataFitComparison:
         if type in self.__styles.keys():
             self.__styles[type] = style
             
+    def GetStyle(self, type):
+        if not type in self.__styles.keys():
+            return None
+        return self.__styles[type]
+            
     def SetRange(self, min = None, max = None):
         self.__xrange["min"] = min
         self.__xrange["max"] = max
+        
+    def GetXrange(self):
+        return self.__xrange
     
     def __CreateBinnedParameterisation(self, param):
         print "Called"
@@ -91,20 +182,52 @@ class DataFitComparison:
                                             parameterised.GetXaxis().GetBinUpEdge(mybin)))
             parameterised.SetBinError(mybin, 0)
         return parameterised
+    
+    def GetRawSpectrum(self):
+        return self.__data
+    
+    def GetRawParameterisation(self):
+        return self.__parameterised
             
     def DrawSpectra(self):
-        self.__graphs["Data"] = self.__ConvertToGraph(self.__data)
-        self.__graphs["Param"] = self.__ConvertToGraph(self.__parameterised)
+        self.DrawSpectrum()
+        self.DrawBinnedParameterisation()
+        
+    def DrawSpectrum(self):
+        if not self.__graphs["Data"]:
+            self.__graphs["Data"] = self.__ConvertToGraph(self.__data)
         self.__DrawStyle(self.__graphs["Data"], self.__styles["Data"])
+    
+    def DrawBinnedParameterisation(self):
+        if not self.__graphs["Param"]:
+            self.__graphs["Param"] = self.__ConvertToGraph(self.__parameterised)
         self.__DrawStyle(self.__graphs["Param"], self.__styles["Param"])   
+
+    def AddToLegend(self, legend, what, title = None):
+        object = None
+        message = title
+        if what == "Data":
+            object = self.__graphs["Data"]
+            if not message:
+                message = "Data"
+        elif what == "Param":
+            object = self.__graphs["Param"]
+            if not message:
+                message = "Param"
+        elif what =="Ratio":
+            object = self.__graphs["Ratio"]
+            if not message:
+                message = "Ratio Data/Param"
+        if object:
+            legend.AddEntry(object, message, "lep")
     
     def DrawRatio(self):
         self.__graphs["Ratio"] = self.__ConvertToGraph(self.__ratio)
         self.__DrawStyle(self.__graphs["Ratio"], self.__styles["Ratio"])
     
     def FillLegend(self, legend):
-        legend.AddEntry(self.__graphs["Data"], "Data", "lep")
-        legend.AddEntry(self.__graphs["Param"], "Param", "lep")
+        self.AddToLegend(legend, "Data")
+        self.AddToLegend(legend, "Param")
                         
     def __DrawStyle(self, data, style):
         data.SetMarkerColor(style.GetColor())
@@ -121,17 +244,7 @@ class DataFitComparison:
         return mbparam.Integral(min, max)/TMath.Abs(max - min)
     
     def __ConvertToGraph(self, hist):
-        output = TGraphErrors()
-        npoints = 0
-        for bin in range(1, hist.GetXaxis().GetNbins()+1):
-            if self.__xrange["min"] and hist.GetXaxis().GetBinLowEdge(bin) < self.__xrange["min"]:
-                continue
-            if self.__xrange["max"] and hist.GetXaxis().GetBinLowEdge(bin) > self.__xrange["max"]:
-                break
-            output.SetPoint(npoints, hist.GetXaxis().GetBinCenter(bin), hist.GetBinContent(bin))
-            output.SetPointError(npoints, hist.GetXaxis().GetBinWidth(bin)/2., hist.GetBinError(bin))
-            npoints = npoints + 1
-        return output
+        return HistToGraph(hist, self.__xrange["min"], self.__xrange["max"])
 
 def ReadSpectra(filename):
     """
@@ -171,3 +284,20 @@ def CompareDataFit(filename, fitmin, fitmax):
     comparisonPlot.SetTag("Fit range: %.1f - %.1f Gev/c" %(fitmin, fitmax))
     comparisonPlot.Create()
     return comparisonPlot
+
+def CheckFitRanges(filename):
+    data = ReadSpectra(filename)
+    mbspectrum = MakeNormalisedSpectrum(data["MinBias"], "MinBias")
+
+    plot = MultipleFitPlot()
+    styles = {10:Style(kBlue,24),15:Style(kBlack,25),20:Style(kRed,26),25:Style(kGreen,27)}
+    for imin in range(10, 30, 5):
+        comparison = DataFitComparison(mbspectrum, ParameteriseMinBiasSpectrum(mbspectrum, {"min": imin, "max": 50.}))
+        comparison.SetRange(2., 100.)
+        comparison.SetStyle("Param",styles[imin])
+        isRef = False
+        if imin == 15:
+            isRef = True
+        plot.SetData(comparison,imin,isRef)
+    plot.Create()
+    return plot

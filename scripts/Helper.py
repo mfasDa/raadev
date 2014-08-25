@@ -5,7 +5,7 @@
 #    Author: Markus Fasel
 #
 
-from ROOT import TFile, TH1F, gDirectory
+from ROOT import TFile, TH1F, TGraphErrors, gDirectory
 from copy import deepcopy
 
 class FileReaderException(Exception):
@@ -133,3 +133,16 @@ def MakeRatio(num, den, isBinomial = False):
         option = "B"
     result.Divide(num, den, 1., 1., option)
     return result
+
+def HistToGraph(hist, xmin = None, xmax = None):
+    output = TGraphErrors()
+    npoints = 0
+    for bin in range(1, hist.GetXaxis().GetNbins()+1):
+        if xmin and hist.GetXaxis().GetBinLowEdge(bin) < xmin:
+            continue
+        if xmax and hist.GetXaxis().GetBinLowEdge(bin) > xmax:
+            break
+        output.SetPoint(npoints, hist.GetXaxis().GetBinCenter(bin), hist.GetBinContent(bin))
+        output.SetPointError(npoints, hist.GetXaxis().GetBinWidth(bin)/2., hist.GetBinError(bin))
+        npoints = npoints + 1
+    return output
