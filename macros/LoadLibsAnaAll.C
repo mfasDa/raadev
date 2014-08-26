@@ -1,4 +1,4 @@
-void LoadLibsAna(){
+void LoadLibsAnaAll(){
         // Load common libraries
         gSystem->Load("libCore");  
         gSystem->Load("libTree");

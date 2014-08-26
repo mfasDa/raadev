@@ -72,48 +72,49 @@ AliAnalysisAlien *CreateGridHandler(){
         additionalLibs.push_back("ITSbase");
         additionalLibs.push_back("ITSrec");
         additionalLibs.push_back("HMPIDbase");
-        gSystem->Load("libEMCALraw");
-        gSystem->Load("libEMCALbase");
-        gSystem->Load("libEMCALrec");
-        gSystem->Load("libVZERObase");
-        gSystem->Load("libVZEROrec");
-        gSystem->Load("libEMCALUtils");
-        gSystem->Load("libPHOSUtils");
+        additionalLibs.push_back("EMCALraw");
+        additionalLibs.push_back("EMCALbase");
+        additionalLibs.push_back("EMCALrec");
+        additionalLibs.push_back("VZERObase");
+        additionalLibs.push_back("VZEROrec");
+        additionalLibs.push_back("EMCALUtils");
+        additionalLibs.push_back("PHOSUtils");
         additionalLibs.push_back("PWGPP");
+        additionalLibs.push_back("PWGCaloTrackCorrBase");
+        additionalLibs.push_back("PWGGACaloTrackCorrelations");
+        additionalLibs.push_back("PWGGACaloTasks");
+        additionalLibs.push_back("EMCALraw");
+        additionalLibs.push_back("EMCALbase");
+        additionalLibs.push_back("EMCALrec");
+        additionalLibs.push_back("TENDER");
+        additionalLibs.push_back("TENDERSupplies");
+        additionalLibs.push_back("PWGTools");
+        additionalLibs.push_back("PWGEMCAL");
+        additionalLibs.push_back("CGAL.dylib");
+        additionalLibs.push_back("fastjet.dylib");
+        additionalLibs.push_back("siscone.dylib");
+        additionalLibs.push_back("siscone_spherical.dylib");
+        additionalLibs.push_back("fastjetplugins.dylib");
+        additionalLibs.push_back("fastjettools.dylib");
+        additionalLibs.push_back("fastjetcontribfragile.dylib");
+        additionalLibs.push_back("JETAN");
+        additionalLibs.push_back("FASTJETAN");
+        additionalLibs.push_back("ESDfilter");
+        additionalLibs.push_back("PWGGAEMCALTasks");
+        additionalLibs.push_back("PWGJEEMCALJetTasks");
 
-
-        gSystem->Load("libPWGCaloTrackCorrBase");
-        gSystem->Load("libPWGGACaloTrackCorrelations");
-        gSystem->Load("libPWGGACaloTasks");
-        gSystem->Load("libEMCALraw");
-        gSystem->Load("libEMCALbase");
-        gSystem->Load("libEMCALrec");
-        gSystem->Load("libTENDER");
-        gSystem->Load("libTENDERSupplies");
-        gSystem->Load("libPWGTools");
-        gSystem->Load("libPWGEMCAL");
-        gSystem->Load("libCGAL");
-        gSystem->Load("libfastjet");
-        gSystem->Load("libsiscone");
-        gSystem->Load("libsiscone_spherical");
-        gSystem->Load("libfastjetplugins");
-        gSystem->Load("libfastjettools");
-        gSystem->Load("libfastjetcontribfragile");
-        gSystem->Load("libJETAN");
-        gSystem->Load("libFASTJETAN");
-        gSystem->Load("libESDfilter");
-        gSystem->Load("libPWGGAEMCALTasks");
-        gSystem->Load("libPWGJEEMCALJetTasks");
-
-        additionalLibs.push_back("RAATrigger.par");
         char buffer[1024];
         std::string libstring;
         int entries(0);
         for(std::vector<std::string>::iterator it = additionalLibs.begin(); it != additionalLibs.end(); ++it){
-                if(strstr(it->c_str(), ".par"))
+        	if(strstr(it->c_str(), ".par"))
                         strcpy(buffer, it->c_str());
-                else
+                else{
+                	if(strstr(it->c_str(), ".dylib"))
+                		sprintf(buffer, "lib%s", it->c_str());
+                	else
                         sprintf(buffer, "lib%s.so", it->c_str());
+                }
                 libstring += buffer;
                 if(entries < additionalLibs.size() -1) libstring += " ";
                 entries++;
@@ -353,13 +354,13 @@ void SetupUtil(bool isMC, bool isAOD){
         // 2. Physics Selection (ESD only)
         // 3. Centrality Task (ESD only)
         //
-
+/*
         //==== CDB Connection =======
         if(!isAOD){
                 gROOT->LoadMacro("$ALICE_ROOT/PWGPP/TPC/macros/AddTaskConfigOCDB.C");
                 AddTaskConfigOCDB("raw://");
         }
-
+*/
         //==== Physics Selection ====
         if(!isAOD){
                 gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPhysicsSelection.C");
@@ -367,10 +368,18 @@ void SetupUtil(bool isMC, bool isAOD){
         }
 
         //===== ADD CENTRALITY: =====
-        //if(!isAOD){
-        //        gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskCentrality.C");
-        //        AddTaskCentrality();
-        //}
+        if(!isAOD){
+                gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskCentrality.C");
+                AddTaskCentrality();
+        }
+
+        //==== EMCal Setup task =====
+        gROOT->LoadMacro("$ALICE_ROOT/PWG/EMCAL/macros/AddTaskEmcalSetup.C");
+        AddTaskEmcalSetup();
+
+        //==== EMCal Preparation task
+        gROOT->LoadMacro("$ALICE_ROOT/PWG/EMCAL/macros/AddTaskEmcalPreparation.C");
+        AddTaskEmcalPreparation();
 }
 
 int SetupPar(char* pararchivename){
@@ -434,7 +443,7 @@ void SetupHandlers(bool isMC, bool isAOD){
 }
 
 void SetupTask(bool isMC, bool isAOD){
-        gROOT->LoadMacro("%s/PWGJE/EMCALJetTasks/macros/AddTaskPtEMCalTrigger.C", gSystem->GetEnv("ALICE_ROOT"));
+        gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskPtEMCalTrigger.C", gSystem->Getenv("ALICE_ROOT")));
         AddTaskPtEMCalTrigger();
 }
 
@@ -494,14 +503,12 @@ void GenerateMergeConfigs(){
         printf("Configurations for MergeViaJDL and terminate generated\n");
 }
 
-void runGridpPb(const char *config = "config.txt"){
+void runGridAliRootpPb(const char *config = "config.txt"){
         //
         // run analysis 
         //
 
         TGrid::Connect("alien://");
-
-        SetupPar("RAATrigger");
 
         // Create Lookup with sample information
         TMap sampleinfos;
