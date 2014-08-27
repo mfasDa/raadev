@@ -13,7 +13,7 @@ class ComparisonPlot:
     """
     Comparison plot of spectra from 2 periods
     """
-    def __init__(self, spectraa, spectrab):
+    def __init__(self, spectraa, spectrab, plotname = None):
         """
         Constructor, basic initialisation for the plot
         """
@@ -24,6 +24,10 @@ class ComparisonPlot:
         self.__options = None
         
         # Graphics objects
+        self.__plotname = "comparisonPlot"
+        if plotname:
+            self.__plotname = plotname
+        self.__plotTitle = "Comparison of different periods"
         self.__comparisonPlot = None
         self.__axisspec = {}
         self.__axisrat = {}
@@ -78,6 +82,18 @@ class ComparisonPlot:
         self.__ratioyrange[0] = ymin
         self.__ratioyrange[1] = ymax
         
+    def SetPlotname(self, plotname):
+        """
+        Name of the comparison plot
+        """
+        self.__plotname = plotname
+        
+    def SetPlottitle(self, plottitle):
+        """
+        Title of the comparison plot
+        """
+        self.__plottitle = plottitle
+        
     def SaveAs(self, filenamebase):
         """
         Save plot as image file
@@ -93,7 +109,7 @@ class ComparisonPlot:
         Left panel: 2 spectra
         Right panel: ratio of the spectra
         """
-        self.__comparisonPlot = TCanvas("comparisonPlot", "Comparison Periods", 600, 300 *len(self.__spectraA))
+        self.__comparisonPlot = TCanvas(self.__plotname, self.__plotTitle, 600, 300 *len(self.__spectraA))
         self.__comparisonPlot.Divide(2,len(self.__spectraA))
         row = 0
         for trg in self.__spectraA.keys():
@@ -112,7 +128,7 @@ class ComparisonPlot:
         if not self.__legend:
             self.__legend = self.__CreateLegend(0.15, 0.15, 0.35, 0.25)
             drawlegend = True
-        self.__axisspec[trg] = TH1F("axisspec", ";%s;%s" %(self.__xtitle, self.__ytitle), 1000, self.__xrange[0], self.__xrange[1])
+        self.__axisspec[trg] = TH1F("axisspec%s" %(self.__plotname), ";%s;%s" %(self.__xtitle, self.__ytitle), 1000, self.__xrange[0], self.__xrange[1])
         self.__axisspec[trg].SetStats(False)
         self.__axisspec[trg].GetYaxis().SetRangeUser(self.__yrange[0], self.__yrange[1])
         self.__axisspec[trg].Draw("axis")
@@ -129,7 +145,7 @@ class ComparisonPlot:
         padratio = self.__comparisonPlot.cd(row * 2 + 2)
         padratio.SetGrid(False, False)
         padratio.SetLogx()
-        self.__axisrat[trg] = TH1F("axirat", ";%s;%s" %(self.__xtitle, self.__ratio[trg].GetRatioTitle()), 1000, self.__xrange[0], self.__xrange[1])
+        self.__axisrat[trg] = TH1F("axirat%s" %(self.__plotname), ";%s;%s" %(self.__xtitle, self.__ratio[trg].GetRatioTitle()), 1000, self.__xrange[0], self.__xrange[1])
         self.__axisrat[trg].SetStats(False)
         self.__axisrat[trg].GetYaxis().SetRangeUser(self.__ratioyrange[0], self.__ratioyrange[1])
         self.__axisrat[trg].Draw("axis")
@@ -289,12 +305,16 @@ def ReadSpectra(filename, triggers):
         result[trg] = DataContainer(eventHist = hlist.FindObject("hEventHist%s" %(trg)), trackHist = hlist.FindObject("hTrackHist%s" %(trg)))
     return result
 
-def ComparePeriods(filea, fileb, nnum, nden, useEMCAL = False):
+def ComparePeriods(filea, fileb, nnum, nden, useClass = None):
     triggers = None
-    if useEMCAL:
+    plotname = None
+    plottitle = None
+    if not useClass:
         triggers = ["MinBias", "EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow"]
     else:
-        triggers = ["MinBias"]
+        triggers = [useClass]
+        plotname = "comparisonPlot%s"  %(useClass)
+        plottitle = "Comparison of different periods for %s events" %(useClass)
     dataA = ReadSpectra(filea, triggers)
     dataB = ReadSpectra(fileb, triggers)
     
@@ -302,9 +322,11 @@ def ComparePeriods(filea, fileb, nnum, nden, useEMCAL = False):
     spectraB = {}
     for trg in triggers:
         spectraA[trg] = Spectrum(MakeNormalisedSpectrum(dataA[trg], trg), nnum, Style(kBlue, 24))
-        spectraB[trg] = Spectrum(MakeNormalisedSpectrum(dataB[trg], trg), nnum, Style(kRed, 25))
+        spectraB[trg] = Spectrum(MakeNormalisedSpectrum(dataB[trg], trg), nden, Style(kRed, 25))
 
-    resultplot = ComparisonPlot(spectraA, spectraB)
+    resultplot = ComparisonPlot(spectraA, spectraB, plotname)
+    if plottitle:
+        resultplot.SetPlottitle(plottitle)
     resultplot.SetXTitle("p_{t} (GeV/c)")
     resultplot.SetYTitle("1/N_{events} 1/#delta p_{T} dN/dp_{t} ((GeV/c)^{-2})")
     resultplot.SetXRange(1., 100.)
@@ -312,6 +334,7 @@ def ComparePeriods(filea, fileb, nnum, nden, useEMCAL = False):
     resultplot.SetYRangeRatio(0., 3)
     resultplot.MakePlot()
     gObjects.append(resultplot)
+    return resultplot
 
 def runComparison(filea, fileb, argstring):
     """
