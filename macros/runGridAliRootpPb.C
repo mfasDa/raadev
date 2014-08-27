@@ -109,7 +109,7 @@ AliAnalysisAlien *CreateGridHandler(){
         	if(strstr(it->c_str(), ".par"))
                         strcpy(buffer, it->c_str());
                 else{
-                	if(strstr(it->c_str(), ".dylib"))
+                	if(strstr(it->c_str(), ".dylib") || strstr(it->c_str(), ".so"))
                 		sprintf(buffer, "lib%s", it->c_str());
                 	else
                         sprintf(buffer, "lib%s.so", it->c_str());
