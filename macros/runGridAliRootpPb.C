@@ -47,7 +47,11 @@ AliAnalysisAlien *CreateGridHandler(){
         plugin->SetOutputToRunNo();
         plugin->AddIncludePath("-I. .I$ALIEN_ROOT/api/lib -I$ROOTSYS/lib -I$ROOTSYS/include -I$ALICE_ROOT/include -I$ALICE_ROOT/ANALYSIS");
 
+
+    	TString osname(gSystem->IsA()->GetName());
+    	TString libtype = osname.Contains("Mac") ? "dylib" : "so";
         std::vector<std::string> additionalLibs;
+        TString fastjetlibs[] = {"CGAL", "fastjet", "siscone", "siscone_spherical", "fastjetplugins", "fastjettools", "fastjetcontribfragile"};
         additionalLibs.push_back("Gui");
         additionalLibs.push_back("Minuit");
         additionalLibs.push_back("Proof");
@@ -90,13 +94,8 @@ AliAnalysisAlien *CreateGridHandler(){
         additionalLibs.push_back("TENDERSupplies");
         additionalLibs.push_back("PWGTools");
         additionalLibs.push_back("PWGEMCAL");
-        additionalLibs.push_back("CGAL.dylib");
-        additionalLibs.push_back("fastjet.dylib");
-        additionalLibs.push_back("siscone.dylib");
-        additionalLibs.push_back("siscone_spherical.dylib");
-        additionalLibs.push_back("fastjetplugins.dylib");
-        additionalLibs.push_back("fastjettools.dylib");
-        additionalLibs.push_back("fastjetcontribfragile.dylib");
+        for(TString * libiter = fastjetlibs; libiter < fastjetlibs + sizeof(fastjetlibs)/sizeof(TString); libiter++)
+        	additionalLibs.push_back(Form("%s.%s", libiter->Data(), libtype.Data()));
         additionalLibs.push_back("JETAN");
         additionalLibs.push_back("FASTJETAN");
         additionalLibs.push_back("ESDfilter");
