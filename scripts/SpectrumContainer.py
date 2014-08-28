@@ -137,6 +137,21 @@ class DataContainer:
         Select a set of track cuts
         """
         self.AddCut(5, cutID, cutID)
+        
+    def GetEventCount(self):
+        """
+        Get the number of selected events
+        """
+        if len(self.__vertexrange):
+            binMin = self.__events.GetYaxis().FindBin(self.__vertexrange["min"])
+            binMax = self.__events.GetYaxis().FindBin(self.__vertexrange["max"])
+            eventcounter = self.__events.ProjectionX("eventCounter", binMin, binMax)
+        else:
+            eventcounter = self.__events.ProjectionX("eventcounter")
+        pileupbin = 1
+        if self.__usePileupRejected:
+            pileupbin = 2
+        return eventcounter.GetBinContent(pileupbin)
             
     def MakeProjection(self, dim, histname = None, xtitle = None, ytitle = None):
         """
