@@ -23,13 +23,18 @@ class TriggerCorrelation:
         result = TH1F("hcorrTrigger%s" %(self.__mainclass), "Number of events with trigger where %s is fired" %(self.__mainclass), 5, -0.5, 4.5)
         result.GetXaxis().SetBinLabel(1, self.__mainclass)
         result.SetBinContent(1, self.__nevents)
+        print "Number of events in trigger class %s: %d" %(self.__mainclass, self.__nevents)
         counter = 1
-        for icls in self.__otherclasses.keys():
+        for icls in sorted(self.__otherclasses.keys()):
             result.GetXaxis().SetBinLabel(counter + 1, icls)
             result.SetBinContent(counter + 1, self.__otherclasses[icls])
             counter = counter + 1
-        result.GetXaxis().SetTitle("Trigger Class")
+        result.GetXaxis().SetTitle("")
+        result.GetXaxis().SetLabelSize(0.065)
         result.GetYaxis().SetTitle("Number of events")
+        result.GetYaxis().SetTitleSize(0.05)
+        result.GetYaxis().SetLabelSize(0.05)
+        result.GetYaxis().SetTitleOffset(1.6)
         result.SetLineColor(style.GetColor())
         result.SetStats(False)
         return result
@@ -59,7 +64,7 @@ def CorrelateToTrigger(data, mainclass):
     return result
 
 def MakeCorrelationPlot(filename, savePlot = False):
-    colors = [kBlack, kRed, kBlue, kGreen, kMagenta]
+    colors = [kBlack, kRed, kBlue, kGreen+2, kMagenta]
     trgclasses = ["MinBias", "EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow"]
     data = ReadHistogram(filename)
     result = TCanvas("trgcorr", "Correlation between trigger classes", 1000, 700)
@@ -70,7 +75,11 @@ def MakeCorrelationPlot(filename, savePlot = False):
         hist = corr.CreateHistogram(Style(colors[cls], 20))
         result.cd(counter)
         gPad.SetGrid(False,False)
+        gPad.SetLeftMargin(0.17)
         hist.Draw("box")
+        title = gPad.FindObject("title")
+#        print title.IsA().GetName()
+#        title.SetTextSize(0.055)
         gObjects.append(hist)
         counter = counter + 1
     result.cd()
