@@ -153,7 +153,7 @@ class DataContainer:
             pileupbin = 2
         return eventcounter.GetBinContent(pileupbin)
             
-    def MakeProjection(self, dim, histname = None, xtitle = None, ytitle = None):
+    def MakeProjection(self, dim, histname = None, xtitle = None, ytitle = None, doNorm = True):
         """
         Make event-normalised projection to 1D
         """
@@ -173,21 +173,10 @@ class DataContainer:
             ytitle = ""
         projected = self.__spectrum.ProjectToDimension(dim, histname, xtitle, ytitle)
         projected.Sumw2()
-        if self.__doNormBW:
+        if doNorm:
             NormaliseBinWidth(projected)
-        # Normalise by number of events
-        eventcounter = None
-        if len(self.__vertexrange):
-            binMin = self.__events.GetYaxis().FindBin(self.__vertexrange["min"])
-            binMax = self.__events.GetYaxis().FindBin(self.__vertexrange["max"])
-            eventcounter = self.__events.ProjectionX("eventCounter", binMin, binMax)
-        else:
-            eventcounter = self.__events.ProjectionX("eventcounter")
-        pileupbin = 1
-        if self.__usePileupRejected:
-            pileupbin = 2
-        nevents = eventcounter.GetBinContent(pileupbin)
-        projected.Scale(1./nevents)
+            # Normalise by number of events
+            projected.Scale(1./self.GetEventCount())
         return projected             
         
     def Reset(self):
