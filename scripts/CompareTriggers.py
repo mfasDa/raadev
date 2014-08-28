@@ -4,7 +4,8 @@ from copy import deepcopy
 from getopt import getopt, GetoptError
 from ROOT import TCanvas,TFile,TH1F,TLegend,TPaveText
 from ROOT import gROOT,kRed,kGreen,kBlack,kBlue,kOrange
-from Helper import FileReaderException,HistNotFoundException,Style,NormaliseBinWidth
+from Helper import FileReaderException,HistNotFoundException,NormaliseBinWidth
+from Graphics import Style
 
 gObjects = list()
 

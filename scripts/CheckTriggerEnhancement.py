@@ -2,7 +2,8 @@
 
 from ROOT import TCanvas,TF1,TFile,TGraphErrors,TLegend,TMath
 from ROOT import kRed, kBlue, kOrange, kGreen
-from Helper import ReadHistList,Frame, Style
+from Helper import ReadHistList
+from Graphics import Frame,Style
 from SpectrumContainer import DataContainer
 
 class TriggerDataContainer():

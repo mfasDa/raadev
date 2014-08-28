@@ -2,7 +2,8 @@
 
 from ROOT import TGraphErrors, TCanvas, TF1, TLegend, TMath, TPaveText, kRed, kBlue, kBlack, kGreen
 from copy import deepcopy
-from Helper import Style, Frame, ReadHistList, HistToGraph
+from Helper import ReadHistList, HistToGraph
+from Graphics import Style, Frame
 from SpectrumContainer import DataContainer
 
 class ComparisonPlot:

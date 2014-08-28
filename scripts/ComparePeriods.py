@@ -4,7 +4,8 @@ from copy import deepcopy
 from getopt import getopt,GetoptError
 from ROOT import TCanvas,TFile,TH1F,TLegend,TPaveText
 from ROOT import gROOT,kRed,kBlue,kBlack
-from Helper import FileReaderException,HistNotFoundException,Style,ReadHistList
+from Helper import FileReaderException,HistNotFoundException,ReadHistList
+from Graphics import Style
 from SpectrumContainer import DataContainer
 
 gObjects = list()

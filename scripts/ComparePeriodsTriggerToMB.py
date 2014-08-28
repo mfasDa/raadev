@@ -2,7 +2,8 @@
 
 from ROOT import TCanvas, TGraphErrors, TLegend, TPaveText
 from ROOT import kBlack, kBlue, kRed
-from Helper import Frame, ReadHistList, Style
+from Helper import Frame, ReadHistList
+from Graphics import Style
 from SpectrumContainer import DataContainer
 from copy import deepcopy
 

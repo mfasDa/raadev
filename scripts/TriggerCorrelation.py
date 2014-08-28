@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 
 from ROOT import TFile, TH1F, TCanvas, gPad, gDirectory, kBlack, kRed, kBlue, kGreen, kMagenta
-from Helper import FileReaderException, HistNotFoundException, ReadHistList, Style
+from Helper import FileReaderException, HistNotFoundException, ReadHistList 
+from Graphics import Style
 from SpectrumContainer import SpectrumContainer
 import sys
 

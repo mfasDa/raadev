@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
-from Helper import ReadHistList, MakeRatio, HistNotFoundException, Frame, Style
+from Helper import ReadHistList, MakeRatio, HistNotFoundException
+from Graphics import Frame, Style
 from SpectrumContainer import DataContainer
 from ROOT import TCanvas, TLegend, TPaveText
 from ROOT import kBlack, kRed, kBlue, kGreen, kOrange
