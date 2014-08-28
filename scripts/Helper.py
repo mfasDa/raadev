@@ -5,7 +5,7 @@
 #    Author: Markus Fasel
 #
 
-from ROOT import TFile, TH1F, TGraphErrors, gDirectory
+from ROOT import TFile, TGraphErrors, gDirectory
 from copy import deepcopy
 
 class FileReaderException(Exception):

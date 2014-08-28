@@ -2,7 +2,7 @@
 
 from ROOT import TCanvas,TF1,TFile,TLegend,TPaveText
 from ROOT import kRed, kBlack, kBlue, kGreen, gROOT
-from Graphics import Style,Frame
+from Graphics import Style,Frame,FourPanelPlot
 
 class TurnonCurveContainer:
     
@@ -92,61 +92,6 @@ class DataPeriod:
         if fitmin in self.__data.keys():
             self.__data[fitmin].AddTriggerToLegend(trigger, legend, title)
 
-class FourPanelPlot:
-    
-    class FramedPad:
-        def __init__(self, pad):
-            self.__pad = pad
-            self.__Frame = None
-            self.__legend = None
-            self.__labels = []
-            
-        def DrawFrame(self, frame):
-            self.__frame = frame
-            self.__frame.Draw()
-            
-        def DefineLegend(self, xmin, ymin, xmax, ymax):
-            self.__legend = TLegend(xmin, ymin, xmax, ymax)
-            self.__legend.SetBorderSize(0)
-            self.__legend.SetFillStyle(0)
-            self.__legend.SetTextFont(42)
-            
-        def GetLegend(self):
-            return self.__legend
-        
-        def DrawLegend(self):
-            if self.__legend:
-                self.__legend.Draw()
-        
-        def DrawLabel(self, xmin, ymin, xmax, ymax, text):
-            label = TPaveText(xmin, ymin, xmax, ymax, "NDC")
-            label.SetBorderSize(0)
-            label.SetFillStyle(0)
-            label.SetTextFont(42)
-            label.AddText(text)
-            label.Draw()
-            self.__labels.append(label)
-    
-    def __init__(self):
-        self._canvas = None
-        self._framedPads = {1:None, 2:None, 3:None, 4:None}
-        
-    def _OpenCanvas(self, canvasname, canvastitle):
-        self._canvas = TCanvas(canvasname, canvastitle, 1000, 800)
-        self._canvas.Divide(2,2)
-        
-    def _OpenPad(self, id):
-        if id >= 1 and id <= 4:
-            pad = self._canvas.cd(id)
-            pad.SetGrid(False, False)
-            self._framedPads[id] = self.FramedPad(pad)
-            return self._framedPads[id]
-        return None
-    
-    def SaveAs(self, filenamebase):
-        types = ["eps", "pdf", "jpeg", "gif", "png"]
-        for t in types:
-            self._canvas.SaveAs("%s.%s" %(filenamebase, t))
 
 class PeriodComparisonPlot(FourPanelPlot):
     
