@@ -85,10 +85,17 @@ class DataContainer:
         self.__spectrum = None
         if trackHist:
             self.__spectrum = SpectrumContainer(trackHist)
+        self.__clusters = {}
         self.__cutList = []
         self.__usePileupRejected = True
         self.__vertexrange = {}
         self.__doNormBW = True
+        
+    def AddClusterHist(self, hist, tag):
+        """
+        Add a new cluster hist with a given tag
+        """
+        self.__clusters[tag] = hist
         
     def SetEventHist(self, eventHist):
         """
@@ -177,13 +184,51 @@ class DataContainer:
             NormaliseBinWidth(projected)
             # Normalise by number of events
             projected.Scale(1./self.GetEventCount())
-        return projected             
-        
+        return projected         
+    
+    def MakeClusterProjection(self, dim, tag = "Calib", histname = None, xtitle = None, ytitle = None, doNorm = True):    
+        """
+        Make event-normalised projection to 1D
+        """
+        if not len(self.__clusters):
+            raise DataException("ClusterHist")
+        if not self.__events:
+            raise DataException("EventHist")
+        clhist = self.__clusters[tag]
+        if not clhist:
+            raise DataException("ClusterHist:%s", tag)
+        # Apply cuts
+        for cut in self.__cutList:
+            #print "Processing next cut"
+            try:
+                clhist.ApplyCut(cut.GetDimension(), cut.GetMinimum(), cut.GetMaximum())
+            except SpectrumConainer.DimensionException:
+                # Cluster container has different dimensions
+                continue 
+            except SpectrumContainer.RangeException as e:
+                print e
+                continue
+        if not histname:
+            histname = "%s/" %(clhist.GetData().GetName())
+        if not xtitle:
+            xtitle = ""
+        if not ytitle:
+            ytitle = ""
+        projected = clhist.ProjectToDimension(dim, histname, xtitle, ytitle)
+        projected.Sumw2()
+        if doNorm:
+            NormaliseBinWidth(projected)
+            # Normalise by number of events
+            projected.Scale(1./self.GetEventCount())
+        return projected         
+      
     def Reset(self):
         """ 
         Reset underlying spectrum
         """
         self.__spectrum.Reset()
+        for clhist in self.__clusters.values():
+            clhist.Reset()
             
 class SpectrumContainer:
     """
