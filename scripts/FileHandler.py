@@ -245,8 +245,23 @@ class FileReader:
         if not hlist:
             raise self.FileReaderException("%s/histosPtEMCalTriggerHistograms" %(path))
         return hlist
+    
+class LegoTrainFileReader(FileReader):
+    """
+    File reader adapted to the file format in the lego train
+    """
+    
+    def __init__(self, filename):
+        """
+        Initialise file reader with filename and set the directory according to the definition in
+        the lego train
+        """
+        FileReader.__init__(self, filename)
+        self.SetDirectory("PtEMCalTriggerTask")
 
 def TestFileReader(filename):
-    testreader = FileReader(filename)
-    testreader.SetDirectory("PtEMCalTriggerTask")
+    """
+    Test procedure for the lego train file reader
+    """
+    testreader = LegoTrainFileReader(filename)
     return testreader.ReadFile()
