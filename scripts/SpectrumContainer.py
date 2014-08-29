@@ -87,6 +87,7 @@ class DataContainer:
             self.__spectrum = SpectrumContainer(trackHist)
         self.__clusters = {}
         self.__cutList = []
+        self.__cutListClust = []
         self.__usePileupRejected = True
         self.__vertexrange = {}
         self.__doNormBW = True
@@ -95,7 +96,7 @@ class DataContainer:
         """
         Add a new cluster hist with a given tag
         """
-        self.__clusters[tag] = hist
+        self.__clusters[tag] = SpectrumContainer(hist)
         
     def SetEventHist(self, eventHist):
         """
@@ -122,6 +123,20 @@ class DataContainer:
                 break
         if not cutFound:
             self.__cutList.append(DataContainer.SpectrumCut(dimension, min, max))
+
+    def AddClusterCut(self, dimension, min, max):
+        """
+        Add cut for a given dimension
+        """
+        cutFound = False
+        for cut in self.__cutListClust:
+            if cut.GetDimension() == dimension:
+                #cut needs to be changed
+                cut.SetLimits(min, max)
+                cutFound = True
+                break
+        if not cutFound:
+            self.__cutListClust.append(DataContainer.SpectrumCut(dimension, min, max))
         
                 
     def SetVertexRange(self, min, max):
@@ -131,11 +146,13 @@ class DataContainer:
         self.__vertexrange["min"] = min
         self.__vertexrange["max"] = max
         self.AddCut(3, min, max)
+        self.AddClusterCut(1, min, max)
         
     def SetPileupRejection(self, on):
         if on == True:
             self.__usePileupRejected = True
             self.AddCut(4, 1., 1.)
+            self.AddClusterCut(2,1.,1.)
         else:
             self.__usePileupRejected = False
             
@@ -198,12 +215,13 @@ class DataContainer:
         if not clhist:
             raise DataException("ClusterHist:%s", tag)
         # Apply cuts
-        for cut in self.__cutList:
+        for cut in self.__cutListClust:
             #print "Processing next cut"
             try:
                 clhist.ApplyCut(cut.GetDimension(), cut.GetMinimum(), cut.GetMaximum())
-            except SpectrumConainer.DimensionException:
+            except SpectrumContainer.DimensionException as e:
                 # Cluster container has different dimensions
+                print e
                 continue 
             except SpectrumContainer.RangeException as e:
                 print e
@@ -296,9 +314,9 @@ class SpectrumContainer:
         elif isinstance(dim,str):
             cutaxis = FindAxisByName(dim)
         if not self.__IsInRange(min, cutaxis):
-            raise RangeException(dim, min, cutaxis.GetMinimum(), cutaxis.GetMaximum())
+            raise self.RangeException(dim, min, cutaxis.GetMinimum(), cutaxis.GetMaximum())
         if not self.__IsInRange(max, cutaxis):
-            raise RangeException(max, cutaxis.GetMinimum(), cutaxis.GetMaximum())
+            raise self.RangeException(max, cutaxis.GetMinimum(), cutaxis.GetMaximum())
         binmin = cutaxis.FindBin(min + kVerySmall)
         binmax = cutaxis.FindBin(max - kVerySmall)
         #print "Setting range in axis %d from %.f [%d] to %.f [%d]" %(dim, min, binmin, max, binmax)
@@ -316,7 +334,7 @@ class SpectrumContainer:
         Make 1D projection of the multi-dimensional histogram
         """
         if dimension >= self.__hsparse.GetNdimensions():
-            raise DimensionException(self.__hsparse.GetNdimensions(), dimension)
+            raise self.DimensionException(self.__hsparse.GetNdimensions(), dimension)
         result = self.__hsparse.Projection(dimension)
         result.SetName(histname)
         if len(xtitle):
@@ -338,7 +356,7 @@ class SpectrumContainer:
         Find axis for a given dimension number
         """
         if dim >= self.__hsparse.GetNdimensions():
-            raise DimensionException(dim, self.__hsparse.GetNdimensions())
+            raise self.DimensionException(dim, self.__hsparse.GetNdimensions())
         return self.__hsparse.GetAxis(dim)
     
     def __FindAxisByName(self, name):

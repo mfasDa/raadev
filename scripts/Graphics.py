@@ -98,7 +98,7 @@ class GraphicsObject:
         """
         self.__data.SetMarkerColor(style.GetColor())
         self.__data.SetLineColor(style.GetColor())
-        self.__data.SetMarkerStyle(style.GetColor())
+        self.__data.SetMarkerStyle(style.GetMarker())
         
     def GetData(self):
         """
@@ -168,7 +168,7 @@ class PlotBase:
                 """
                 Accessor to graphics object
                 """
-                return self.__objet
+                return self.__object
             
             def GetTitle(self):
                 return self.__title
@@ -234,7 +234,7 @@ class PlotBase:
                 self.DefineLegend(xmin, ymin, xmax, ymax)
                 for entry in sorted(self.__graphicsObjects):
                     self.AddToLegend(entry.GetObject(), entry.GetTitle())
-                self.__DrawLegend()
+                self.DrawLegend()
             
         def GetLegend(self):
             """
@@ -267,6 +267,12 @@ class PlotBase:
             label.AddText(text)
             label.Draw()
             self.__labels.append(label)
+        
+        def GetPad(self):
+            """
+            Provide direct access to the pad
+            """
+            return self.__pad
             
     class _FrameContainer:
         """
@@ -392,7 +398,7 @@ class MultipanelPlot(PlotBase):
         """
         Calculate ID of the pad
         """
-        if (row < 0 or row >= self.__row) or (col < 0 or col >= self.__ncol):
+        if (row < 0 or row >= self.__nrow) or (col < 0 or col >= self.__ncol):
             return -1
         return 1 + row * self.__ncol + col
     

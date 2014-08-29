@@ -214,7 +214,6 @@ class FileReader:
                 clhist = hlist.FindObject("%s%s" %(clust, trigger))
                 if clhist:
                     tag = clust.replace("hCluster","").replace("Hist","")
-                    print tag
                     triggerdata.AddClusterHist(clhist, tag)
             result.SetData(trigger, triggerdata)
         return result
