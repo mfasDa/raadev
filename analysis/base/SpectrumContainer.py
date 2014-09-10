@@ -22,7 +22,7 @@ class DataSet:
             raise Dataset.ContentException(name, "TrackContainer")
         self.__trackContainers[name] = data
         
-    def AddClusterContaienr(self, name, data):
+    def AddClusterContainer(self, name, data):
         if name in self.__clusterContainers.keys():
             raise Dataset.ContentException(name, "ClusterContainer")
         self.__clusterContainers[name] = data
@@ -118,7 +118,7 @@ class DataContainer:
         """
         self.__events = eventHist
         self.__spectrum = None
-        if datakHist:
+        if dataHist:
             self.__spectrum = SpectrumContainer(dataHist)
         self.__cutList = []
         self._usePileupRejected = True
