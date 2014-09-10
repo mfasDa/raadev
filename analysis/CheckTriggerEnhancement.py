@@ -1,10 +1,9 @@
 #! /usr/bin/env python
 
-from ROOT import TCanvas,TF1,TFile,TGraphErrors,TLegend,TMath
+from ROOT import TF1,TGraphErrors,TMath
 from ROOT import kRed, kBlue, kOrange, kGreen
-from Helper import ReadHistList
-from Graphics import Frame,Style
-from SpectrumContainer import DataContainer
+from base.Graphics import Frame, SinglePanelPlot, GraphicsObject, Style
+from base.FileHandler import LegoTrainFileReader
 
 class TriggerDataContainer():
     
@@ -25,6 +24,9 @@ class TriggerDataContainer():
             
         def GetStyle(self):
             return self.__style
+        
+        def MakeGraphicsObject(self):
+            return GraphicsObject(self.__data.GetPoints(), self.__style)
     
     def __init__(self):
         self.__data = {}
@@ -32,17 +34,20 @@ class TriggerDataContainer():
     def AddData(self, name, object, style):
         self.__data[name] = self.StyledObject(object, style)
         
-    def SetStyle(self, style):
+    def SetStyle(self, name, style):
         self.__data[name].SetStyle(style)
         
-    def DrawAll(self):
+    def GetGraphicsList(self):
+        graphicsList = {}
         for entry in sorted(self.__data.keys()):
-            self.__data[entry].GetData().Draw(self.__data[entry].GetStyle())
-        
-    def AddAllToLegend(self, legend):
-        for entry in sorted(self.__data.keys()):
-            self.__data[entry].GetData().AddToLegend(legend, entry)
+            graphicsList[entry] = self.__data[entry].MakeGraphicsObject()
+        return graphicsList
             
+    def DrawAll(self, frame):
+        graphicsList = self.GetGraphicsList()
+        for entry in sorted(graphicsList):
+            frame.DrawGraphicsObject(graphicsList[entry], addToLegend = True, title = entry)
+                    
     def Write(self, filename):
         outputfile = TFile(filename, "RECREATE")
         outputfile.cd()
@@ -75,53 +80,31 @@ class TriggerTurnonCurve:
     
     def GetName(self):
         return self.__name
- 
-    def Draw(self,style):
-        self.__values.SetMarkerColor(style.GetColor())
-        self.__values.SetMarkerStyle(style.GetMarker())
-        self.__values.SetLineColor(style.GetColor())
-        self.__values.Draw("epsame")
-        
-    def AddToLegend(self, legend, name):
-        legend.AddEntry(self.__values, name, "lep")
-        
+    
+    def MakeGraphicsObject(self, style):
+        return GraphicsObject(self.__values, style)
+         
     def WriteData(self, name):
         self.__values.Write("turnonCurve%s" %(name))
     
     def __GetBinnedParameterisation(self, mbparam, min, max):
         return mbparam.Integral(min, max)/TMath.Abs(max - min)
     
-class TriggerTurnonPlot:
+class TriggerTurnonPlot(SinglePanelPlot):
     
     def __init__(self, data):
+        SinglePanelPlot.__init__(self)
         self.__data = data
-        self.__canvas = None
-        self.__Frame = None
-        self.__legend = None
         
     def Create(self):
-        self.__canvas = TCanvas("EMCalTurnon", "EMCal Turn-on curve", 800, 600)
-        topad = self.__canvas.cd()
-        topad.SetGrid(False, False)
-        self.__Frame = Frame("emcturnon", 0., 100., 0., 3000.)
-        self.__Frame.SetXtitle("p_{t} (GeV/c)")
-        self.__Frame.SetYtitle("EMCal/MinBias")
-        self.__Frame.Draw()
-        self.__legend = TLegend(0.55, 0.75, 0.89, 0.89)
-        self.__legend.SetBorderSize(0)
-        self.__legend.SetFillStyle(0)
-        self.__legend.SetTextFont(42)
-        self.__data.DrawAll()
-        self.__data.AddAllToLegend(self.__legend)
-        self.__legend.Draw()
-            
-    def SaveAs(self, filenamebase):
-        """
-        Save plot as image file
-        """
-        types = ["eps", "pdf", "jpeg", "gif", "png"]
-        for t in types:
-            self.__canvas.SaveAs("%s.%s" %(filenamebase, t))
+        self._OpenCanvas("EMCalTurnon", "EMCal Turn-on curve")
+        frame = Frame("emcturnon", 0., 100., 0., 3000.)
+        frame.SetXtitle("p_{t} (GeV/c)")
+        frame.SetYtitle("EMCal/MinBias")
+        pad = self._GetFramedPad()
+        pad.DrawFrame(frame)
+        self.__data.DrawAll(pad)
+        pad.CreateLegend(0.55, 0.67, 0.89, 0.89)
             
     def GetData(self):
         return self.__data
@@ -129,17 +112,6 @@ class TriggerTurnonPlot:
     def WriteData(self, filename):
         self.__data.Write(filename)
         
-def ReadSpectra(filename, triggers):
-    """
-    Read the spectra for different trigger classes from the root file
-    Returns a dictionary of triggers - spectrum container
-    """
-    hlist = ReadHistList(filename, "PtEMCalTriggerTask")
-    result = {}
-    for trg in triggers:
-        result[trg] = DataContainer(eventHist = hlist.FindObject("hEventHist%s" %(trg)), trackHist = hlist.FindObject("hTrackHist%s" %(trg)))
-    return result
-
 def MakeNormalisedSpectrum(inputdata, name):
     """
     Normalise spectrum by the number of events and by the bin width
@@ -157,17 +129,21 @@ def ParameteriseMinBiasSpectrum(spectrum, fitmin = 15.):
     spectrum.Fit("fitfunction", "N", "", fitmin, 50.)
     return fitfunction
 
-def CreateTurnonPlot(filename, filenameMB, fitmin = 15.):
-    triggers = ["EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow"]
-    triggersMB = ["MinBias"]
-    data = ReadSpectra(filename, triggers)
-    dataMB = ReadSpectra(filenameMB, triggersMB)
-    emctriggers = ["EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow"]
+def ReadData(filename):
+    reader = LegoTrainFileReader(filename)
+    return reader.ReadFile()
+
+def CreateTurnonPlot(filename, filenameMB, fitmin = 15., requireCluster = False):
+    trackHistName = "tracksAll"
+    if requireCluster:
+        trackHistName = "tracksWithClusters"
+    data = ReadData(filename)
+    dataMB = ReadData(filenameMB)
     styles = {"EMCJHigh" : Style(kRed, 24), "EMCJLow" : Style(kOrange, 26), "EMCGHigh" : Style(kBlue, 25), "EMCGLow" : Style(kGreen, 27)}
-    parMB = ParameteriseMinBiasSpectrum(MakeNormalisedSpectrum(dataMB["MinBias"], "MinBias"), fitmin)
+    parMB = ParameteriseMinBiasSpectrum(MakeNormalisedSpectrum(dataMB.GetData("MinBias").FindTrackContainer(trackHistName), "MinBias"), fitmin)
     emcdata = TriggerDataContainer()
-    for trg in emctriggers:
-        emcdata.AddData(trg, TriggerTurnonCurve(trg, MakeNormalisedSpectrum(data[trg], trg), parMB), styles[trg])  
+    for trg in styles.keys():
+        emcdata.AddData(trg, TriggerTurnonCurve(trg, MakeNormalisedSpectrum(data.GetData(trg).FindTrackContainer(trackHistName), trg), parMB), styles[trg])  
     plot = TriggerTurnonPlot(emcdata)
     plot.Create()
     return plot
