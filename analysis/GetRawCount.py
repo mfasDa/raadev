@@ -5,7 +5,7 @@ GetRawCount.py
      Author: markusfasel
 """
 
-from FileHandler import FileReader
+from base.FileHandler import LegoTrainFileReader
 
 from ROOT import TCanvas
 
@@ -32,12 +32,18 @@ def Run():
     canvas = TCanvas("spectra", "Spectra", 1000, 800)
     canvas.Divide(3,2)
     counter =1
+    results = []
+    mainclasses = ["EMCGHigh", "EMCGLow", "EMCJHigh", "EMCJLow", "MinBias"]
     for trigger in sorted(filecontent.GetListOfTriggers()):
-        rawspectrum = MakeRawSpectrum(filecontent.GetData(trigger).FindTrackHist("tracksAll"), trigger)
+        rawspectrum = MakeRawSpectrum(filecontent.GetData(trigger).FindTrackContainer("tracksAll"), trigger)
         print "%s: 50 - G0 GeV/c: %d, 80 - 100 GeV/c: %d" %(trigger, CountTracks(rawspectrum, 51, 59), CountTracks(rawspectrum, 82, 100))
-        canvas.cd(counter)
-        rawspectrum.Draw("ep")
-        results.append(rawspectrum)
-        counter = counter + 1
+        if trigger in mainclasses:
+            canvas.cd(counter)
+            rawspectrum.Draw("ep")
+            results.append(rawspectrum)
+            counter = counter + 1
     results.append(canvas)
     return results
+
+if __name__ == "__main__":
+    Run()
