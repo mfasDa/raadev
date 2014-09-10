@@ -335,7 +335,7 @@ class SinglePanelPlot(PlotBase):
         """
         Create canvas and add it to the list of framed pads
         """
-        PlotBase._OpenCanvas(self, canvasname, canvastitle, 1000., 800)
+        PlotBase._OpenCanvas(self, canvasname, canvastitle, 1000, 800)
         self._frames.AddFrame(0, self._FramedPad(self._canvas))
         
     def _GetFramedPad(self):
