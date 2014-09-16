@@ -240,7 +240,7 @@ void Generate_Sample_Lookup(TMap &lookup){
         AddSample(lookup, "LHC13e.pass2", "/alice/data/2013/LHC13e/", "pass2/*/AliESDs.root", "Data", "ESD");
         AddSample(lookup, "LHC13f.pass1", "/alice/data/2013/LHC13f/", "pass1/*/AliESDs.root", "Data", "ESD");
         AddSample(lookup, "LHC13b4_fix", "/alice/sim/2013/LHC13b4_fix", "*/*/AliESDs.root", "MC", "ESD");
-        AddSample(lookup, "LHC13b4_plus", "/alice/sim/2013/LHC13b4_plus", "*/*/AliESDs.root", "MC", "ESD");
+        AddSample(lookup, "LHC13b4_plus", "/alice/sim/2013/LHC13b4_plus", "10/*/AliESDs.root", "MC", "ESD");
         printf("Lookup table with sample information generated\n");
 }
 
@@ -380,7 +380,11 @@ void SetupUtil(bool isMC, bool isAOD){
 
         //==== EMCal Preparation task
         gROOT->LoadMacro("$ALICE_ROOT/PWG/EMCAL/macros/AddTaskEmcalPreparation.C");
-        AddTaskEmcalPreparation();
+        AddTaskEmcalPreparation(g_sample);
+
+        //==== Jet Preparation task
+        gROOT->LoadMacro("$ALICE_ROOT/PWGJE/EMCALJetTasks/macros/AddTaskJetPreparation.C");
+        AddTaskJetPreparation(g_sample);
 }
 
 int SetupPar(char* pararchivename){
