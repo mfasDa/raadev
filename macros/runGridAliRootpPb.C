@@ -239,6 +239,8 @@ void Generate_Sample_Lookup(TMap &lookup){
         AddSample(lookup, "LHC13e.pass1", "/alice/data/2013/LHC13e/", "pass1/*/AliESDs.root", "Data", "ESD");
         AddSample(lookup, "LHC13e.pass2", "/alice/data/2013/LHC13e/", "pass2/*/AliESDs.root", "Data", "ESD");
         AddSample(lookup, "LHC13f.pass1", "/alice/data/2013/LHC13f/", "pass1/*/AliESDs.root", "Data", "ESD");
+        AddSample(lookup, "LHC13b4_fix", "/alice/sim/2013/LHC13b4_fix", "*/*/AliESDs.root", "MC", "ESD");
+        AddSample(lookup, "LHC13b4_plus", "/alice/sim/2013/LHC13b4_plus", "*/*/AliESDs.root", "MC", "ESD");
         printf("Lookup table with sample information generated\n");
 }
 
@@ -435,15 +437,16 @@ void SetupHandlers(bool isMC, bool isAOD){
         gROOT->Macro(macroname.Data());
 
         if(isMC && !isAOD){
+        	printf("Adding mc handler\n");
                 // Add MC truth event handler, only in case of ESDs
                 gROOT->LoadMacro(Form("%s/AddMCHandler.C", macrobase.Data()));
                 AddMCHandler();
         }
 }
 
-void SetupTask(bool isMC, bool isAOD){
+void SetupTask(bool isMC, bool isAOD, const char *sample){
         gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskPtEMCalTrigger.C", gSystem->Getenv("ALICE_ROOT")));
-        AddTaskPtEMCalTrigger();
+        AddTaskPtEMCalTrigger(isMC, sample);
 }
 
 void SetupTrain(const TMap &lookup){
@@ -465,7 +468,7 @@ void SetupTrain(const TMap &lookup){
       
         SetupHandlers(isMC, isAOD);
         SetupUtil(isMC, isAOD);
-        SetupTask(isMC, isAOD);
+        SetupTask(isMC, isAOD, g_sample.Data());
 }
 
 void GenerateMergeConfigs(){
