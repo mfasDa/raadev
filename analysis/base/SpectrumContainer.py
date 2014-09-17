@@ -221,6 +221,12 @@ class TrackContainer(DataContainer):
         self._vertexrange["max"] = maxv
         self._AddCut(3, minv, maxv)
         
+    def SetEtaRange(self, etamin, etamax):
+        """
+        Select tracks in a given eta range
+        """
+        self._AddCut(1, etamin, etamax)
+        
     def SetPileupRejection(self, on):
         """
         Apply pileup rejection (yes or no)
