@@ -19,12 +19,12 @@ class DataSet:
         
     def AddTrackContainer(self, name, data):
         if name in self.__trackContainers.keys():
-            raise Dataset.ContentException(name, "TrackContainer")
+            raise DataSet.ContentException(name, "TrackContainer")
         self.__trackContainers[name] = data
         
     def AddClusterContainer(self, name, data):
         if name in self.__clusterContainers.keys():
-            raise Dataset.ContentException(name, "ClusterContainer")
+            raise DataSet.ContentException(name, "ClusterContainer")
         self.__clusterContainers[name] = data
         
     def FindTrackContainer(self, name):
@@ -43,13 +43,13 @@ class DataContainer:
         """
         Helper structure storing a  cut definition for a given dimension
         """
-        def __init__(self, dimension, min, max):
+        def __init__(self, dimension, minv, maxv):
             """
             Constructor
             """
             self.__dimension = dimension
-            self.__min = min
-            self.__max = max
+            self.__min = minv
+            self.__max = maxv
             
         def SetDimension(self, dimension):
             """
@@ -63,24 +63,24 @@ class DataContainer:
             """
             return self.__dimension
         
-        def SetLimits(self, min, max):
+        def SetLimits(self, minv, maxv):
             """
             Set the cut range
             """
-            self.__min = min
-            self.__max = max
+            self.__min = minv
+            self.__max = maxv
             
-        def SetMinimum(self, min):
+        def SetMinimum(self, minv):
             """
             Set the minimum of the range
             """
-            self.__min = min
+            self.__min = minv
             
-        def SetMaximum(self, max):
+        def SetMaximum(self, maxv):
             """
             Set the maximum of the range
             """
-            self.__max = max
+            self.__max = maxv
             
         def GetMinimum(self):
             """
@@ -99,11 +99,11 @@ class DataContainer:
         """
         Exception handling incomplete data
         """
-        def __init__(self, object):
+        def __init__(self, raiseobject):
             """
             constructor
             """
-            self.__object = object
+            self.__object = raiseobject
             
         def __str__(self):
             """
@@ -138,7 +138,7 @@ class DataContainer:
         """
         self.__spectrum = SpectrumContainer(trackhist)
         
-    def _AddCut(self, dimension, min, max):
+    def _AddCut(self, dimension, minv, maxv):
         """
         Add cut for a given dimension
         """
@@ -146,11 +146,11 @@ class DataContainer:
         for cut in self.__cutList:
             if cut.GetDimension() == dimension:
                 #cut needs to be changed
-                cut.SetLimits(min, max)
+                cut.SetLimits(minv, maxv)
                 cutFound = True
                 break
         if not cutFound:
-            self.__cutList.append(DataContainer.SpectrumCut(dimension, min, max))
+            self.__cutList.append(DataContainer.SpectrumCut(dimension, minv, maxv))
 
     def GetEventCount(self):
         """
@@ -172,9 +172,9 @@ class DataContainer:
         Make event-normalised projection to 1D
         """
         if not self.__spectrum:
-            raise DataException(self._datahistname)
+            raise DataContainer.DataException(self._datahistname)
         if not self.__events:
-            raise DataException("EventHist")
+            raise DataContainer.DataException("EventHist")
         # Apply cuts
         for cut in self.__cutList:
             #print "Processing next cut"
@@ -213,13 +213,13 @@ class TrackContainer(DataContainer):
         DataContainer.__init__(self, eventHist, trackHist)
         self._datahistname = "TrackHist"
     
-    def SetVertexRange(self, min, max):
+    def SetVertexRange(self, minv, maxv):
         """
         Apply vertex selection both to the event counter and the track hist
         """
-        self._vertexrange["min"] = min
-        self._vertexrange["max"] = max
-        self._AddCut(3, min, max)
+        self._vertexrange["min"] = minv
+        self._vertexrange["max"] = maxv
+        self._AddCut(3, minv, maxv)
         
     def SetPileupRejection(self, on):
         """
@@ -249,13 +249,13 @@ class ClusterContainer(DataContainer):
         DataContainer.__init__(self, eventHist, clusterHist)
         self._datahistname = "ClusterHist"
         
-    def SetVertexRange(self, min, max):
+    def SetVertexRange(self, minv, maxv):
         """
         Apply vertex selection both to the event counter and the track hist
         """
-        self._vertexrange["min"] = min
-        self._vertexrange["max"] = max
-        self._AddCut(1, min, max)
+        self._vertexrange["min"] = minv
+        self._vertexrange["max"] = maxv
+        self._AddCut(1, minv, maxv)
         
     def SetPileupRejection(self, on):
         """
@@ -278,12 +278,12 @@ class SpectrumContainer:
         Exception class handling user requests to dimensions which do not exist
         """
         
-        def __init__(self, dim, max):
+        def __init__(self, dim, maxv):
             """
             Constructor, initialising max. and requested dimension
             """
             self.__dim = dim
-            self.__max = max
+            self.__max = maxv
         
         def __str__(self):
             """
@@ -296,14 +296,14 @@ class SpectrumContainer:
         Exception class handling user request which are out of range
         """
         
-        def __init__(self, dim, value, min, max):
+        def __init__(self, dim, value, minv, maxv):
             """
             Constructor, initialising basic information about the range exception
             """
             self.__dimension = dim
             self.__value = value
-            self.__minimum = min
-            self.__maximum = max
+            self.__minimum = minv
+            self.__maximum = maxv
             
         def __str__(self):
             """
@@ -323,7 +323,7 @@ class SpectrumContainer:
         """
         return self.__hsparse
         
-    def ApplyCut(self, dim, min, max):
+    def ApplyCut(self, dim, minv, maxv):
         """
         Apply restrictions in one axis
         """
@@ -332,13 +332,13 @@ class SpectrumContainer:
         if isinstance(dim, int):
             cutaxis = self.__FindAxisByNumber(dim)
         elif isinstance(dim,str):
-            cutaxis = FindAxisByName(dim)
-        if not self.__IsInRange(min, cutaxis):
-            raise self.RangeException(dim, min, cutaxis.GetMinimum(), cutaxis.GetMaximum())
-        if not self.__IsInRange(max, cutaxis):
-            raise self.RangeException(max, cutaxis.GetMinimum(), cutaxis.GetMaximum())
-        binmin = cutaxis.FindBin(min + kVerySmall)
-        binmax = cutaxis.FindBin(max - kVerySmall)
+            cutaxis = self.__FindAxisByName(dim)
+        if not self.__IsInRange(minv, cutaxis):
+            raise self.RangeException(dim, minv, cutaxis.GetMinimum(), cutaxis.GetMaximum())
+        if not self.__IsInRange(maxv, cutaxis):
+            raise self.RangeException(maxv, cutaxis.GetMinimum(), cutaxis.GetMaximum())
+        binmin = cutaxis.FindBin(minv + kVerySmall)
+        binmax = cutaxis.FindBin(maxv - kVerySmall)
         #print "Setting range in axis %d from %.f [%d] to %.f [%d]" %(dim, min, binmin, max, binmax)
         self.__hsparse.GetAxis(dim).SetRange(binmin, binmax)
         
