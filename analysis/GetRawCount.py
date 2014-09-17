@@ -13,9 +13,17 @@ def CountTracks(data, ptmin, ptmax):
     binmin = data.GetXaxis().FindBin(ptmin)
     binmax = data.GetXaxis().FindBin(ptmax)
     trackCount = 0
-    for bin in range(binmin, binmax + 1):
-        trackCount = trackCount + data.GetBinContent(bin)
+    for mybin in range(binmin, binmax + 1):
+        trackCount = trackCount + data.GetBinContent(mybin)
     return trackCount
+
+def PrintTrackCountPerBin(data, ptmin = 2.):
+    kVerySmall = 1e-5
+    binmin = data.GetXaxis().FindBin(ptmin + kVerySmall)
+    binmax = data.GetXaxis().FindBin(100.)
+    for mybin in range(binmin, binmax + 1):
+        print "x = %f +-  %f GeV/c: %d counts" %(data.GetXaxis().GetBinCenter(mybin), data.GetXaxis().GetBinWidth(mybin)/2., data.GetBinContent(mybin)) 
+
 
 def MakeRawSpectrum(inputdata, name):
     """
@@ -37,6 +45,7 @@ def Run():
     for trigger in sorted(filecontent.GetListOfTriggers()):
         rawspectrum = MakeRawSpectrum(filecontent.GetData(trigger).FindTrackContainer("tracksAll"), trigger)
         print "%s: 50 - G0 GeV/c: %d, 80 - 100 GeV/c: %d" %(trigger, CountTracks(rawspectrum, 51, 59), CountTracks(rawspectrum, 82, 100))
+        PrintTrackCountPerBin(rawspectrum, 2.)
         if trigger in mainclasses:
             canvas.cd(counter)
             rawspectrum.Draw("ep")
