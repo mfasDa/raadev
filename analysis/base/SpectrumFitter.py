@@ -4,7 +4,7 @@ Created on 17.09.2014
 @author: markusfasel
 '''
 
-from ROOT import TF1
+from ROOT import TF1, TGraph
 
 class SpectrumFitter:
     '''
@@ -26,11 +26,14 @@ class SpectrumFitter:
         self.__name = name
         self.__data = spectrum
         self.__model = TF1("fitfunction%s"%(self.__name), "[0] * TMath::Power(x,[1])", 0., 100.)
+        self.__antider = TGraph()
+        self.__antiderNorm = TGraph()
         self.__fitDone = False
         
     def DoFit(self, rangemin, rangemax = 50):
         self.__data.Fit("fitfunction%s"%(self.__name), "N", "", rangemin, rangemax)
         self.__fitDone = True
+        self.__ConstructAntiDerivatives()
         
     def GetParameterisation(self):
         if not self.__fitDone:
@@ -40,7 +43,41 @@ class SpectrumFitter:
     def GetParameterisedValueAt(self, x):
         if not self.__fitDone:
             raise self.SpectrumFitterException()
-        self.__model.Eval(x)
+        return self.__model.Eval(x)
+    
+    def GetIntegralAbove(self, x):
+        if not self.__fitDone:
+            raise self.SpectrumFitterException()
+        return self.__antider.Eval(x)
+   
+    def GetNormalisedIntegralAbove(self, x):
+        if not self.__fitDone:
+            raise self.SpectrumFitterException()
+        return self.__antiderNorm.Eval(x)
+
+    def CalculateIntegralAbove(self, x):
+        if not self.__fitDone:
+            raise self.SpectrumFitterException()
+        return self.__model.Integral(x, 10000)
+   
+    def CalculateNormalisedIntegralAbove(self, x):
+        if not self.__fitDone:
+            raise self.SpectrumFitterException()
+        maxint = 10000
+        return self.__model.Integral(x, maxint)/(maxint - x)
+
+    def __ConstructAntiDerivatives(self):
+        counter = 0
+        for point in range(1,1000):
+            self.__antider.SetPoint(counter, float(point), self.CalculateIntegralAbove(float(point)))
+            self.__antiderNorm.SetPoint(counter, float(point), self.CalculateNormalisedIntegralAbove(float(point)))
+            counter += 1
+            
+    def GetAntiderivative(self):
+        return self.__antider
+    
+    def GetNormalisedAntiDerivative(self):
+        return self.__antiderNorm
         
 class MinBiasFitter(SpectrumFitter):
     
