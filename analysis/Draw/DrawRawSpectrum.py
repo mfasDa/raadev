@@ -5,8 +5,6 @@ from base.SpectrumContainer import SpectrumContainer
 from base.FileHandler import LegoTrainFileReader
 import sys
 
-gObjects = []
-
 class RawSpectrumPlot(SinglePanelPlot):
     
     def __init__(self, spectrum):
@@ -41,14 +39,13 @@ def CreatePlot(filename, trigger, saveCanvas = False):
     
     plot = RawSpectrumPlot()
     plot.Create(spectrum, trigger)    
-    if(saveCanvas):
-        plot.SaveAs("rawSpectrum%s.png" %(trigger))
     return plot
 
 def main(): 
     filename = sys.argv[1]
     trigger = sys.argv[2]
-    CreatePlot(filename, trigger, True)
+    plot = CreatePlot(filename, trigger, True)
+    plot.SaveAs("rawSpectrum%s.png" %(trigger))
     
 if __name__ == "__main__":
     main()
