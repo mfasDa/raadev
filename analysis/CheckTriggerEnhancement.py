@@ -1,6 +1,6 @@
-#! /usr/bin/env python
+#! /usr/mybin/env python
 
-from ROOT import TF1,TGraphErrors,TMath
+from ROOT import TF1,TGraphErrors,TMath,TFile
 from ROOT import kRed, kBlue, kOrange, kGreen
 from base.Graphics import Frame, SinglePanelPlot, GraphicsObject, Style
 from base.FileHandler import LegoTrainFileReader
@@ -31,8 +31,8 @@ class TriggerDataContainer():
     def __init__(self):
         self.__data = {}
         
-    def AddData(self, name, object, style):
-        self.__data[name] = self.StyledObject(object, style)
+    def AddData(self, name, data, style):
+        self.__data[name] = self.StyledObject(data, style)
         
     def SetStyle(self, name, style):
         self.__data[name].SetStyle(style)
@@ -57,21 +57,21 @@ class TriggerDataContainer():
 
 class TriggerTurnonCurve:
     
-    def __init__(self, name, emcaldata, minbiasdata):
-        self.__values = self.__Create(emcaldata, minbiasdata)
+    def __init__(self, name, emcaldata, minvalbiasdata):
+        self.__values = self.__Create(emcaldata, minvalbiasdata)
         self.__name = name
         
     def __Create(self, emcaldata, mbparam):
         result = TGraphErrors();
         npoints = 0;
-        for bin in range(1, emcaldata.GetXaxis().GetNbins()+1):
-            min = emcaldata.GetXaxis().GetBinLowEdge(bin)
-            if min < 15:
+        for mybin in range(1, emcaldata.GetXaxis().GetNmybins()+1):
+            minval = emcaldata.GetXaxis().GetmybinLowEdge(mybin)
+            if minval < 15:
                 continue
-            max = emcaldata.GetXaxis().GetBinUpEdge(bin)
-            binnedMb = self.__GetBinnedParameterisation(mbparam, min, max)
-            result.SetPoint(npoints, emcaldata.GetXaxis().GetBinCenter(bin), emcaldata.GetBinContent(bin)/binnedMb)
-            result.SetPointError(npoints, emcaldata.GetXaxis().GetBinWidth(bin)/2., emcaldata.GetBinError(bin)/binnedMb)
+            maxval = emcaldata.GetXaxis().GetmybinUpEdge(mybin)
+            mybinnedMb = self.__GetmybinnedParameterisation(mbparam, minval, maxval)
+            result.SetPoint(npoints, emcaldata.GetXaxis().GetmybinCenter(mybin), emcaldata.GetmybinContent(mybin)/mybinnedMb)
+            result.SetPointError(npoints, emcaldata.GetXaxis().GetmybinWidth(mybin)/2., emcaldata.GetmybinError(mybin)/mybinnedMb)
             npoints = npoints + 1
         return result;
     
@@ -87,8 +87,8 @@ class TriggerTurnonCurve:
     def WriteData(self, name):
         self.__values.Write("turnonCurve%s" %(name))
     
-    def __GetBinnedParameterisation(self, mbparam, min, max):
-        return mbparam.Integral(min, max)/TMath.Abs(max - min)
+    def __GetmybinnedParameterisation(self, mbparam, minval, maxval):
+        return mbparam.Integral(minval, maxval)/TMath.Abs(maxval - minval)
     
 class TriggerTurnonPlot(SinglePanelPlot):
     
@@ -100,7 +100,7 @@ class TriggerTurnonPlot(SinglePanelPlot):
         self._OpenCanvas("EMCalTurnon", "EMCal Turn-on curve")
         frame = Frame("emcturnon", 0., 100., 0., 3000.)
         frame.SetXtitle("p_{t} (GeV/c)")
-        frame.SetYtitle("EMCal/MinBias")
+        frame.SetYtitle("EMCal/minvalBias")
         pad = self._GetFramedPad()
         pad.DrawFrame(frame)
         self.__data.DrawAll(pad)
@@ -121,26 +121,26 @@ def MakeNormalisedSpectrum(inputdata, name):
     inputdata.SelectTrackCuts(1)
     return inputdata.MakeProjection(0, "ptSpectrum%s" %(name), "p_{t} (GeV/c)", "1/N_{event} 1/(#Delta p_{t}) dN/dp_{t} ((GeV/c)^{-2})")
 
-def ParameteriseMinBiasSpectrum(spectrum, fitmin = 15.):
+def ParameteriseminvalBiasSpectrum(spectrum, fitminval = 15.):
     """
     Parameterise fit function by power law
     """
     fitfunction = TF1("fitfunction", "[0] * TMath::Power(x,[1])", 0., 100.)
-    spectrum.Fit("fitfunction", "N", "", fitmin, 50.)
+    spectrum.Fit("fitfunction", "N", "", fitminval, 50.)
     return fitfunction
 
 def ReadData(filename):
     reader = LegoTrainFileReader(filename)
     return reader.ReadFile()
 
-def CreateTurnonPlot(filename, filenameMB, fitmin = 15., requireCluster = False):
+def CreateTurnonPlot(filename, filenameMB, fitminval = 15., requireCluster = False):
     trackHistName = "tracksAll"
     if requireCluster:
         trackHistName = "tracksWithClusters"
     data = ReadData(filename)
     dataMB = ReadData(filenameMB)
     styles = {"EMCJHigh" : Style(kRed, 24), "EMCJLow" : Style(kOrange, 26), "EMCGHigh" : Style(kBlue, 25), "EMCGLow" : Style(kGreen, 27)}
-    parMB = ParameteriseMinBiasSpectrum(MakeNormalisedSpectrum(dataMB.GetData("MinBias").FindTrackContainer(trackHistName), "MinBias"), fitmin)
+    parMB = ParameteriseminvalBiasSpectrum(MakeNormalisedSpectrum(dataMB.GetData("minvalBias").FindTrackContainer(trackHistName), "minvalBias"), fitminval)
     emcdata = TriggerDataContainer()
     for trg in styles.keys():
         emcdata.AddData(trg, TriggerTurnonCurve(trg, MakeNormalisedSpectrum(data.GetData(trg).FindTrackContainer(trackHistName), trg), parMB), styles[trg])  
