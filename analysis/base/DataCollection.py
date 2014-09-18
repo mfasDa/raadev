@@ -1,6 +1,8 @@
 '''
 Created on 17.09.2014
 
+Utility classes for datapoints and converters to ROOT graphics objects
+
 @author: markusfasel
 '''
 from ROOT import TGraph, TGraphAsymmErrors
@@ -141,7 +143,6 @@ class DataCollection:
     """
     Collection of data points
     """
-
 
     def __init__(self, name):
         '''
