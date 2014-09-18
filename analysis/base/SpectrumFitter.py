@@ -73,6 +73,16 @@ class SpectrumFitter:
             self.__antiderNorm.SetPoint(counter, float(point), self.CalculateNormalisedIntegralAbove(float(point)))
             counter += 1
             
+    def CalculateIntegral(self, xmin, xmax):
+        if not self.__fitDone:
+            raise self.SpectrumFitterException()
+        return self.__model.Integral(xmin, xmax)
+    
+    def CalculateBinned(self, xmin, xmax):
+        if not self.__fitDone:
+            raise self.SpectrumFitterException()
+        return self.__model.Integral(xmin, xmax)/(xmax - xmin)
+            
     def GetAntiderivative(self):
         return self.__antider
     
@@ -81,9 +91,9 @@ class SpectrumFitter:
         
 class MinBiasFitter(SpectrumFitter):
     
-    def __init__(self, name, data):
+    def __init__(self, name, data, fitmin = 15.):
         SpectrumFitter.__init__(self, name, data)
-        self.DoFit(15., 50.)
+        self.DoFit(fitmin, 50.)
         
 class TriggeredSpectrumFitter(SpectrumFitter):
     
