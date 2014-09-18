@@ -16,11 +16,11 @@ class Frame:
     Helper class handling frame drawing in plots
     """
     
-    def __init__(self, name, min, max, ymin, ymax):
+    def __init__(self, name, xmin, xmax, ymin, ymax):
         """
         Construct frame with name and ranges for x and y coordinate
         """
-        self.__framehist = TH1F(name, "", 100, min, max)
+        self.__framehist = TH1F(name, "", 100, xmin, xmax)
         self.__framehist.SetStats(False)
         self.__framehist.GetYaxis().SetRangeUser(ymin, ymax)
                         
@@ -140,8 +140,8 @@ class PlotBase:
             Definition of a graphics entry
             """
             
-            def __init__(self, object, title = None, addToLegend = False):
-                self.__object = object
+            def __init__(self, graphobject, title = None, addToLegend = False):
+                self.__object = graphobject
                 self.__title = title
                 self.__addToLegend = addToLegend
                 
@@ -149,10 +149,9 @@ class PlotBase:
                 """
                 Comparison is done accoring to the object title
                 """
-                mytitle = self
                 # 1st case: either or both of the titles missing
                 if not self.__title and not other.GetTitle():
-                    return NULL
+                    return None
                 if not self.__title and other.GetTitle():
                     return -1
                 if self.__title and not other.GetTitle():
