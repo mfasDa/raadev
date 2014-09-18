@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
-from FileHandler import LegoTrainFileReader
-from Graphics import FourPanelPlot,GraphicsObject,Style,Frame
+from base.FileHandler import LegoTrainFileReader
+from base.Graphics import FourPanelPlot,GraphicsObject,Style,Frame
 from ROOT import kBlack,kBlue,kGreen,kRed,kOrange
 
 from Helper import MakeRatio,HistToGraph
@@ -46,7 +46,7 @@ class ClusterComparisonPlot(FourPanelPlot):
             
 class ClusterComparison:
     
-    def __init__(self, type, minbias, triggered):
+    def __init__(self, mytype, minbias, triggered):
         self.__minBias = minbias
         self.__triggered = triggered
         self.__ratios = self.__CalculateRatios()
@@ -57,10 +57,10 @@ class ClusterComparison:
         if trigger is "MinBias":
             graphics = GraphicsObject(HistToGraph(self.__minBias, 0.1, 100.), styles["MinBias"])
         else:
-            dict = self.__triggered
+            mydict = self.__triggered
             if isRatio:
-                dict = self.__ratios
-            graphics = GraphicsObject(HistToGraph(dict[trigger], 0.1, 100.), styles[trigger])
+                mydict = self.__ratios
+            graphics = GraphicsObject(HistToGraph(mydict[trigger], 0.1, 100.), styles[trigger])
         return graphics
         
     def __CalculateRatios(self):
