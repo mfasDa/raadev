@@ -72,7 +72,7 @@ class SpectrumFitter:
         yieldval = 0
         while ptstart < maxint:
             yieldval += self.__model.Integral(ptstart, ptstart+10)/10.
-            ptstart += 10.
+            ptstart += 10
         return yieldval
 
     def __ConstructAntiDerivatives(self):
