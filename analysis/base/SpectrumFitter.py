@@ -61,10 +61,19 @@ class SpectrumFitter:
         return self.__model.Integral(x, 10000)
    
     def CalculateNormalisedIntegralAbove(self, x):
+        """
+        Calculate per-event yield above a certain pt, done as sum in 1 GeV bins of the 
+        binned content from a min. pt to a max. pt.
+        """
         if not self.__fitDone:
             raise self.SpectrumFitterException()
-        maxint = 10000
-        return self.__model.Integral(x, maxint)/(maxint - x)
+        maxint = 1000.
+        ptstart = x
+        yieldval = 0
+        while ptstart < maxint:
+            yieldval += self.__model.Integral(ptstart, ptstart+10)/10.
+            ptstart += 10.
+        return yieldval
 
     def __ConstructAntiDerivatives(self):
         counter = 0
