@@ -5,7 +5,7 @@ Created on 18.09.2014
 '''
 
 from base.Graphics import SinglePanelPlot, Frame, GraphicsObject, Style
-from base.SpectrumFitter import MinBiasFitter
+from base.SpectrumFitter import MinBiasFitter, TriggeredSpectrumFitter
 from base.DataCollection import DataCollection, Datapoint
 from ROOT import kRed, kBlue, kGreen
 
@@ -19,12 +19,16 @@ class RawDataIntegralPlot(SinglePanelPlot):
         Container class for the data to be plotted
         """
         
-        def __init__(self, rawspectrum):
+        def __init__(self, rawspectrum, isMinBias = True):
             """
             Constructor
             """
             self.__rawspectrum = rawspectrum
-            self.__mbfitter = MinBiasFitter("MinBiasFitter", self.__rawspectrum)
+            self.__mbfitter = None
+            if isMinBias:
+                self.__mbfitter = MinBiasFitter("MinBiasFitter", self.__rawspectrum)
+            else:
+                self.__mbfitter = TriggeredSpectrumFitter("TriggeredFitter", self.__rawspectrum)
             self.__datafitted = DataCollection("MinBiasFitted")
         
         def MakeRawSpectrum(self):
@@ -47,12 +51,12 @@ class RawDataIntegralPlot(SinglePanelPlot):
             # return GraphicsObject(self.__mbfitter.GetNormalisedAntiDerivative(), Style(kBlue, 25))
             return GraphicsObject(self.__mbfitter.GetAntiderivative(), Style(kBlue, 25))
 
-    def __init__(self, rawspectrum):
+    def __init__(self, rawspectrum, isMinBias):
         """
         Constructor
         """
         SinglePanelPlot.__init__(self)
-        self.__rawspectrum = self.RawData(rawspectrum)
+        self.__rawspectrum = self.RawData(rawspectrum, isMinBias)
         
     def Create(self):
         """
@@ -68,6 +72,6 @@ class RawDataIntegralPlot(SinglePanelPlot):
         pad.DrawFrame(frame)
         pad.DrawGraphicsObject(self.__rawspectrum.MakeRawSpectrum(), True, "Raw spectrum")
         pad.DrawGraphicsObject(self.__rawspectrum.MakeFitted(), True, "Fit to raw spectrum")
-        pad.DrawGraphicsObject(self.__rawspectrum.MakeAntiderivativeNormalised(), True, "Integral to infinity")
+        #pad.DrawGraphicsObject(self.__rawspectrum.MakeAntiderivativeNormalised(), True, "Integral to infinity")
         pad.CreateLegend(0.5, 0.75, 0.89, 0.89)
         

@@ -17,10 +17,11 @@ def MakeNormalisedRawSpectrum(data):
         print str(e)
     return data.MakeProjection(0, "ptSpectrum%s", "p_{#rm{t}} (GeV/c)", "1/N_{event} 1/(#Delta p_{#rm t}) dN/dp_{#rm{t}} ((GeV/c)^{-2}")
 
-def DrawRawSpectrumIntegral(filename):
+def DrawRawSpectrumIntegral(filename, trigger = "MinBias"):
     reader = LegoTrainFileReader(filename)
     content = reader.ReadFile()
+    isMinBias = (trigger == "MinBias")
     
-    plot = RawDataIntegralPlot(MakeNormalisedRawSpectrum(content.GetData("MinBias").FindTrackContainer("tracksAll")))
+    plot = RawDataIntegralPlot(MakeNormalisedRawSpectrum(content.GetData(trigger).FindTrackContainer("tracksAll")), isMinBias)
     plot.Create()
     return plot
