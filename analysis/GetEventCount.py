@@ -3,7 +3,7 @@
 from base.FileHandler import LegoTrainFileReader
 
 def Run():
-    periods = ["LHC13c", "LHC13d", "LHC13e", "LHC13f"]
+    periods = ["LHC13c", "LHC13d", "LHC13e", "LHC13f", "merged"]
     for period in periods:
         GetNumberOfEventsForPeriod(period)
         
@@ -20,4 +20,4 @@ def PrintEventCountForTrigger(data, trigger):
     print "%s: %d" %(trigger, data.GetEventCount())
     
 if __name__ == "__main__":
-    main()
+    Run()
