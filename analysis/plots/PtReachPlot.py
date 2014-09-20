@@ -7,6 +7,7 @@ Created on 17.09.2014
 from util.PtReachCalculation import PtReachCalculator
 from base.DataCollection import DataCollection, Datapoint
 from base.Graphics import SinglePanelPlot, Frame, GraphicsObject
+from ROOT import TFile
 
 class PtReachData:    
     
@@ -14,6 +15,7 @@ class PtReachData:
         self.__calculator = PtReachCalculator(name, data, isMinBias, 50)
         self.__data = DataCollection("data%s" %(name))
         self.__isIntegral = doIntegral
+        self.__rootobject = None
         self.__CreateData()
         
     def __CreateData(self):
@@ -25,10 +27,15 @@ class PtReachData:
             self.__data.AddDataPoint(Datapoint(nevents, PtReachCalculation(nevents), 0.))
             
     def MakeGraphics(self):
-        return self.__data.MakeLimitCurve(None, direction = "central")
+        if not self.__rootobject:
+            self.__MakeRootObject()
+        return self.__rootobject
     
     def IsIntegral(self):
         return self.__isIntegral
+    
+    def __MakeRootObject(self):
+        self.__rootobject = self.__data.MakeLimitCurve(None, direction = "central")
     
 class PtReachPlot(SinglePanelPlot):
     
@@ -57,5 +64,15 @@ class PtReachPlot(SinglePanelPlot):
         if isIntegral:
             labelText = "At least 50 tracks above p_{t}"
         pad.DrawLabel(0.5, 0.37, 0.7, 0.42, labelText)
+        
+    def WriteData(self, filename):
+        """
+        Write root data to rootfiles
+        """
+        result = TFile(filename, "RECREATE")
+        for key,data in self.__ptreachdata.iteritems():
+            graph = data["data"].MakeGraphics()
+            graph.Write(key)
+        result.Close()
         
             
