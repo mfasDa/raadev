@@ -35,5 +35,5 @@ class SpectrumCombiner(object):
             else:
                 inputspectrum = self.__triggeredspectrum
             result.SetBinContent(mybin, inputspectrum.GetBinContent(mybin))
-            result.SetBinError(mybin, inputspectrum.GetBinContent(mybin))
+            result.SetBinError(mybin, inputspectrum.GetBinError(mybin))
         return result
