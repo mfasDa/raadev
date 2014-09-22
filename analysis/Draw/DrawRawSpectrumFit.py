@@ -6,7 +6,8 @@ Created on 18.09.2014
 
 from base.FileHandler import LegoTrainFileReader
 from base.SpectrumContainer import SpectrumContainer
-from plots.RawDataIntegralPlot import RawDataIntegralPlot
+
+from plots.RawDataFittingPlot import RawDataFittingPlot
 
 def MakeNormalisedRawSpectrum(data):
     try:
@@ -22,6 +23,6 @@ def DrawRawSpectrumIntegral(filename, trigger = "MinBias"):
     content = reader.ReadFile()
     isMinBias = (trigger == "MinBias")
     
-    plot = RawDataIntegralPlot(MakeNormalisedRawSpectrum(content.GetData(trigger).FindTrackContainer("tracksAll")), isMinBias)
+    plot = RawDataFittingPlot(MakeNormalisedRawSpectrum(content.GetData(trigger).FindTrackContainer("tracksAll")), isMinBias)
     plot.Create()
     return plot

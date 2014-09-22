@@ -7,9 +7,9 @@ Created on 18.09.2014
 from base.Graphics import SinglePanelPlot, Frame, GraphicsObject, Style
 from base.SpectrumFitter import MinBiasFitter, TriggeredSpectrumFitter
 from base.DataCollection import DataCollection, Datapoint
-from ROOT import kRed, kBlue, kGreen
+from ROOT import kRed, kBlue, kGreen, TFile
 
-class RawDataIntegralPlot(SinglePanelPlot):
+class RawDataFittingPlot(SinglePanelPlot):
     """
     Plot checking the raw spectrum and the integral calculated
     """
@@ -43,13 +43,14 @@ class RawDataIntegralPlot(SinglePanelPlot):
                 xmax = self.__rawspectrum.GetXaxis().GetBinUpEdge(mybin)
                 self.__datafitted.AddDataPoint(Datapoint(self.__rawspectrum.GetXaxis().GetBinCenter(mybin), self.__mbfitter.CalculateBinned(xmin, xmax),self.__rawspectrum.GetXaxis().GetBinWidth(mybin)/2.))
             return GraphicsObject(self.__datafitted.MakeLimitCurve(None, direction="central"), Style(kGreen, 27))
-    
-        def MakeAntiderivativeNormalised(self):
-            """
-            Access to the antiderivative function
-            """
-            # return GraphicsObject(self.__mbfitter.GetNormalisedAntiDerivative(), Style(kBlue, 25))
-            return GraphicsObject(self.__mbfitter.GetAntiderivative(), Style(kBlue, 25))
+        
+        def Write(self, filename):
+            result = TFile(filename, "RECREATE")
+            result.cd()
+            self.__rawspectrum.Write("rawspectrum")
+            self.__datafitted.MakeLimitCurve(None, "central").Write("fit")
+            result.Close()
+            
 
     def __init__(self, rawspectrum, isMinBias):
         """
@@ -72,6 +73,11 @@ class RawDataIntegralPlot(SinglePanelPlot):
         pad.DrawFrame(frame)
         pad.DrawGraphicsObject(self.__rawspectrum.MakeRawSpectrum(), True, "Raw spectrum")
         pad.DrawGraphicsObject(self.__rawspectrum.MakeFitted(), True, "Fit to raw spectrum")
-        #pad.DrawGraphicsObject(self.__rawspectrum.MakeAntiderivativeNormalised(), True, "Integral to infinity")
         pad.CreateLegend(0.5, 0.75, 0.89, 0.89)
+        
+    def Write(self, filename):
+        """
+        Write spectrum and fit to file
+        """
+        self.__rawspectrum.Write(filename)
         
