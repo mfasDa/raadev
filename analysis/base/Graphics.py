@@ -8,7 +8,7 @@ Graphics.py
 Graphics module, containing basic ROOT plot helper functionality
 """
 
-from ROOT import TCanvas,TH1F,TLegend,TPad,TPaveText
+from ROOT import TCanvas,TH1F,TLegend,TPad,TPaveText,TF1
 from ROOT import kBlack
 
 class Frame:
@@ -96,9 +96,10 @@ class GraphicsObject:
         """
         Initialise underlying object with style
         """
-        self.__data.SetMarkerColor(style.GetColor())
         self.__data.SetLineColor(style.GetColor())
-        self.__data.SetMarkerStyle(style.GetMarker())
+        if not type(self.__data) is TF1:
+            self.__data.SetMarkerColor(style.GetColor())
+            self.__data.SetMarkerStyle(style.GetMarker())
         
     def GetData(self):
         """
@@ -116,13 +117,18 @@ class GraphicsObject:
             myoption = option
             if not "same" in myoption:
                 myoption = myoption + "same"
+        if type(self.__data) is TF1:
+            myoption = "lsame"
         self.__data.Draw(myoption)
     
     def AddToLegend(self, legend, title):
         """
         Add graphics object to a legend provided from outside
         """
-        legend.AddEntry(self.__data, title, "lep")
+        option = "lep"
+        if type(self.__data) is TF1:
+            option = "l"
+        legend.AddEntry(self.__data, title, option)
 
 class PlotBase:
     """
