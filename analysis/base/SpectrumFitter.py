@@ -4,7 +4,7 @@ Created on 17.09.2014
 @author: markusfasel
 '''
 
-from ROOT import TF1, TGraph
+from ROOT import TF1, TGraph, TH1F
 
 class SpectrumFitter:
     '''
@@ -26,14 +26,11 @@ class SpectrumFitter:
         self.__name = name
         self.__data = spectrum
         self.__model = TF1("fitfunction%s"%(self.__name), "[0] * TMath::Power(x,[1])", 0., 100.)
-        self.__antider = TGraph()
-        self.__antiderNorm = TGraph()
         self.__fitDone = False
         
     def DoFit(self, rangemin, rangemax = 50):
         self.__data.Fit("fitfunction%s"%(self.__name), "N", "", rangemin, rangemax)
         self.__fitDone = True
-        self.__ConstructAntiDerivatives()
         
     def GetParameterisation(self):
         if not self.__fitDone:
@@ -74,29 +71,35 @@ class SpectrumFitter:
             yieldval += self.__model.Integral(ptstart, ptstart+10)/10.
             ptstart += 10
         return yieldval
-
-    def __ConstructAntiDerivatives(self):
-        counter = 0
-        for point in range(1,1000):
-            self.__antider.SetPoint(counter, float(point), self.CalculateIntegralAbove(float(point)))
-            self.__antiderNorm.SetPoint(counter, float(point), self.CalculateNormalisedIntegralAbove(float(point)))
-            counter += 1
+            
+    def MakeBinnedParameterisation(self, nbins, xmin, xmax, normBinWidth = False):
+        """
+        Make binned parameterisation. If normBinWith is set to True, the integral is 
+        normalised by the bin width
+        """
+        result = TH1F("binned%s" %(self.__name), "", nbins, xmin, xmax)
+        for mybin in range(2, result.GetXaxis().GetNbins()+1):
+            value = 0
+            if normBinWidth:
+                value = self.CalculateBinMean(result.GetXaxis().GetBinLowEdge(mybin),result.GetXaxis().GetBinUpEdge(mybin))
+            else:
+                value = self.CalculateIntegral(result.GetXaxis().GetBinLowEdge(mybin),result.GetXaxis().GetBinUpEdge(mybin))
+            #print "min %f, max %f, value %e" %(result.GetXaxis().GetBinLowEdge(mybin),result.GetXaxis().GetBinUpEdge(mybin), value)
+            result.SetBinContent(mybin, value)
+        return result
             
     def CalculateIntegral(self, xmin, xmax):
         if not self.__fitDone:
             raise self.SpectrumFitterException()
         return self.__model.Integral(xmin, xmax)
     
-    def CalculateBinned(self, xmin, xmax):
+    def CalculateBinMean(self, xmin, xmax):
         if not self.__fitDone:
             raise self.SpectrumFitterException()
         return self.__model.Integral(xmin, xmax)/(xmax - xmin)
-            
-    def GetAntiderivative(self):
-        return self.__antider
-    
-    def GetNormalisedAntiDerivative(self):
-        return self.__antiderNorm
+                
+    def GetFitFunction(self):
+        return self.__model
         
 class MinBiasFitter(SpectrumFitter):
     
@@ -108,6 +111,6 @@ class TriggeredSpectrumFitter(SpectrumFitter):
     
     def __init__(self, name, data):
         SpectrumFitter.__init__(self, name, data)
-        self.DoFit(50., 100.)
+        self.DoFit(50., 90.)
 
         
