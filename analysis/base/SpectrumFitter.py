@@ -20,6 +20,12 @@ class FitModel:
     def GetFunctionName(self):
         return self._model.GetName()
     
+    def SetParLimits(self, parnum, parmin, parmax):
+        self._model.SetParLimits(parnum, parmin, parmax)
+        
+    def SetParameter(self, parnum, parval):
+        self._model.SetParameter(parnum, parval)
+    
 class PowerLawModel(FitModel):
     
     def __init__(self):
