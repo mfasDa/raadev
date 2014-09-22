@@ -238,7 +238,8 @@ class PlotBase:
             if not self.__legend:
                 self.DefineLegend(xmin, ymin, xmax, ymax)
                 for entry in sorted(self.__graphicsObjects):
-                    self.AddToLegend(entry.GetObject(), entry.GetTitle())
+                    if entry.IsAddToLegend():
+                        self.AddToLegend(entry.GetObject(), entry.GetTitle())
                 self.DrawLegend()
             
         def GetLegend(self):
