@@ -41,7 +41,7 @@ class RawDataFittingPlot(SinglePanelPlot):
             for mybin in range(1, self.__rawspectrum.GetXaxis().GetNbins()+1):
                 xmin = self.__rawspectrum.GetXaxis().GetBinLowEdge(mybin)
                 xmax = self.__rawspectrum.GetXaxis().GetBinUpEdge(mybin)
-                self.__datafitted.AddDataPoint(Datapoint(self.__rawspectrum.GetXaxis().GetBinCenter(mybin), self.__mbfitter.CalculateBinned(xmin, xmax),self.__rawspectrum.GetXaxis().GetBinWidth(mybin)/2.))
+                self.__datafitted.AddDataPoint(Datapoint(self.__rawspectrum.GetXaxis().GetBinCenter(mybin), self.__mbfitter.CalculateBinMean(xmin, xmax),self.__rawspectrum.GetXaxis().GetBinWidth(mybin)/2.))
             return GraphicsObject(self.__datafitted.MakeLimitCurve(None, direction="central"), Style(kGreen, 27))
         
         def Write(self, filename):
