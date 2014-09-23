@@ -85,7 +85,7 @@ class PeriodComparisonData:
             self.__isReference = isReference
             
         def GetTitle(self):
-            return self.__data.GetName()
+            return self.__data.GetTitle()
         
         def GetData(self):
             return self.__data.GetData()
@@ -125,7 +125,7 @@ class PeriodComparisonData:
         Draw all raw spectra in the given pad
         """
         for spectrum in sorted(self.__spectra):
-            pad.DrawGraphicsObject(spectrum.GetGraphics(), True, spectrum.GetTitle())
+            pad.DrawGraphicsObject(spectrum.GetSpectrum().GetGraphics(), True, spectrum.GetTitle())
             
     def DrawRatiosInPad(self, pad):
         """
@@ -133,7 +133,7 @@ class PeriodComparisonData:
         """
         self.__CalculateRatios()
         for ratio in sorted(self.__ratios):
-            pad.DrawGraphics(ratio.GetSpectrum.GetGraphics(), True, ratio.GetTitle())
+            pad.DrawGraphicsObject(ratio.GetGraphics(), True, ratio.GetTitle())
             
     def __FindReference(self):
         """
@@ -175,7 +175,7 @@ class RawspectrumPeriodComparisonPlot(TwoPanelPlot):
     Plot for the comparison of raw spectra in different periods
     """
 
-    def __init__(self, params):
+    def __init__(self):
         """
         Constructor
         """
@@ -201,7 +201,7 @@ class RawspectrumPeriodComparisonPlot(TwoPanelPlot):
         """
         self._CreateCanvas("Period comparison", "Comparison of different periods")
         
-        spad = self._GetPad(1)
+        spad = self._OpenPad(1)
         spad.GetPad().SetGrid(False, False)
         spad.GetPad().SetLogx(True)
         spad.GetPad().SetLogy(True)
@@ -210,15 +210,16 @@ class RawspectrumPeriodComparisonPlot(TwoPanelPlot):
         sframe.SetYtitle("1/N_{events} 1/#delta p_{T} dN/dp_{t} ((GeV/c)^{-2})")
         spad.DrawFrame(sframe)
         self.__model.DrawSpectraInPad(spad)
-        spad.CreateLegend()
+        spad.CreateLegend(0.55, 0.75, 0.89, 0.89)
         if self.__label:
             spad.DrawLabel(0.15, 0.15, 0.35, 0.2, self.__label)
             
-        rpad = self._GetPad(2)
+        rpad = self._OpenPad(2)
         rpad.GetPad().SetGrid(False, False)
         rpad.GetPad().SetLogx(True)
-        rframe = Frame("sframe", 1, 100, 0, 3)
+        rframe = Frame("rframe", 1, 100, 0, 3)
         rframe.SetXtitle("p_{t} (GeV/c)")
         rframe.SetYtitle("Ratio to %s" %(self.__model.GetReferenceTitle()))
         rpad.DrawFrame(rframe)
         self.__model.DrawRatiosInPad(spad)
+        self._canvas.cd()
