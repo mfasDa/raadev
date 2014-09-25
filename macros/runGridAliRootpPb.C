@@ -125,6 +125,7 @@ AliAnalysisAlien *CreateGridHandler(){
         plugin->SetOutputFiles("AnalysisResults.root"); 
         plugin->SetExecutableCommand("aliroot -b -q");
         plugin->SetTTL(30000);
+        //plugin->SetNtestFiles(100);
         plugin->SetInputFormat("xml-single");
         plugin->SetPrice(1);      
         plugin->SetSplitMode("se");
@@ -234,11 +235,11 @@ void Generate_Sample_Lookup(TMap &lookup){
         AddSample(lookup, "LHC13b2plus.AOD", "/alice/sim/2013/LHC13b2_plus", "*/AliAOD.root", "MC", "AOD");
         AddSample(lookup, "LHC13b3", "/alice/sim/2013/LHC13b3", "*/*/AliESDs.root", "MC", "ESD");
         AddSample(lookup, "LHC13b3.AOD", "/alice/sim/2013/LHC13b3", "*/AliAOD.root", "MC", "AOD");
-        AddSample(lookup, "LHC13d.pass1", "/alice/data/2013/LHC13d/", "pass1/*/AliESDs.root", "Data", "ESD");
-        AddSample(lookup, "LHC13d.pass2", "/alice/data/2013/LHC13d/", "pass2/*/AliESDs.root", "Data", "ESD");
-        AddSample(lookup, "LHC13e.pass1", "/alice/data/2013/LHC13e/", "pass1/*/AliESDs.root", "Data", "ESD");
-        AddSample(lookup, "LHC13e.pass2", "/alice/data/2013/LHC13e/", "pass2/*/AliESDs.root", "Data", "ESD");
-        AddSample(lookup, "LHC13f.pass1", "/alice/data/2013/LHC13f/", "pass1/*/AliESDs.root", "Data", "ESD");
+        AddSample(lookup, "LHC13d.pass1", "/alice/data/2013/LHC13d/", "/pass1/*/AliESDs.root", "Data", "ESD");
+        AddSample(lookup, "LHC13d.pass2", "/alice/data/2013/LHC13d/", "/pass2/*/AliESDs.root", "Data", "ESD");
+        AddSample(lookup, "LHC13e.pass1", "/alice/data/2013/LHC13e/", "/pass1/*/AliESDs.root", "Data", "ESD");
+        AddSample(lookup, "LHC13e.pass2", "/alice/data/2013/LHC13e/", "/pass2/*/AliESDs.root", "Data", "ESD");
+        AddSample(lookup, "LHC13f.pass1", "/alice/data/2013/LHC13f/", "/pass1/*/AliESDs.root", "Data", "ESD");
         AddSample(lookup, "LHC13b4_fix", "/alice/sim/2013/LHC13b4_fix", "*/*/AliESDs.root", "MC", "ESD");
         AddSample(lookup, "LHC13b4_plus", "/alice/sim/2013/LHC13b4_plus", "10/*/AliESDs.root", "MC", "ESD");
         printf("Lookup table with sample information generated\n");
@@ -377,14 +378,20 @@ void SetupUtil(bool isMC, bool isAOD){
         //==== EMCal Setup task =====
         gROOT->LoadMacro("$ALICE_ROOT/PWG/EMCAL/macros/AddTaskEmcalSetup.C");
         AddTaskEmcalSetup();
+        int indexTest = g_sample.Index(".");
+        TString period = g_sample;
+        if(indexTest > -1){
+        	period = g_sample(0, indexTest);
+        }
+        std::cout << "period: " << period.Data() << std::endl;
 
         //==== EMCal Preparation task
         gROOT->LoadMacro("$ALICE_ROOT/PWG/EMCAL/macros/AddTaskEmcalPreparation.C");
-        AddTaskEmcalPreparation(g_sample);
+        AddTaskEmcalPreparation(period.Data());
 
         //==== Jet Preparation task
         gROOT->LoadMacro("$ALICE_ROOT/PWGJE/EMCALJetTasks/macros/AddTaskJetPreparation.C");
-        AddTaskJetPreparation(g_sample);
+        AddTaskJetPreparation(period.Data());
 }
 
 int SetupPar(char* pararchivename){
