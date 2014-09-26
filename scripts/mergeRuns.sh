@@ -3,6 +3,8 @@
 . alice_env.sh
 
 BASEDIR=`pwd`
+SCRIPTIDR=$(readlink -f `dirname $0`)
+SOURCEDIR=`dirname $SCRIPTDIR` 
 
 [[ ! -d $BASEDIR/mergeRuns  ]] && mkdir $BASEDIR/mergeRuns
 
@@ -19,9 +21,9 @@ do
       fstring=$(printf "%s %s" "$fstring" $f) 
     done
 
-    root -b -q ~/Documents/LBL/RAATrigger/mfasel_ptemcaltrigger/macros/LoadLibsAna.C "~/Documents/LBL/RAATrigger/mfasel_ptemcaltrigger/macros/mergeFiles.C(\"AnalysisResults.root\",\"$fstring\")"
-
-
+    cmd=$(printf "root -b -q %s/macros/LoadLibsAna.C \"%s/macros/mergeFiles.C(\"AnalysisResults.root\",\"%s\")\"" $SOURCEDIR $SOURCEDIR $fstring)
+	eval $cmd
+	
     cd $BASEDIR
 done
 
