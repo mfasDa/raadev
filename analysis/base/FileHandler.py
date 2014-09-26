@@ -6,7 +6,7 @@ FileHandler.py
 """
 
 from ROOT import TFile,gDirectory
-from SpectrumContainer import DataSet, ClusterContainer, TrackContainer
+from SpectrumContainer import DataSet, ClusterContainer, TrackContainer, SpectrumContainer
 
 class ResultData:
     """
@@ -64,6 +64,7 @@ class ResultData:
         """
         self.__name = name
         self.__data = {}
+        self.__mctruth = None
         
         # for iterator
         self.__currentIndex = 0
@@ -86,6 +87,18 @@ class ResultData:
         Access name of the trigger class
         """
         return self.__name
+    
+    def SetMCTruth(self, MCtrueSpectrum):
+        """
+        Set the MC truth to the result data
+        """
+        self.__mctruth = MCtrueSpectrum
+        
+    def GetMCTruth(self):
+        """
+        Access MC truth from the result data
+        """
+        return self.__mctruth
     
     def GetData(self, trigger):
         """
@@ -159,12 +172,27 @@ class FileReader:
             return "Could not open file %s" %(self.filename)
 
     
-    def __init__(self, filename):
+    def __init__(self, filename, isMC = False):
         """
         Initialise file reader with name of the file to read
         """
         self.__filename = filename
         self.__directory = None
+        self.__isMC = isMC
+        self.__isReadWeights = False
+        self.__weightlist = None
+        
+    def SetReadWeights(self):
+        """
+        Read also histograms for the weight calculation
+        """
+        self.__isReadWeights = True
+        
+    def GetWeightHistograms(self):
+        """
+        Access to weight histograms
+        """
+        return self.__weightlist
         
     def SetDirectory(self, dirname):
         """
@@ -178,10 +206,17 @@ class FileReader:
         to trigger classes. Raising FileReaderExceptions if the file can't be opened, doesn't contain
         the directory or list, or has an empty histogram list
         """
-        hlist = self.__ReadHistList()
+        filecontent = self.__ReadHistList()
+        if self.__isReadWeights:
+            self.__weightlist = filecontent["weights"]
+        hlist = filecontent["spectra"]
         if not hlist.GetEntries():
             raise self.FileReaderException("Empty list of histograms in file %s" %(self.__filename))
         result = ResultData("result")
+        
+        # Handle MC-truth data
+        if self.__isMC:
+            result.SetMCTruth(SpectrumContainer(hlist.FindObject("hMCtrueParticles")))
         
         # build list of histograms and extract trigger names
         histnames = []
@@ -227,6 +262,7 @@ class FileReader:
         Read the list of histograms from a given rootfile
         optionally the list can be wihtin a directory (i.e. when analysing lego train output)
         """
+        result = {"spectra":None, "weights":None}
         inputfile = TFile.Open(self.__filename)
         if not inputfile or inputfile.IsZombie():
             raise self.FileReaderException(self.__filename)
@@ -243,11 +279,14 @@ class FileReader:
             mydirectory = inputfile
             path += "#"
         rlist = mydirectory.Get("results")
+        if self.__isReadWeights:
+            result["weights"] = {"crosssection":rlist.FindObject("fHistXsection"), "trials":rlist.FindObject("fHistTrials")}
         hlist = rlist.FindObject("histosPtEMCalTriggerHistograms")
         inputfile.Close()
         if not hlist:
             raise self.FileReaderException("%s/histosPtEMCalTriggerHistograms" %(path))
-        return hlist
+        result["spectra"] = hlist
+        return result
     
 class LegoTrainFileReader(FileReader):
     """
