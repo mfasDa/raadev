@@ -125,7 +125,7 @@ AliAnalysisAlien *CreateGridHandler(){
         plugin->SetOutputFiles("AnalysisResults.root"); 
         plugin->SetExecutableCommand("aliroot -b -q");
         plugin->SetTTL(30000);
-        //plugin->SetNtestFiles(100);
+        //plugin->SetNtestFiles(10);
         plugin->SetInputFormat("xml-single");
         plugin->SetPrice(1);      
         plugin->SetSplitMode("se");
@@ -242,6 +242,7 @@ void Generate_Sample_Lookup(TMap &lookup){
         AddSample(lookup, "LHC13f.pass1", "/alice/data/2013/LHC13f/", "/pass1/*/AliESDs.root", "Data", "ESD");
         AddSample(lookup, "LHC13b4_fix", "/alice/sim/2013/LHC13b4_fix", "*/*/AliESDs.root", "MC", "ESD");
         AddSample(lookup, "LHC13b4_plus", "/alice/sim/2013/LHC13b4_plus", "10/*/AliESDs.root", "MC", "ESD");
+        AddSample(lookup, "LHC14i1a", "/alice/sim/2014/LHC14i1a", "*/AliESDs.root", "MC", "ESD");
         printf("Lookup table with sample information generated\n");
 }
 
