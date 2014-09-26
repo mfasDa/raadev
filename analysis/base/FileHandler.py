@@ -293,12 +293,12 @@ class LegoTrainFileReader(FileReader):
     File reader adapted to the file format in the lego train
     """
     
-    def __init__(self, filename):
+    def __init__(self, filename, isMC = False):
         """
         Initialise file reader with filename and set the directory according to the definition in
         the lego train
         """
-        FileReader.__init__(self, filename)
+        FileReader.__init__(self, filename, isMC)
         self.SetDirectory("PtEMCalTriggerTask")
 
 def TestFileReader(filename):
