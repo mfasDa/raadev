@@ -242,6 +242,9 @@ class TrackContainer(DataContainer):
         Select a set of track cuts
         """
         self._AddCut(5, cutID, cutID)
+    
+    def RequestSeenInMinBias(self):
+        self._AddCut(6, 1., 1.)
          
 class ClusterContainer(DataContainer):
     """
