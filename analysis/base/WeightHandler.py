@@ -4,6 +4,8 @@ Created on 26.09.2014
 @author: markusfasel
 '''
 
+from base.DataCollection import DataCollection, Datapoint
+
 class PtHatBin:
     """
     Data entry of the pt-hat bin
@@ -14,7 +16,7 @@ class PtHatBin:
         Construct pt-hat bin. Automatically calculates the weight
         from the cross section and the number of trials
         """
-        self.__binId = 0
+        self.__binId = binId
         self.Set(weighthist, trialsHist)
         
     def Set(self, crossechist, ntrialshist):
@@ -28,6 +30,9 @@ class PtHatBin:
         Rescale spectrum by the weight of the given pt-hat bin
         """
         spectrum.Scale(self.__weight)
+        
+    def GetWeight(self):
+        return self.__weight
         
     def GetBinID(self):
         """
@@ -79,7 +84,7 @@ class WeightHandler:
     Handler class for cross section weights in case the simulation was done in pt hat bins
     """
     
-    def __init__(self, params):
+    def __init__(self):
         '''
         Constructor
         '''
@@ -100,6 +105,12 @@ class WeightHandler:
         """
         if binId in self.__pthatbins:
             self.__pthatbins[self.__pthatbins.index(binId)].ReweightSpectrum(spectrum)
+            
+    def GetWeightingCurve(self):
+        result = DataCollection("weightlist")
+        for mybin in self.__pthatbins:
+            result.AddDataPoint(Datapoint(mybin.GetBinID(), mybin.GetWeight(), 0.5))
+        return result.MakeLimitCurve(None, direction="central")
             
     def Print(self):
         print "Weighting factors: "

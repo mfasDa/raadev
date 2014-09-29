@@ -21,7 +21,7 @@ class MonteCarloDataCollection:
         """
         self.__weighthandler  = None
         if isPtHat:
-            self.__weighthandler = WeightHandler
+            self.__weighthandler = WeightHandler()
         self.__data = {"All":None}
         
     def AddData(self, results, pthatbin = -1,  weightdata = None):
@@ -53,11 +53,11 @@ class MonteCarloFileHandler:
     Class handling the reading of one file or a set of MonteCarlo files
     """
     
-    def __init__(self):
+    def __init__(self, hasPtHardBins = False):
         """
         Constructor
         """
-        self.__datacollection = MonteCarloDataCollection()
+        self.__datacollection = MonteCarloDataCollection(hasPtHardBins)
         
     def GetCollection(self):
         """
