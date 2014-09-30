@@ -14,20 +14,18 @@ class SpectraSum(object):
     Class summing up different spectra
     """
 
-    def __init__(self, name):
+    def __init__(self):
         """
         constructor
         """
         self.__summed = None
-        self.__name = name
-        
+                
     def AddSpectrum(self, spectrum):
         """
         Add spectrum. If it is the first spectrum, initialise the sum with a deep copy of this. Otherwise add the the spectrum to the sum
         """
         if not self.__summed:
             self.__summed = deepcopy(spectrum)
-            self.__summed.SetName(self.__name)
         else:
             self.__summed.Add(spectrum)
             

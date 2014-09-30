@@ -97,7 +97,7 @@ class MCSpectrumContainer:
         """
         sum up the spectra in different pt-hard bins
         """
-        summer = SpectraSum("binsSummed")
+        summer = SpectraSum()
         for pthatbin in self.__spectra:
             summer.AddSpectrum(pthatbin.GetSpectrum())
         return summer.GetSummedSpectrum()
