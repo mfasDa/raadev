@@ -106,6 +106,15 @@ class DataSet:
                 nfailure += 1
         if nfailure:
             raise MergeException("Several containers have not been found inside the other datase")
+        
+    def Scale(self, scalefactor):
+        """
+        Scale all track or cluster containers with the underlying scale factor
+        """
+        for cont in self.__trackContainers.values():
+            cont.Scale(scalefactor)
+        for cont in self.__clusterContainers.values():
+            cont.Scale(scalefactor)
     
 class DataContainer:
     """
@@ -231,6 +240,12 @@ class DataContainer:
             raise MergeException("Incompatible types: this(DataContainer), other(%s)" %(str(type(other))))
         self.__events.Add(other.GetEventHist())
         self.__spectrum.Add(other.GetSpectrumContainer())
+        
+    def Scale(self, scalefactor):
+        """
+        Scale the underlying spectrum container with the scale factor
+        """
+        self.__spectrum.Scale(scalefactor)
         
     def _AddCut(self, dimension, minv, maxv):
         """
@@ -433,6 +448,12 @@ class SpectrumContainer:
         if not type(other) is SpectrumContainer:
             raise MergeException("Incompatible types: this(SpectrumContainer), other(%s)" %(str(type(other))))
         self.__hsparse.Add(other.GetData())
+        
+    def Scale(self, scalefactor):
+        """
+        Scale the underlying THnSparse with the scale factor
+        """
+        self.__hsparse.Scale(scalefactor)
         
     def ApplyCut(self, dim, minv, maxv):
         """
