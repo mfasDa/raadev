@@ -24,13 +24,13 @@ class TriggerEfficiency:
         container.SetPileupRejection(True)
         container.SelectTrackCuts(1)
         container.RequestSeenInMinBias()
-        return container.MakeProjection(0, "ptSpectrum%s" %(name), "p_{#rm{t}} (GeV/c)", "1/N_{event} 1/(#Delta p_{#rm t}) dN/dp_{#rm{t}} ((GeV/c)^{-2}")
+        return container.MakeProjection(0, "ptSpectrum%s" %(name), "p_{#rm{t}} (GeV/c)", "1/N_{event} 1/(#Delta p_{#rm t}) dN/dp_{#rm{t}} ((GeV/c)^{-2}", doNorm = False)
         
     def __CalculateTriggerEfficiency(self):
         minbiasspectrum = self.__MakeNormalisedSpectrum(self.__minbiascontainer, "minbias")
         self.__triggerefficiency = self.__MakeNormalisedSpectrum(self.__triggeredcontainer, self.__triggername)
         self.__triggerefficiency.Divide(self.__triggerefficiency, minbiasspectrum, 1., 1., "b")
-        self.__triggerefficiency.SetName()
+        self.__triggerefficiency.SetName("triggerEff%s" %(self.__triggername))
         
     def GetEfficiencyCurve(self):
         return self.__triggerefficiency
