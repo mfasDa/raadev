@@ -32,6 +32,9 @@ class PtHatBin:
         spectrum.Scale(self.__weight)
         
     def GetWeight(self):
+        """
+        Get value of the weight for the given bin
+        """
         return self.__weight
         
     def GetBinID(self):
@@ -107,6 +110,9 @@ class WeightHandler:
             self.__pthatbins[self.__pthatbins.index(binId)].ReweightSpectrum(spectrum)
             
     def GetWeightingCurve(self):
+        """
+        Build graph from the different weights
+        """
         result = DataCollection("weightlist")
         for mybin in self.__pthatbins:
             result.AddDataPoint(Datapoint(mybin.GetBinID(), mybin.GetWeight(), 0.5))
