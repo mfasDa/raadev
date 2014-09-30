@@ -7,6 +7,7 @@ Comparison plot for spectra in different pt-hat bins
 """
 
 from base.Graphics import SinglePanelPlot, Style, GraphicsObject, Frame
+from base.SpectraSum import SpectraSum
 from ROOT import kBlack
 
 class MCSpectrumPtHatBin:
@@ -78,7 +79,6 @@ class MCSpectrumPtHatBin:
 class MCSpectrumContainer:
     """
     Container class for spectra in different pt-hat bins
-    
     """
     
     def __init__(self):
@@ -92,6 +92,15 @@ class MCSpectrumContainer:
         Add new pt-hat bin to the container
         """
         self.__spectra.append(MCSpectrumPtHatBin(pthatbin, spectrum, style))
+        
+    def GetSpectraSum(self):
+        """
+        sum up the spectra in different pt-hard bins
+        """
+        summer = SpectraSum("binsSummed")
+        for pthatbin in self.__spectra:
+            summer.AddSpectrum(pthatbin.GetSpectrum())
+        return summer.GetSummedSpectrum()
         
     def FindSpectrum(self, pthatbin):
         """
@@ -115,6 +124,8 @@ class MCSpectrumContainer:
         """
         for entry in sorted(self.__spectra):
             entry.DrawSpectrum(pad, addtolegend)
+        # draw also sum of the different bins
+        pad.DrawGraphicsObject(GraphicsObject(self.GetSpectraSum(), Style(kBlack, 20)), addtolegend, "Sum")
     
 class MCTruthSpectrumPlot(SinglePanelPlot):
     """
@@ -159,12 +170,21 @@ class MCTruthSpectrumPlot(SinglePanelPlot):
     
     
 class MCWeightPlot(SinglePanelPlot):
+    """
+    Class for the plot of the weights for different pt-hard bins
+    """
     
     def __init__(self, weights):
+        """
+        Constructor
+        """
         SinglePanelPlot.__init__(self)
         self.__points = weights
         
     def Create(self):
+        """
+        Creator function for the plot
+        """
         self._OpenCanvas("weightplot", "Monte-Carlo weights")
         pad = self._GetFramedPad()
         pad.GetPad().SetLogy()

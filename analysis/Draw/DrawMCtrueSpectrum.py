@@ -27,7 +27,7 @@ class MCTrueDrawer():
             
     def CreatePlot(self):
         datacol = self.__handler.GetCollection()
-        styles = [Style(kBlack, 24), Style(kBlue, 25), Style(kRed, 26), Style(kGreen, 27), Style(kMagenta, 28), Style(kOrange, 29), \
+        styles = [Style(kGreen-2, 24), Style(kBlue, 25), Style(kRed, 26), Style(kGreen, 27), Style(kMagenta, 28), Style(kOrange, 29), \
                   Style(kTeal, 30), Style(kViolet, 31), Style(kGray, 32), Style(kYellow + 2, 33), Style(kCyan+3, 34), Style(kRed-9, 35)]
         for i in range(1, self.__nbins + 1):
             cont = datacol.GetData(i).GetMCTruth()
