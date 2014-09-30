@@ -104,7 +104,7 @@ class DataSet:
                 self.__clusterContainers[cont].Add(othercont)
             else:
                 nfailure += 1
-        if nfailure:
+        if nfailure > 0:
             raise MergeException("Several containers have not been found inside the other datase")
         
     def Scale(self, scalefactor):
@@ -231,6 +231,10 @@ class DataContainer:
         Access underlying spectrum container
         """
         return self.__spectrum
+    
+    # Property definitions
+    EventHist = property(GetEventHist, SetEventHist)
+    SpectrumHist = property(GetSpectrumContainer, SetTrackHist)
     
     def Add(self, other):
         """

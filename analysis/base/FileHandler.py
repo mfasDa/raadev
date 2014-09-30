@@ -6,7 +6,7 @@ FileHandler.py
 """
 
 from ROOT import TFile,gDirectory
-from SpectrumContainer import DataSet, ClusterContainer, TrackContainer, SpectrumContainer
+from SpectrumContainer import DataSet, ClusterContainer, TrackContainer, SpectrumContainer, MergeException
 
 class ResultData:
     """
@@ -57,6 +57,9 @@ class ResultData:
             Access container name
             """
             return self.__containerName
+        
+        Trigger = property(GetTrigger, SetTrigger)
+        ContainerName = property(GetContainerName, SetContainerName)
     
     def __init__(self, name):
         """
@@ -108,6 +111,36 @@ class ResultData:
         if not self.__data.has_key(trigger):
             raise self.DataException(self.__name, trigger)
         return self.__data[trigger]
+    
+    # Properies
+    Name = property(GetName, SetName)
+    Data = property(GetData, SetData)
+    MCTruth = property(GetMCTruth, SetMCTruth)
+    
+    def Add(self, other):
+        """
+        Add MCTruth and datasets from other data to this MCTruth and the corresponding data set
+        """
+        if not type(other) is ResultData:
+            raise MergeException("Type incompatibility: this(ResultData), other(%s)" %(str(type(other))))
+        nfailure =0
+        for trigger in self.GetListOfTriggers():
+            if other.HasTrigger(trigger):
+                self.__data[trigger].Add(other.GetData(trigger))
+            else:
+                nfailure += 1
+        self.__mctruth.Add(other.GetMCTruth())
+        if nfailure > 0:
+            raise MergeException("Unmerged histograms in this data")
+    
+    def Scale(self, scalefactor):
+        """
+        Scale all datasets and the MC truth by the scalefactor
+        """
+        for triggerdata in self.__data.values():
+            triggerdata.Scale(scalefactor)
+        # Scale also the MC truth
+        self.__mctruth.Scale(scalefactor)
         
     def GetListOfTriggers(self):
         """
@@ -115,6 +148,12 @@ class ResultData:
         in the container
         """
         return self.__data.keys()
+    
+    def HasTrigger(self, triggername):
+        """
+        Check if the container has a given trigger type
+        """
+        return triggername in self.__data.keys()
     
     def __iter__(self):
         """
