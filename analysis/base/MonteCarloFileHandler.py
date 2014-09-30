@@ -9,6 +9,7 @@ can be min. bias events or productions in pt-hat bins
 
 from base.WeightHandler import WeightHandler
 from base.FileHandler import LegoTrainFileReader
+from base.SpectraSum import SpectraSum
 
 class MonteCarloDataCollection:
     """
@@ -47,6 +48,19 @@ class MonteCarloDataCollection:
         Access to the weight handler
         """
         return self.__weighthandler
+    
+    def SumWeightedData(self):
+        """
+        Sum weighted containers from the different pthat bins
+        """
+        if not self.__weighthandler:
+            return None
+        summer = SpectraSum()
+        for pthatbin in self.__data.keys():
+            if pthatbin == "All":
+                continue
+            summer.AddSpectrum(self.__weighthandler.ReweightSpectrum(pthatbin, self.__data[pthatbin]))
+        return summer.GetSummedSpectrum()
             
 class MonteCarloFileHandler:
     """
