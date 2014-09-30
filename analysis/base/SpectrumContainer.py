@@ -1,8 +1,29 @@
 #! /usr/bin/env python
 
 from Helper import NormaliseBinWidth
+from copy import deepcopy
+
+class MergeException(Exception):
+    """
+    Error handling for the merge processes
+    """
+    
+    def __init__(self, message):
+        """
+        Constructor
+        """
+        self.__message = message
+        
+    def __str__(self):
+        """
+        Make exception a string object
+        """
+        return self.__message
 
 class DataSet:
+    """
+    Data set for a given trigger class. A data set contains a set of cluster containers and an set of track containers
+    """
     
     class ContentException(Exception):
         
@@ -14,30 +35,82 @@ class DataSet:
             return "%s already present in container %s" %(self.__searchkey, self.__container)
     
     def __init__(self):
+        """
+        Constructor
+        """
         self.__trackContainers = {}
         self.__clusterContainers = {}
         
     def AddTrackContainer(self, name, data):
+        """
+        Add a new track container to the dataset
+        """
         if name in self.__trackContainers.keys():
             raise DataSet.ContentException(name, "TrackContainer")
         self.__trackContainers[name] = data
         
     def AddClusterContainer(self, name, data):
+        """
+        Add a new cluster container to the dataset
+        """
         if name in self.__clusterContainers.keys():
             raise DataSet.ContentException(name, "ClusterContainer")
         self.__clusterContainers[name] = data
         
     def FindTrackContainer(self, name):
+        """
+        Find a track container within the dataset
+        """
         if not name in self.__trackContainers.keys():
             return None
         return self.__trackContainers[name]
 
     def FindClusterContainer(self, name):
+        """
+        Find a cluster container within the dataset
+        """
         if not name in self.__clusterContainers:
             return None
         return self.__trackContainers[name]
     
+    def GetListOfTrackContainers(self):
+        """
+        Get a list of track container names
+        """
+        return self.__trackContainers.keys()
+    
+    def GetListOfClusterContainers(self):
+        """
+        Get a list of cluster container names
+        """
+        return self.__clusterContainers.keys()
+    
+    def Add(self, other):
+        """
+        Add other data set to this one
+        """
+        if not type(other) is DataSet:
+            raise MergeException("Incompatible types: this(Dataset), other(%s)" %(str(type(other))))
+        nfailure = 0
+        for cont in self.GetListOfTrackContainers():
+            othercont = other.FindTrackContainer(cont)
+            if othercont:
+                self.__trackContainers[cont].Add(othercont)
+            else:
+                nfailure += 1
+        for cont in self.GetListOfClusterContainers():
+            othercont = other.FindClusterContainer(cont)
+            if othercont:
+                self.__clusterContainers[cont].Add(othercont)
+            else:
+                nfailure += 1
+        if nfailure:
+            raise MergeException("Several containers have not been found inside the other datase")
+    
 class DataContainer:
+    """
+    Data container (event and spectum container)
+    """
     
     class SpectrumCut:
         """
@@ -116,7 +189,7 @@ class DataContainer:
         """
         Construct spectrum container
         """
-        self.__events = eventHist
+        self.__events = deepcopy(eventHist)
         self.__spectrum = None
         if dataHist:
             self.__spectrum = SpectrumContainer(dataHist)
@@ -130,13 +203,34 @@ class DataContainer:
         """
         Set the event hist
         """
-        self.__events = eventHist
+        self.__events = deepcopy(eventHist)
         
     def SetTrackHist(self, trackhist):
         """
         Set the track hist
         """
         self.__spectrum = SpectrumContainer(trackhist)
+        
+    def GetEventHist(self):
+        """
+        Access event counter histogram
+        """
+        return self.__events
+    
+    def GetSpectrumContainer(self):
+        """
+        Access underlying spectrum container
+        """
+        return self.__spectrum
+    
+    def Add(self, other):
+        """
+        Add other data container to this data container
+        """
+        if not type(other) is DataContainer:
+            raise MergeException("Incompatible types: this(DataContainer), other(%s)" %(str(type(other))))
+        self.__events.Add(other.GetEventHist())
+        self.__spectrum.Add(other.GetSpectrumContainer())
         
     def _AddCut(self, dimension, minv, maxv):
         """
@@ -331,6 +425,14 @@ class SpectrumContainer:
         Access to underlying histogram
         """
         return self.__hsparse
+    
+    def Add(self, other):
+        """
+        Implement add method for the spectrum container, adding up the internal content
+        """
+        if not type(other) is SpectrumContainer:
+            raise MergeException("Incompatible types: this(SpectrumContainer), other(%s)" %(str(type(other))))
+        self.__hsparse.Add(other.GetData())
         
     def ApplyCut(self, dim, minv, maxv):
         """
