@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 from Helper import NormaliseBinWidth
-from copy import deepcopy
+from copy import copy,deepcopy
 
 class MergeException(Exception):
     """
@@ -40,6 +40,28 @@ class DataSet:
         """
         self.__trackContainers = {}
         self.__clusterContainers = {}
+        
+    def __copy__(self):
+        """
+        shallow copy constructor
+        """
+        newobject = DataSet()
+        for name,tc in self.__trackContainers.iteritems():
+            newobject.AddTrackContainer(name, copy(tc))
+        for name,cc in self.__clusterContainers.iteritems():
+            newobject.AddClusterContainer(name, copy(cc))
+        return newobject
+    
+    def __deepcopy__(self):
+        """
+        deep copy constructor
+        """
+        newobject = DataSet()
+        for name,tc in self.__trackContainers.iteritems():
+            newobject.AddTrackContainer(name, deepcopy(tc))
+        for name,cc in self.__clusterContainers.iteritems():
+            newobject.AddClusterContainer(name, deepcopy(cc))
+        return newobject
         
     def AddTrackContainer(self, name, data):
         """
@@ -175,6 +197,18 @@ class DataContainer:
             Return maximum value
             """
             return self.__max
+        
+        def __copy__(self):
+            newobject = DataContainer.SpectrumCut(self.Dimension, self.Minimumm, self.Maximum)
+            return newobject
+        
+        def __deepcopy__(self):
+            return self.__copy__()
+        
+        # Properties
+        Minimum = property(GetMinimum, SetMinimum)
+        Maximum = property(GetMaximum, SetMaximum)
+        Dimension = property(GetDimension, SetDimension)
     
     
     class DataException(Exception):
@@ -207,7 +241,39 @@ class DataContainer:
         self._vertexrange = {}
         self.__doNormBW = True
         self._datahistname = "DataHist"
-                
+        
+    def __copy__(self):
+        """
+        Shallow copy constructor
+        """
+        newobject = DataContainer(self.__events, self.__spectrum)
+        newobject._Copy(self)
+        return newobject
+            
+    def __deepcopy__(self):
+        """
+        Deep copy constructor
+        """
+        newobject = DataContainer(None, None)
+        newobject._Deepcopy(self)
+        return newobject
+        
+    def GetValues(self):
+        """
+        For copy constructors
+        """
+        return {"pr":self._usePileupRejected, "vr":self._vertexrange, "dn": self.__doNormBW, "hn": self._datahistname}
+    
+    def __SetValues(self, values):
+        """
+        For copy constructors
+        """
+        self._usePileupRejected = values["pr"]
+        for key,value in values["vr"].iteritems():
+            self._vertexrange[key] = value
+        self.__doNormBW = values["dn"]
+        self._datahistname = values["hn"]
+                        
     def SetEventHist(self, eventHist):
         """
         Set the event hist
@@ -231,6 +297,39 @@ class DataContainer:
         Access underlying spectrum container
         """
         return self.__spectrum
+    
+    def GetCutList(self):
+        return self.__cutList
+    
+    def _Copy(self, other):
+        """
+        Make a shallow copy of the other object into this
+        """
+        evhist = other.EventHist
+        speccont = other.SpectrumHist
+        if evhist:
+            self.EventHist = copy(evhist)
+        if speccont:
+            self.SpectrumHist = copy(speccont)
+        othercuts = other.GetCutList()
+        for cut in othercuts:
+            self.__cutList.append(copy(cut))
+        self.__SetValues(other.GetValues())
+    
+    def _Deepcopy(self, other):
+        """
+        Make a deep copy of the other object into this
+        """
+        evhist = other.EventHist
+        speccont = other.SpectrumHist
+        if evhist:
+            self.EventHist = deepcopy(evhist)
+        if speccont:
+            self.SpectrumHist = deepcopy(speccont)
+        othercuts = other.GetCutList()
+        for cut in othercuts:
+            self.__cutList.append(deepcopy(cut))
+        self.__SetValues(other.GetValues())
     
     # Property definitions
     EventHist = property(GetEventHist, SetEventHist)
@@ -358,6 +457,22 @@ class TrackContainer(DataContainer):
     
     def RequestSeenInMinBias(self):
         self._AddCut(6, 1., 1.)
+        
+    def __copy__(self):
+        """
+        Shallow copy constructor
+        """
+        newobject = TrackContainer(self.__events, self.__spectrum)
+        newobject._Copy(self)
+        return newobject
+            
+    def __deepcopy__(self):
+        """
+        Deep copy constructor
+        """
+        newobject = TrackContainer(None, None)
+        newobject._Deepcopy(self)
+        return newobject
          
 class ClusterContainer(DataContainer):
     """
@@ -389,6 +504,21 @@ class ClusterContainer(DataContainer):
         else:
             self._usePileupRejected = False
 
+    def __copy__(self):
+        """
+        Shallow copy constructor
+        """
+        newobject = ClusterContainer(self.__events, self.__spectrum)
+        newobject._Copy(self)
+        return newobject
+            
+    def __deepcopy__(self):
+        """
+        Deep copy constructor
+        """
+        newobject = ClusterContainer(None, None)
+        newobject._Deepcopy(self)
+        return newobject
             
 class SpectrumContainer:
     """
@@ -439,11 +569,33 @@ class SpectrumContainer:
         """
         self.__hsparse = hsparse
         
+    def __copy__(self):
+        """
+        Shallow copy constructor
+        """
+        newobject = SpectrumContainer(self.__hsparse)
+        return newobject
+
+    def __deepcopy__(self):
+        """
+        Deep copy constructor
+        """
+        newobject = SpectrumContainer(deepcopy(self.__hsparse))
+        return newobject
+        
     def GetData(self):
         """
         Access to underlying histogram
         """
         return self.__hsparse
+    
+    def SetData(self, data):
+        """
+        Setter for data
+        """
+        self.__hsparse = data
+        
+    Data = property(GetData, SetData)
     
     def Add(self, other):
         """
