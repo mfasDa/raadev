@@ -6,9 +6,10 @@ FileHandler.py
 """
 
 from ROOT import TFile,gDirectory
+from copy import copy, deepcopy
 from SpectrumContainer import DataSet, ClusterContainer, TrackContainer, SpectrumContainer, MergeException
 
-class ResultData:
+class ResultData(object):
     """
     Container for the result data
     Keeps the data containers for different trigger classes
@@ -72,6 +73,30 @@ class ResultData:
         # for iterator
         self.__currentIndex = 0
         
+    def __copy__(self):
+        """
+        Shallow copy constructor
+        """
+        newobject = ResultData(self.Name)
+        if self.__mctruth:
+            newobject.MCTruth = copy(self.__mctruth)
+        for trigger in self.__data.keys():
+            newobject.SetData(trigger, copy(self.__data[trigger]))
+        return newobject
+    
+    def __deepcopy__(self, memo):
+        """
+        Deep copy constructor
+        """
+        print "Copy constructor called"
+        newobject = ResultData(self.Name)
+        if self.__mctruth:
+            newobject.MCTruth = deepcopy(self.__mctruth, memo)
+        for trigger in self.__data.keys():
+            newobject.SetData(trigger, deepcopy(self.__data[trigger], memo))
+        print "Copy constructor done"
+        return newobject
+        
     def SetName(self, name):
         """
         Change name of the result container
@@ -114,22 +139,23 @@ class ResultData:
     
     # Properies
     Name = property(GetName, SetName)
-    Data = property(GetData, SetData)
     MCTruth = property(GetMCTruth, SetMCTruth)
     
     def Add(self, other):
         """
         Add MCTruth and datasets from other data to this MCTruth and the corresponding data set
         """
-        if not type(other) is ResultData:
-            raise MergeException("Type incompatibility: this(ResultData), other(%s)" %(str(type(other))))
+        print "Adding datasets"
+        if not isinstance(other, ResultData):
+            raise MergeException("Type incompatibility: this(ResultData), other(%s)" %(str(other.__class__)))
         nfailure =0
         for trigger in self.GetListOfTriggers():
             if other.HasTrigger(trigger):
                 self.__data[trigger].Add(other.GetData(trigger))
             else:
                 nfailure += 1
-        self.__mctruth.Add(other.GetMCTruth())
+        if self.__mctruth:
+            self.__mctruth.Add(other.MCTruth)
         if nfailure > 0:
             raise MergeException("Unmerged histograms in this data")
     
@@ -189,7 +215,7 @@ class ResultData:
     def __contains__(self, item):
         return item in self.__data.keys()
     
-class FileReader:
+class FileReader(object):
     
     class FileReaderException(Exception):
         """
@@ -283,16 +309,16 @@ class FileReader:
             eventhist = hlist.FindObject("hEventHist%s" %(trigger))
             trackhist = hlist.FindObject("hTrackHist%s" %(trigger))
             triggerdata = DataSet()
-            triggerdata.AddTrackContainer("tracksAll", TrackContainer(eventHist = eventhist, trackHist = trackhist))
+            triggerdata.AddTrackContainer("tracksAll", TrackContainer(eventHist = deepcopy(eventhist), trackHist = trackhist))
             tracksWithClusters = hlist.FindObject("hTrackInAcceptanceHist%s" %(trigger)) 
             if tracksWithClusters:
-                triggerdata.AddTrackContainer("tracksWithClusters", TrackContainer(eventHist = eventhist, trackHist = tracksWithClusters))
+                triggerdata.AddTrackContainer("tracksWithClusters", TrackContainer(eventHist = deepcopy(eventhist), trackHist = tracksWithClusters))
             clusterhists = ["hClusterCalibHist","hClusterUncalibHist"]
             for clust in clusterhists:
                 clhist = hlist.FindObject("%s%s" %(clust, trigger))
                 if clhist:
                     tag = clust.replace("hCluster","").replace("Hist","")
-                    triggerdata.AddClusterContainer(tag, ClusterContainer(eventHist = eventhist, clusterHist = clhist))
+                    triggerdata.AddClusterContainer(tag, ClusterContainer(eventHist = deepcopy(eventhist), clusterHist = clhist))
             result.SetData(trigger, triggerdata)
         return result
     

@@ -20,7 +20,7 @@ class MergeException(Exception):
         """
         return self.__message
 
-class DataSet:
+class DataSet(object):
     """
     Data set for a given trigger class. A data set contains a set of cluster containers and an set of track containers
     """
@@ -52,15 +52,15 @@ class DataSet:
             newobject.AddClusterContainer(name, copy(cc))
         return newobject
     
-    def __deepcopy__(self):
+    def __deepcopy__(self, memo):
         """
         deep copy constructor
         """
         newobject = DataSet()
         for name,tc in self.__trackContainers.iteritems():
-            newobject.AddTrackContainer(name, deepcopy(tc))
+            newobject.AddTrackContainer(name, deepcopy(tc, memo))
         for name,cc in self.__clusterContainers.iteritems():
-            newobject.AddClusterContainer(name, deepcopy(cc))
+            newobject.AddClusterContainer(name, deepcopy(cc, memo))
         return newobject
         
     def AddTrackContainer(self, name, data):
@@ -93,7 +93,7 @@ class DataSet:
         """
         if not name in self.__clusterContainers:
             return None
-        return self.__trackContainers[name]
+        return self.__clusterContainers[name]
     
     def GetListOfTrackContainers(self):
         """
@@ -111,16 +111,18 @@ class DataSet:
         """
         Add other data set to this one
         """
-        if not type(other) is DataSet:
-            raise MergeException("Incompatible types: this(Dataset), other(%s)" %(str(type(other))))
+        if not isinstance(other, DataSet):
+            raise MergeException("Incompatible types: this(Dataset), other(%s)" %(str(other.__class__)))
         nfailure = 0
         for cont in self.GetListOfTrackContainers():
+            print "Trcak Container: %s" %(cont)
             othercont = other.FindTrackContainer(cont)
             if othercont:
                 self.__trackContainers[cont].Add(othercont)
             else:
                 nfailure += 1
         for cont in self.GetListOfClusterContainers():
+            print "Cluster container: %s" %(cont)
             othercont = other.FindClusterContainer(cont)
             if othercont:
                 self.__clusterContainers[cont].Add(othercont)
@@ -138,12 +140,12 @@ class DataSet:
         for cont in self.__clusterContainers.values():
             cont.Scale(scalefactor)
     
-class DataContainer:
+class DataContainer(object):
     """
     Data container (event and spectum container)
     """
     
-    class SpectrumCut:
+    class SpectrumCut(object):
         """
         Helper structure storing a  cut definition for a given dimension
         """
@@ -202,7 +204,7 @@ class DataContainer:
             newobject = DataContainer.SpectrumCut(self.Dimension, self.Minimumm, self.Maximum)
             return newobject
         
-        def __deepcopy__(self):
+        def __deepcopy__(self, memo):
             return self.__copy__()
         
         # Properties
@@ -250,12 +252,12 @@ class DataContainer:
         newobject._Copy(self)
         return newobject
             
-    def __deepcopy__(self):
+    def __deepcopy__(self, memo):
         """
         Deep copy constructor
         """
         newobject = DataContainer(None, None)
-        newobject._Deepcopy(self)
+        newobject._Deepcopy(self, memo)
         return newobject
         
     def GetValues(self):
@@ -278,7 +280,8 @@ class DataContainer:
         """
         Set the event hist
         """
-        self.__events = deepcopy(eventHist)
+        print "Setting events"
+        self.__events = eventHist
         
     def SetTrackHist(self, trackhist):
         """
@@ -286,17 +289,31 @@ class DataContainer:
         """
         self.__spectrum = SpectrumContainer(trackhist)
         
+    def SetSpectrumContainer(self, cont):
+        """
+        Initialise spectrum with container
+        """
+        print "Spectrum Setter called"
+        self.__spectrum = cont
+        
     def GetEventHist(self):
         """
         Access event counter histogram
         """
+        print "Event getter called"
         return self.__events
     
     def GetSpectrumContainer(self):
         """
         Access underlying spectrum container
         """
+        print "Spectrum getter called"
         return self.__spectrum
+    
+    # Property definitions
+    EventHist = property(GetEventHist, fset=SetEventHist)
+    SpectrumHist = property(GetSpectrumContainer, fset=SetSpectrumContainer)
+
     
     def GetCutList(self):
         return self.__cutList
@@ -316,33 +333,45 @@ class DataContainer:
             self.__cutList.append(copy(cut))
         self.__SetValues(other.GetValues())
     
-    def _Deepcopy(self, other):
+    def _Deepcopy(self, other, memo):
         """
         Make a deep copy of the other object into this
         """
         evhist = other.EventHist
         speccont = other.SpectrumHist
         if evhist:
-            self.EventHist = deepcopy(evhist)
+            self.EventHist = deepcopy(evhist, memo)
         if speccont:
-            self.SpectrumHist = deepcopy(speccont)
+            self.SpectrumHist = deepcopy(speccont, memo)
         othercuts = other.GetCutList()
         for cut in othercuts:
-            self.__cutList.append(deepcopy(cut))
+            self.__cutList.append(deepcopy(cut, memo))
         self.__SetValues(other.GetValues())
-    
-    # Property definitions
-    EventHist = property(GetEventHist, SetEventHist)
-    SpectrumHist = property(GetSpectrumContainer, SetTrackHist)
-    
+        
     def Add(self, other):
         """
         Add other data container to this data container
         """
-        if not type(other) is DataContainer:
-            raise MergeException("Incompatible types: this(DataContainer), other(%s)" %(str(type(other))))
-        self.__events.Add(other.GetEventHist())
-        self.__spectrum.Add(other.GetSpectrumContainer())
+        if not isinstance(other, DataContainer):
+            raise MergeException("Incompatible types: this(DataContainer), other(%s)" %(str(other.__class__)))
+        if self.__events and other.EventHist:
+            self.__events.Add(other.EventHist)
+        else:
+            if not self.__events:
+                print "Events missing"
+            if other.EventHist:
+                self.__events = deepcopy(other.EventHist)
+            else:
+                print "Other events missing"
+        if self.__spectrum and other.SpectrumHist:
+            self.__spectrum.Add(other.SpectrumHist)
+        else:
+            if not self.__events:
+                print "Spectrum missing"
+            if other.SpectrumHist:
+                self.__spectrum = other.SpectrumHist
+            else:
+                print "Other spectrum missing"
         
     def Scale(self, scalefactor):
         """
@@ -466,12 +495,12 @@ class TrackContainer(DataContainer):
         newobject._Copy(self)
         return newobject
             
-    def __deepcopy__(self):
+    def __deepcopy__(self, memo):
         """
         Deep copy constructor
         """
         newobject = TrackContainer(None, None)
-        newobject._Deepcopy(self)
+        newobject._Deepcopy(self, memo)
         return newobject
          
 class ClusterContainer(DataContainer):
@@ -512,15 +541,15 @@ class ClusterContainer(DataContainer):
         newobject._Copy(self)
         return newobject
             
-    def __deepcopy__(self):
+    def __deepcopy__(self, memo):
         """
         Deep copy constructor
         """
         newobject = ClusterContainer(None, None)
-        newobject._Deepcopy(self)
+        newobject._Deepcopy(self, memo)
         return newobject
             
-class SpectrumContainer:
+class SpectrumContainer(object):
     """
     Container class for combined spectrum
     """
@@ -568,6 +597,7 @@ class SpectrumContainer:
         Constructor, defining underlying THnSparse
         """
         self.__hsparse = hsparse
+        self.__hsparse.Sumw2()
         
     def __copy__(self):
         """
@@ -576,11 +606,11 @@ class SpectrumContainer:
         newobject = SpectrumContainer(self.__hsparse)
         return newobject
 
-    def __deepcopy__(self):
+    def __deepcopy__(self, memo):
         """
         Deep copy constructor
         """
-        newobject = SpectrumContainer(deepcopy(self.__hsparse))
+        newobject = SpectrumContainer(deepcopy(self.__hsparse, memo))
         return newobject
         
     def GetData(self):
@@ -601,8 +631,8 @@ class SpectrumContainer:
         """
         Implement add method for the spectrum container, adding up the internal content
         """
-        if not type(other) is SpectrumContainer:
-            raise MergeException("Incompatible types: this(SpectrumContainer), other(%s)" %(str(type(other))))
+        if not isinstance(other, SpectrumContainer):
+            raise MergeException("Incompatible types: this(SpectrumContainer), other(%s)" %(str(other.__class__)))
         self.__hsparse.Add(other.GetData())
         
     def Scale(self, scalefactor):
