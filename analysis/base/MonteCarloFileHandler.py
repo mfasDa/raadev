@@ -54,7 +54,9 @@ class MonteCarloDataCollection:
         Sum weighted containers from the different pthat bins
         """
         if not self.__weighthandler:
+            print "No weight handler"
             return None
+        print "Summing up spectra"
         summer = SpectraSum()
         for pthatbin in self.__data.keys():
             if pthatbin == "All":
