@@ -11,7 +11,7 @@ from base.WeightHandler import WeightHandler
 from base.FileHandler import LegoTrainFileReader
 from base.SpectraSum import SpectraSum
 
-class MonteCarloDataCollection:
+class MonteCarloDataCollection(object):
     """
     Collection of Monte-Carlo based outputs
     """
@@ -64,7 +64,7 @@ class MonteCarloDataCollection:
             summer.AddSpectrum(self.__data[pthatbin])
         return summer.GetSummedSpectrum()
             
-class MonteCarloFileHandler:
+class MonteCarloFileHandler(object):
     """
     Class handling the reading of one file or a set of MonteCarlo files
     """
@@ -89,3 +89,24 @@ class MonteCarloFileHandler:
         if pthatbin >= 0:
             reader.SetReadWeights() 
         self.__datacollection.AddData(reader.ReadFile(), pthatbin, reader.GetWeightHistograms())
+        
+class MonteCarloFileMerger(object):
+    """
+    Class merging Monte-Carlo files in pt-hat bins, weighted by the cross section
+    """
+    
+    def __init__(self):
+        """
+        Constructor
+        """
+        self.__reader = MonteCarloFileHandler(True)
+        
+    def AddFile(self, filename, pthatbin):
+        """
+        Add next file
+        """
+        self.__reader.AddFile(filename, pthatbin)
+    
+    def MergeAndWrite(self, outputfile):
+        summed = self.__reader.GetCollection().SumWeightedData()
+        summed.Write(outputfile)
