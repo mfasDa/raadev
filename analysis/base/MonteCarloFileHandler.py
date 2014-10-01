@@ -110,3 +110,12 @@ class MonteCarloFileMerger(object):
     def MergeAndWrite(self, outputfile):
         summed = self.__reader.GetCollection().SumWeightedData()
         summed.Write(outputfile)
+        
+def MergePtHardBins(outputfile, basedir, firstbin, lastbin):
+    """
+    Merge files from different pt-hard bins, weighted by the cross section, into one file
+    """
+    merger = MonteCarloFileMerger()
+    for pthardbin in range(firstbin, lastbin+1):
+        merger.AddFile("%s/%02d/AnalysisResults.root" %(basedir, pthardbin), pthardbin)
+    merger.MergeAndWrite(outputfile)
