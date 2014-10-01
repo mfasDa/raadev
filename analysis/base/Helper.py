@@ -42,12 +42,12 @@ def MakeRatio(num, den, isBinomial = False):
 def HistToGraph(hist, xmin = None, xmax = None):
     output = TGraphErrors()
     npoints = 0
-    for bin in range(1, hist.GetXaxis().GetNbins()+1):
-        if xmin and hist.GetXaxis().GetBinLowEdge(bin) < xmin:
+    for mybin in range(1, hist.GetXaxis().GetNbins()+1):
+        if xmin and hist.GetXaxis().GetBinLowEdge(mybin) < xmin:
             continue
-        if xmax and hist.GetXaxis().GetBinLowEdge(bin) > xmax:
+        if xmax and hist.GetXaxis().GetBinLowEdge(mybin) > xmax:
             break
-        output.SetPoint(npoints, hist.GetXaxis().GetBinCenter(bin), hist.GetBinContent(bin))
-        output.SetPointError(npoints, hist.GetXaxis().GetBinWidth(bin)/2., hist.GetBinError(bin))
+        output.SetPoint(npoints, hist.GetXaxis().GetBinCenter(mybin), hist.GetBinContent(mybin))
+        output.SetPointError(npoints, hist.GetXaxis().GetBinWidth(mybin)/2., hist.GetBinError(mybin))
         npoints = npoints + 1
     return output
