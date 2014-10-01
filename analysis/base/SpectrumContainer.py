@@ -2,6 +2,7 @@
 
 from Helper import NormaliseBinWidth
 from copy import copy,deepcopy
+from ROOT import TList,TIter
 
 class MergeException(Exception):
     """
@@ -51,7 +52,7 @@ class DataSet(object):
         for name,cc in self.__clusterContainers.iteritems():
             newobject.AddClusterContainer(name, copy(cc))
         return newobject
-    
+        
     def __deepcopy__(self, memo):
         """
         deep copy constructor
@@ -137,6 +138,43 @@ class DataSet(object):
             cont.Scale(scalefactor)
         for cont in self.__clusterContainers.values():
             cont.Scale(scalefactor)
+    
+    def GetRootPrimitive(self, listname):
+        """
+        Make root primitives (for root IO)
+        """
+        result = TList()
+        result.SetName(listname)
+        tracklist = TList()
+        tracklist.SetName("trackContainers")
+        for name,tc in self.__trackContainers.iteritems():
+            tracklist.Add(tc.GetRootPrimitive("trackcontainer_%s" %(name)))
+        clusterlist = TList()
+        clusterlist.SetName("clusterContainers")
+        for name,cc in self.__clusterContainers.iteritems():
+            clusterlist.Add(cc.GetRootPrimitive("clustercontainer_%s" %(name)))
+        result.Add(tracklist)
+        result.Add(clusterlist)
+        return result
+    
+    @staticmethod
+    def BuildFromRootPrimitive(rootprimitive):
+        """
+        Build dataset from a root primitive
+        """
+        result = DataSet()
+        entries = TIter(rootprimitive)
+        currententry = entries.Next()
+        while currententry:
+            entryname = currententry.GetName()
+            if "trackcontainer" in entryname:
+                contname = entryname.replace("trackcontainer_","")
+                result.AddTrackContainer(contname, TrackContainer.BuildFromRootPrimitive(currententry))
+            elif "clustercontainer" in entryname:
+                contname = entryname.replace("clustercontainer_","")
+                result.AddClusterContainer(contname, ClusterContainer.BuildFromRootPrimitive(currententry))
+            currententry = entries.Next()
+        return result
     
 class DataContainer(object):
     """
@@ -365,6 +403,26 @@ class DataContainer(object):
         """
         self.__spectrum.Scale(scalefactor)
         
+    def GetRootPrimitive(self, name):
+        """
+        Convert object to a root primitive (so that it can be wirtten to a rootfile)
+        """
+        result = TList()
+        result.SetName(name)
+        self.__events.SetName("events")
+        result.Add(self.__events)
+        spectrum = self.__spectrum.GetRootPrimitive()
+        spectrum.SetName("spectrum")
+        result.Add(spectrum)
+        return result
+    
+    @staticmethod
+    def GetHistoPair(rootprimitive):
+        """
+        Convert to TList to python dictionary
+        """
+        return {"events":rootprimitive.FindObject("events"), "spectrum":rootprimitive.FindObject("spectrum")}
+        
     def _AddCut(self, dimension, minv, maxv):
         """
         Add cut for a given dimension
@@ -488,6 +546,14 @@ class TrackContainer(DataContainer):
         newobject = TrackContainer(None, None)
         newobject._Deepcopy(self, memo)
         return newobject
+    
+    @staticmethod
+    def BuildFromRootPrimitive(rootprimitive):
+        """
+        Build a cluster container from a root primitive
+        """
+        infopair = DataContainer.GetHistoPair(rootprimitive)
+        return TrackContainer(infopair["events"], infopair["spectrum"])
          
 class ClusterContainer(DataContainer):
     """
@@ -534,6 +600,14 @@ class ClusterContainer(DataContainer):
         newobject = ClusterContainer(None, None)
         newobject._Deepcopy(self, memo)
         return newobject
+    
+    @staticmethod
+    def BuildFromRootPrimitive(rootprimitive):
+        """
+        Build a cluster container from a root primitive
+        """
+        infopair = DataContainer.GetHistoPair(rootprimitive)
+        return TrackContainer(infopair["events"], infopair["spectrum"])
             
 class SpectrumContainer(object):
     """
@@ -626,6 +700,19 @@ class SpectrumContainer(object):
         Scale the underlying THnSparse with the scale factor
         """
         self.__hsparse.Scale(scalefactor)
+        
+    def GetRootPrimitive(self, name = None):
+        """
+        Return the root primitive
+        """
+        return self.__hsparse
+    
+    @staticmethod
+    def BuildFromRootPrimitive(rootprimitive):
+        """
+        Create spectrum container from root primitive
+        """
+        return SpectrumContainer(rootprimitive)
         
     def ApplyCut(self, dim, minv, maxv):
         """

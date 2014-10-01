@@ -5,7 +5,7 @@ FileHandler.py
      Author: markusfasel
 """
 
-from ROOT import TFile,gDirectory
+from ROOT import TFile,TIter,TObject,gDirectory,gROOT
 from copy import copy, deepcopy
 from SpectrumContainer import DataSet, ClusterContainer, TrackContainer, SpectrumContainer, MergeException
 
@@ -164,6 +164,34 @@ class ResultData(object):
             triggerdata.Scale(scalefactor)
         # Scale also the MC truth
         self.__mctruth.Scale(scalefactor)
+        
+    def Write(self, rootfilename):
+        """
+        Write Structure to file
+        """
+        writer = TFile(rootfilename, "Recreate")
+        writer.cd()
+        for triggername, triggerdata in self.__data.iteritems():
+            rootprim = triggerdata.GetRootPrimitive(triggername)
+            rootprim.Write(triggername, TObject.kSingleKey)
+        if self.__mctruth:
+            self.__mctruth.GetRootPrimitive().Write("MCTruth", TObject.kSingleKey)
+        writer.Close() 
+        
+    @staticmethod
+    def BuildFromRootFile(filename, name):
+        result = ResultData(name)
+        inputfile = TFile.Open(filename)
+        gROOT.cd()
+        keyIter = TIter(inputfile.GetListOfKeys())
+        key = keyIter.Next()
+        while key:
+            if key.GetName() == "MCTruth":
+                result.SetMCTruth(SpectrumContainer.BuildFromRootPrimitive(key.ReadObj()))
+            else:
+                result.SetData(key.GetName(), DataSet.BuildFromRootPrimitive(key.ReadObj()))
+            key = keyIter.Next()
+        inputfile.Close()
         
     def GetListOfTriggers(self):
         """
