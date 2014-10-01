@@ -41,7 +41,6 @@ class SpectraSum(object):
         """
         Add spectrum. If it is the first spectrum, initialise the sum with a deep copy of this. Otherwise add the the spectrum to the sum
         """
-        print "Add new spectrum"
         if not self.__summed:
             try:
                 self.__summed = deepcopy(spectrum)

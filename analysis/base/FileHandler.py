@@ -88,13 +88,11 @@ class ResultData(object):
         """
         Deep copy constructor
         """
-        print "Copy constructor called"
         newobject = ResultData(self.Name)
         if self.__mctruth:
             newobject.MCTruth = deepcopy(self.__mctruth, memo)
         for trigger in self.__data.keys():
             newobject.SetData(trigger, deepcopy(self.__data[trigger], memo))
-        print "Copy constructor done"
         return newobject
         
     def SetName(self, name):
@@ -145,7 +143,6 @@ class ResultData(object):
         """
         Add MCTruth and datasets from other data to this MCTruth and the corresponding data set
         """
-        print "Adding datasets"
         if not isinstance(other, ResultData):
             raise MergeException("Type incompatibility: this(ResultData), other(%s)" %(str(other.__class__)))
         nfailure =0

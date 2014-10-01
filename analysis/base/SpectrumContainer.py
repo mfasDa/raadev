@@ -115,14 +115,12 @@ class DataSet(object):
             raise MergeException("Incompatible types: this(Dataset), other(%s)" %(str(other.__class__)))
         nfailure = 0
         for cont in self.GetListOfTrackContainers():
-            print "Trcak Container: %s" %(cont)
             othercont = other.FindTrackContainer(cont)
             if othercont:
                 self.__trackContainers[cont].Add(othercont)
             else:
                 nfailure += 1
         for cont in self.GetListOfClusterContainers():
-            print "Cluster container: %s" %(cont)
             othercont = other.FindClusterContainer(cont)
             if othercont:
                 self.__clusterContainers[cont].Add(othercont)
@@ -280,7 +278,6 @@ class DataContainer(object):
         """
         Set the event hist
         """
-        print "Setting events"
         self.__events = eventHist
         
     def SetTrackHist(self, trackhist):
@@ -293,21 +290,18 @@ class DataContainer(object):
         """
         Initialise spectrum with container
         """
-        print "Spectrum Setter called"
         self.__spectrum = cont
         
     def GetEventHist(self):
         """
         Access event counter histogram
         """
-        print "Event getter called"
         return self.__events
     
     def GetSpectrumContainer(self):
         """
         Access underlying spectrum container
         """
-        print "Spectrum getter called"
         return self.__spectrum
     
     # Property definitions
@@ -357,21 +351,13 @@ class DataContainer(object):
         if self.__events and other.EventHist:
             self.__events.Add(other.EventHist)
         else:
-            if not self.__events:
-                print "Events missing"
             if other.EventHist:
                 self.__events = deepcopy(other.EventHist)
-            else:
-                print "Other events missing"
         if self.__spectrum and other.SpectrumHist:
             self.__spectrum.Add(other.SpectrumHist)
         else:
-            if not self.__events:
-                print "Spectrum missing"
             if other.SpectrumHist:
                 self.__spectrum = other.SpectrumHist
-            else:
-                print "Other spectrum missing"
         
     def Scale(self, scalefactor):
         """
