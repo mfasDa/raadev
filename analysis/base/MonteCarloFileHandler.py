@@ -56,12 +56,12 @@ class MonteCarloDataCollection:
         if not self.__weighthandler:
             print "No weight handler"
             return None
-        print "Summing up spectra"
         summer = SpectraSum()
         for pthatbin in self.__data.keys():
             if pthatbin == "All":
                 continue
-            summer.AddSpectrum(self.__weighthandler.ReweightSpectrum(pthatbin, self.__data[pthatbin]))
+            self.__weighthandler.ReweightSpectrum(pthatbin, self.__data[pthatbin])
+            summer.AddSpectrum(self.__data[pthatbin])
         return summer.GetSummedSpectrum()
             
 class MonteCarloFileHandler:
