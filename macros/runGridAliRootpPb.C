@@ -109,9 +109,12 @@ AliAnalysisAlien *CreateGridHandler(){
         	if(strstr(it->c_str(), ".par"))
                         strcpy(buffer, it->c_str());
                 else{
-                	if(strstr(it->c_str(), ".dylib") || strstr(it->c_str(), ".so"))
-                		sprintf(buffer, "lib%s", it->c_str());
-                	else
+                	if(strstr(it->c_str(), ".dylib") || strstr(it->c_str(), ".so")){
+                		TString libname = it->c_str();
+                		if(g_plugin_mode.Contains("full") && libname.Contains("dylib"))
+                			libname = libname.ReplaceAll("dylib", "so");			// Adapt libnames to linux systems
+                		sprintf(buffer, "lib%s", libname.Data());
+                	} else
                         sprintf(buffer, "lib%s.so", it->c_str());
                 }
                 libstring += buffer;
@@ -125,7 +128,7 @@ AliAnalysisAlien *CreateGridHandler(){
         plugin->SetOutputFiles("AnalysisResults.root"); 
         plugin->SetExecutableCommand("aliroot -b -q");
         plugin->SetTTL(30000);
-        //plugin->SetNtestFiles(10);
+        plugin->SetNtestFiles(10);
         plugin->SetInputFormat("xml-single");
         plugin->SetPrice(1);      
         plugin->SetSplitMode("se");
