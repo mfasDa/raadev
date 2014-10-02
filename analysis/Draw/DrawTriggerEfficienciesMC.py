@@ -6,7 +6,8 @@ Created on 29.09.2014
 
 from base.MonteCarloFileHandler import MonteCarloFileHandler
 from base.Graphics import Style
-from plots.TriggerEfficiencyPlotMC import TriggerEfficiencyPlotMC,TriggerEfficiencySumPlot
+from base.FileHandler import ResultData
+from plots.TriggerEfficiencyPlotMC import TriggerEfficiencyPlotMC,TriggerEfficiencySumPlot,TriggerEfficiencyPlotClasses
 from base.TriggerEfficiency import TriggerEfficiency
 from os import getcwd
 from ROOT import kRed, kBlue, kBlack, kGreen, kMagenta, kViolet, kOrange, kTeal, kYellow, kGray, kCyan
@@ -92,7 +93,6 @@ class TriggerEffSumDrawer(object):
         self.__plotter = TriggerEfficiencySumPlot(trigger, TriggerEfficiency(trigger, self.__summedData.GetData("MinBias").FindTrackContainer(tcname), self.__summedData.GetData(trigger).FindTrackContainer(tcname)))
         self.__plotter.Create()
         return self.__plotter
-
         
 def DrawTriggerEfficiency(trigger, basedir = None):
     drawer = TriggerEffDrawerMC()
@@ -113,3 +113,13 @@ def DrawTriggerEfficiencySummed(trigger, basedir = None):
     plot = drawer.CreatePlot(trigger)
     drawer.WriteSummedData("SumPtHatBins.root")
     return plot
+
+def DrawMergedTriggerEfficiency(inputfile):
+    data = ResultData.BuildFromRootFile(inputfile, "merged")
+    tcname = "tracksWithClusters"
+    plotter = TriggerEfficiencyPlotClasses()
+    styles = {"EMCJHigh":Style(kBlue, 24), "EMCJLow":Style(kRed,25), "EMCGHigh":Style(kGreen,26), "EMCGLow":Style(kOrange,27)}
+    for trigger in ["EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow"]:
+        plotter.AddTriggerEfficiency(trigger, TriggerEfficiency(trigger, data.GetData("MinBias").FindTrackContainer(tcname), data.GetData(trigger).FindTrackContainer(tcname)).GetEfficiencyCurve(), styles[trigger])
+    plotter.Create()
+    return plotter
