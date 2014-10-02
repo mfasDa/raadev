@@ -189,9 +189,22 @@ class ResultData(object):
             if key.GetName() == "MCTruth":
                 result.SetMCTruth(SpectrumContainer.BuildFromRootPrimitive(key.ReadObj()))
             else:
+                print key.ReadObj()
                 result.SetData(key.GetName(), DataSet.BuildFromRootPrimitive(key.ReadObj()))
             key = keyIter.Next()
         inputfile.Close()
+        print "Results successfully reconstructed from file %s" %(filename)
+        result.Print()
+        return result
+    
+    def Print(self):
+        """
+        Print status of the result data sets
+        """
+        print "Content of result data:"
+        for trg, data in self.__data.items():
+            print "Trigger %s" %(trg)
+            data.Print()
         
     def GetListOfTriggers(self):
         """

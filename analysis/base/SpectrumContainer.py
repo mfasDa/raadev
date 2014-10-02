@@ -163,18 +163,47 @@ class DataSet(object):
         Build dataset from a root primitive
         """
         result = DataSet()
-        entries = TIter(rootprimitive)
-        currententry = entries.Next()
+        trackContainers = rootprimitive.FindObject("trackContainers")
+        clusterContainers = rootprimitive.FindObject("clusterContainers")
+        trackIter = TIter(trackContainers)
+        clusterIter = TIter(clusterContainers)
+        currententry = trackIter.Next()
         while currententry:
             entryname = currententry.GetName()
             if "trackcontainer" in entryname:
                 contname = entryname.replace("trackcontainer_","")
                 result.AddTrackContainer(contname, TrackContainer.BuildFromRootPrimitive(currententry))
-            elif "clustercontainer" in entryname:
+            currententry = trackIter.Next()
+        currententry = clusterIter.Next()
+        while currententry:
+            entryname = currententry.GetName()
+            if "clustercontainer" in entryname:
                 contname = entryname.replace("clustercontainer_","")
                 result.AddClusterContainer(contname, ClusterContainer.BuildFromRootPrimitive(currententry))
-            currententry = entries.Next()
+            currententry = clusterIter.Next()
         return result
+    
+    def Print(self):
+        """
+        Print content of the data set
+        """
+        print "Dataset content:"
+        print "============================================"
+        print "   Track Containers:"
+        for cont in self.__trackContainers.keys():
+            print "      %s" %(cont)
+        print "   Cluster Containers:"
+        for cont in self.__clusterContainers.keys():
+            print "      %s" %(cont)
+        print "--------------------------------------------"
+        print "Status of the different containers:"
+        for contname, container in self.__trackContainers.iteritems():
+            print "   %s:" %(contname)
+            container.Print()
+        for contname, container in self.__clusterContainers.iteritems():
+            print "   %s:" %(cont)
+            container.Print()
+
     
 class DataContainer(object):
     """
@@ -486,6 +515,20 @@ class DataContainer(object):
         for clhist in self.__clusters.values():
             clhist.Reset()
             
+    def Print(self):
+        """
+        Print status of the data container
+        """
+        statusEvents = "no"
+        if self.__events:
+            statusEvents = "yes"
+        statusSpectrum = "no"
+        if self.__spectrum:
+            statusSpectrum = "yes"
+        print "Datacontainer status: events: %s , Spectrum: %s" %(statusEvents, statusSpectrum)
+        if self.__spectrum:
+            self.__spectrum.Print() 
+            
 class TrackContainer(DataContainer):
     """
     Data representation of track specific histograms
@@ -739,6 +782,15 @@ class SpectrumContainer(object):
         """
         for iaxis in range(0,self.__hsparse.GetNdimensions()):
             self.__hsparse.GetAxis(iaxis).SetRange()
+            
+    def Print(self):
+        """
+        Print content of the spectrum container
+        """
+        status = "no"
+        if self.__hsparse:
+            status = "yes"
+        print "Spectrum, content set: %s" %(status)
             
     def ProjectToDimension(self, dimension, histname, xtitle = "", ytitle = ""):
         """
