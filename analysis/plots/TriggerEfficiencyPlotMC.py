@@ -7,7 +7,7 @@ Comparison plot of trigger efficiencies in MC in different pt-hat bins including
 """
 
 from base.Graphics import SinglePanelPlot, GraphicsObject, Frame, Style
-from base.ComparisonData import ComparisonData, ComparisonObject
+from base.ComparisonData import ComparisonData, ComparisonObject, ComparisonPlot
 from ROOT import TFile,kBlack
     
 class TriggerEfficiencyClassPtHat(ComparisonObject):
@@ -69,38 +69,7 @@ class TriggerEfficiencyFrame(Frame):
         self.SetXtitle("p_{t} (GeV/c)")
         self.SetYtitle("Trigger efficiency")
         
-class TriggerEfficiencyComparisonPlot(SinglePanelPlot):
-    """
-    General plot for trigger efficiency comparisons
-    """
-        
-    def __init__(self):
-        """
-        Constructor
-        """
-        SinglePanelPlot.__init__(self)
-        self._efficiencyContainer = TriggerEfficiencyContainer()
-        
-    def _Create(self, canvasname, canvastitle):
-        """
-        Make the plot
-        """
-        self._OpenCanvas(canvasname, canvastitle)
-        pad = self._GetFramedPad()
-        pad.DrawFrame(TriggerEfficiencyFrame("tframe"))
-        self._efficiencyContainer.DrawObjects(pad, True)
-        pad.CreateLegend(0.65, 0.15, 0.89, 0.5)
-        
-    def WriteData(self, rootfilename):
-        """
-        Write out trigger efficiency curves to a root file
-        """
-        outputfile = TFile(rootfilename, "RECREATE")
-        for rootprim in self._efficiencyContainer.GetListOfRootObjects():
-            rootprim.Write()
-        outputfile.Close()
-
-class TriggerEfficiencyPlotMC(TriggerEfficiencyComparisonPlot):
+class TriggerEfficiencyPlotMC(ComparisonPlot):
     """
     Comparison plot of trigger efficiencies in different pt-hat bins
     """
@@ -109,7 +78,10 @@ class TriggerEfficiencyPlotMC(TriggerEfficiencyComparisonPlot):
         """
         Constructor
         """
-        TriggerEfficiencyComparisonPlot.__init__(self)
+        ComparisonPlot.__init__(self)
+        self._comparisonContainer = TriggerEfficiencyContainer()
+        self.SetFrame(TriggerEfficiencyFrame("tframe"))
+        self.SetLegendAttributes(0.65, 0.15, 0.89, 0.5)
         self.__triggername = ""
         
     def SetTriggerName(self, trname):
@@ -134,7 +106,7 @@ class TriggerEfficiencyPlotMC(TriggerEfficiencyComparisonPlot):
             pad.DrawLabel(0.15, 0.8, 0.5, 0.85, self.__triggername)
         
         
-class TriggerEfficiencyPlotClasses(TriggerEfficiencyComparisonPlot):
+class TriggerEfficiencyPlotClasses(ComparisonPlot):
     """
     Plot comparing the trigger efficiency of different trigger types
     """
@@ -143,7 +115,10 @@ class TriggerEfficiencyPlotClasses(TriggerEfficiencyComparisonPlot):
         """
         Constructor
         """
-        TriggerEfficiencyComparisonPlot.__init__(self)
+        ComparisonPlot.__init__(self)
+        self._comparisonContainer = TriggerEfficiencyContainer()
+        self.SetFrame(TriggerEfficiencyFrame("tframe"))
+        self.SetLegendAttributes(0.65, 0.15, 0.89, 0.5)
     
     def AddTriggerEfficiency(self, triggername, efficiency, style):
         """

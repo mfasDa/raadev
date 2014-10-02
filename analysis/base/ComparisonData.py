@@ -4,7 +4,8 @@ Created on 02.10.2014
 @author: markusfasel
 """
 
-from base.Graphics import GraphicsObject
+from base.Graphics import GraphicsObject,SinglePanelPlot
+from ROOT import TFile
 
 class ComparisonObject(object):
     """
@@ -45,7 +46,6 @@ class ComparisonData(object):
     General comparison data collection
     """
 
-
     def __init__(self, params):
         """
         Constructor
@@ -67,3 +67,46 @@ class ComparisonData(object):
         for entry in self.__trefficiencies:
             rootprimitives.append(entry.GetRootPrimitive())
         return rootprimitives
+    
+class ComparisonPlot(SinglePanelPlot):
+    """
+    General comparison plot type
+    """
+        
+    def __init__(self):
+        """
+        Constructor
+        """
+        SinglePanelPlot.__init__(self)
+        self.__frame = None
+        self._comparisonContainer = None    # be specified in inheriting classes
+        self.__legendAttributes = None
+        
+    def SetFrame(self, frame):
+        self.__frame = frame
+        
+    def SetLegendAttributes(self, xmin, ymin, xmax, ymax):
+        self.__legendAttributes = {"xmin":xmin, "xmax":xmax, "ymin":ymin, "ymax":ymax}
+        
+    def _Create(self, canvasname, canvastitle):
+        """
+        Make the plot
+        """
+        self._OpenCanvas(canvasname, canvastitle)
+        pad = self._GetFramedPad()
+        pad.DrawFrame(self.__frame)
+        doLegend = False
+        if self.__legendAttributes:
+            doLegend = True
+        self._efficiencyContainer.DrawObjects(pad, doLegend)
+        if doLegend:
+            pad.CreateLegend(self.__legendAttributes["xmin"], self.__legendAttributes["ymin"], self.__legendAttributes["xmax"], self.__legendattributes["ymax"])
+        
+    def WriteData(self, rootfilename):
+        """
+        Write out trigger efficiency curves to a root file
+        """
+        outputfile = TFile(rootfilename, "RECREATE")
+        for rootprim in self._efficiencyContainer.GetListOfRootObjects():
+            rootprim.Write()
+        outputfile.Close()
