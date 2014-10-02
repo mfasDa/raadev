@@ -253,6 +253,30 @@ class ResultData(object):
     def __contains__(self, item):
         return item in self.__data.keys()
     
+class ResultDataBuilder(object):
+    """
+    General data structure builder interfacing different input file formats
+    """
+    
+    def __init__(self, filetype, filename):
+        """
+        Constructor
+        """
+        reader = None
+        if filetype == "lego":
+            reader = LegoTrainFileReader(filename)
+        elif filetype == "resultfile":
+            reader = ResultStructureReader(filename)
+        self.__results = None
+        if reader:
+            self.__results = reader.ReadFile()
+            
+    def GetResults(self):
+        """
+        Access to data
+        """
+        return self.__results
+    
 class FileReader(object):
     
     class FileReaderException(Exception):
@@ -403,6 +427,14 @@ class LegoTrainFileReader(FileReader):
         """
         FileReader.__init__(self, filename, isMC)
         self.SetDirectory("PtEMCalTriggerTask")
+        
+class ResultStructureReader(object):
+    
+    def __init__(self, filename):
+        self.__filename = filename
+        
+    def ReadFile(self):
+        return ResultData.BuildFromRootFile(self.__filename, "read")
 
 def TestFileReader(filename):
     """
