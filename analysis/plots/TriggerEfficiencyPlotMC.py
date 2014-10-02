@@ -7,46 +7,34 @@ Comparison plot of trigger efficiencies in MC in different pt-hat bins including
 """
 
 from base.Graphics import SinglePanelPlot, GraphicsObject, Frame, Style
+from base.ComparisonData import ComparisonData, ComparisonObject
 from ROOT import TFile,kBlack
-
-class TriggerEfficiencyClass:
-
-    def __init__(self, data, style):
-        self.__triggerdata = data
-        self.__style = style
     
-    def GetGraphicsObject(self):
-        return GraphicsObject(self.__triggerdata, self.__style)
-    
-    def GetRootPrimitive(self):
-        self.__triggerdata.SetName(self.GetTypeName())
-        return self.__triggerdata
-    
-class TriggerEfficiencyClassPtHat(TriggerEfficiencyClass):
+class TriggerEfficiencyClassPtHat(ComparisonObject):
     
     def __init__(self, pthatbin, triggerdata, style):
-        TriggerEfficiencyClass.__init__(self, triggerdata, style)
+        ComparisonObject.__init__(self, triggerdata, style)
         self.__pthatbin = pthatbin
         
     def GetLegendTitle(self):
         return "p_{t}-hat bin %d" %(self.__pthatbin)
     
-    def GetTypeName(self):
+    def GetObjectName(self):
         return "pthat%d" %(self.__pthatbin)
     
-class TriggerEfficiencyClassTriggerType(TriggerEfficiencyClass):
+class TriggerEfficiencyClassTriggerType(ComparisonObject):
     
     def __init__(self, triggername, triggerdata, style):
-        TriggerEfficiencyClass.__init__(self, triggerdata, style)
+        ComparisonObject.__init__(self, triggerdata, style)
         self.__triggername =  triggername
         
     def GetLegendTitle(self):
         return self.__triggername
     
-    def GetTypeName(self):
+    def GetObjectName(self):
         return self.__triggername
 
-class TriggerEfficiencyContainer:
+class TriggerEfficiencyContainer(ComparisonData):
     """
     Underlying data structure for the comparison plot
     """
@@ -55,7 +43,7 @@ class TriggerEfficiencyContainer:
         """
         Initialise container
         """
-        self.__trefficiencies = []
+        ComparisonData.__init__(self)
     
     def AddEfficiency(self, trclasstype, key, efficiencyCurve, style):
         """
@@ -66,25 +54,8 @@ class TriggerEfficiencyContainer:
             triggerdata = TriggerEfficiencyClassPtHat(key, efficiencyCurve, style)
         elif trclasstype == "triggertype":
             triggerdata = TriggerEfficiencyClassTriggerType(key, efficiencyCurve, style)
-        self.__trefficiencies.append(triggerdata)
-        
-    def DrawEfficiencies(self, pad):
-        """
-        Draw all efficiencies into the pad
-        """
-        for entry in self.__trefficiencies:
-            pad.DrawGraphicsObject(entry.GetGraphicsObject(), True, entry.GetLegendTitle())
-            
-    def GetListOfTriggerEfficiencies(self):
-        """
-        Get a list of root-primitive trigger efficiencies
-        """
-        rootprimitives = []
-        for entry in self.__trefficiencies:
-            rootprimitives.append(entry.GetRootPrimitive())
-        return rootprimitives
-            
-
+        self.AddEntry(triggerdata)
+                        
 class TriggerEfficiencyFrame(Frame):
     """
     Frame class for trigger efficiency plots
@@ -117,7 +88,7 @@ class TriggerEfficiencyComparisonPlot(SinglePanelPlot):
         self._OpenCanvas(canvasname, canvastitle)
         pad = self._GetFramedPad()
         pad.DrawFrame(TriggerEfficiencyFrame("tframe"))
-        self._efficiencyContainer.DrawEfficiencies(pad)
+        self._efficiencyContainer.DrawObjects(pad, True)
         pad.CreateLegend(0.65, 0.15, 0.89, 0.5)
         
     def WriteData(self, rootfilename):
@@ -125,10 +96,9 @@ class TriggerEfficiencyComparisonPlot(SinglePanelPlot):
         Write out trigger efficiency curves to a root file
         """
         outputfile = TFile(rootfilename, "RECREATE")
-        for rootprim in self._efficiencyContainer.GetListOfTriggerEfficiencies():
+        for rootprim in self._efficiencyContainer.GetListOfRootObjects():
             rootprim.Write()
         outputfile.Close()
-
 
 class TriggerEfficiencyPlotMC(TriggerEfficiencyComparisonPlot):
     """
