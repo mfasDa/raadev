@@ -81,6 +81,7 @@ class ComparisonPlot(SinglePanelPlot):
         self.__frame = None
         self._comparisonContainer = None    # be specified in inheriting classes
         self.__legendAttributes = None
+        self.__padattributes = {"logx":False, "logy":False, "gridx":False, "gridy":False}
         
     def SetFrame(self, frame):
         self.__frame = frame
@@ -88,12 +89,22 @@ class ComparisonPlot(SinglePanelPlot):
     def SetLegendAttributes(self, xmin, ymin, xmax, ymax):
         self.__legendAttributes = {"xmin":xmin, "xmax":xmax, "ymin":ymin, "ymax":ymax}
         
+    def SetPadAttributes(self, logx, logy, gridx, gridy):
+        self.__padattributes["logx"] = logx
+        self.__padattributes["logy"] = logy
+        self.__padattributes["gridx"] = gridx
+        self.__padattributes["gridy"] = gridy
+        
     def _Create(self, canvasname, canvastitle):
         """
         Make the plot
         """
         self._OpenCanvas(canvasname, canvastitle)
         pad = self._GetFramedPad()
+        if self.__padattributes["logx"]:
+            pad.GetPad().SetLogx()
+        if self.__padattributes["logy"]:
+            self.GetPad().SetLogy()
         pad.DrawFrame(self.__frame)
         doLegend = False
         if self.__legendAttributes:
