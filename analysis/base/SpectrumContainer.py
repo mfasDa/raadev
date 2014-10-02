@@ -650,7 +650,7 @@ class ClusterContainer(DataContainer):
         Build a cluster container from a root primitive
         """
         infopair = DataContainer.GetHistoPair(rootprimitive)
-        return TrackContainer(infopair["events"], infopair["spectrum"])
+        return ClusterContainer(infopair["events"], infopair["spectrum"])
             
 class SpectrumContainer(object):
     """
@@ -768,9 +768,9 @@ class SpectrumContainer(object):
         elif isinstance(dim,str):
             cutaxis = self.__FindAxisByName(dim)
         if not self.__IsInRange(minv, cutaxis):
-            raise self.RangeException(dim, minv, cutaxis.GetMinimum(), cutaxis.GetMaximum())
+            raise self.RangeException(dim, minv, cutaxis.GetXmin(), cutaxis.GetXmax())
         if not self.__IsInRange(maxv, cutaxis):
-            raise self.RangeException(maxv, cutaxis.GetMinimum(), cutaxis.GetMaximum())
+            raise self.RangeException(maxv, cutaxis.GetXmin(), cutaxis.GetXmax())
         binmin = cutaxis.FindBin(minv + kVerySmall)
         binmax = cutaxis.FindBin(maxv - kVerySmall)
         #print "Setting range in axis %d from %.f [%d] to %.f [%d]" %(dim, min, binmin, max, binmax)

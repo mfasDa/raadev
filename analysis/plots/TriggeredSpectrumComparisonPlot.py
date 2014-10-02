@@ -38,7 +38,7 @@ class TriggeredSpectrumComparisonPlot(ComparisonPlot):
     Comparing raw spectra of different classes
     """
 
-    def __init__(self, frame):
+    def __init__(self, frame, canvasname = "spectrumcomparison"):
         """
         Constructor
         """
@@ -47,20 +47,21 @@ class TriggeredSpectrumComparisonPlot(ComparisonPlot):
         self.SetFrame(frame)
         self.SetLegendAttributes(0.5, 0.65, 0.89, 0.89)
         self.SetPadAttributes(True, True, False, False)
+        self.__canvasname = canvasname
         
     def AddSpectrum(self, trigger, spectrum, style):
         self._comparisonContainer.AddEntry(SpectraComparisonObject(trigger, spectrum, style))
         
     def Create(self):
-        self._Create("spectrumcomparison", "Spectrum Comparison")
+        self._Create(self.__canvasname, "Spectrum Comparison")
         
 class PtTriggeredSpectrumComparisonPlot(TriggeredSpectrumComparisonPlot):
     
-    def __init__(self):
-        TriggeredSpectrumComparisonPlot.__init__(self, PtSpectrumFrame())
+    def __init__(self, canvasname):
+        TriggeredSpectrumComparisonPlot.__init__(self, PtSpectrumFrame(), canvasname)
         
 class EnergyTriggeredSpectrumComparisonPlot(TriggeredSpectrumComparisonPlot):
     
-    def __init__(self):
-        TriggeredSpectrumComparisonPlot.__init__(self, EnergySpectrumFrame())
+    def __init__(self, canvasname):
+        TriggeredSpectrumComparisonPlot.__init__(self, EnergySpectrumFrame(), canvasname)
         

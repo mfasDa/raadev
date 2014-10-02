@@ -46,7 +46,7 @@ class ComparisonData(object):
     General comparison data collection
     """
 
-    def __init__(self, params):
+    def __init__(self):
         """
         Constructor
         """
@@ -104,14 +104,14 @@ class ComparisonPlot(SinglePanelPlot):
         if self.__padattributes["logx"]:
             pad.GetPad().SetLogx()
         if self.__padattributes["logy"]:
-            self.GetPad().SetLogy()
+            pad.GetPad().SetLogy()
         pad.DrawFrame(self.__frame)
         doLegend = False
         if self.__legendAttributes:
             doLegend = True
-        self._efficiencyContainer.DrawObjects(pad, doLegend)
+        self._comparisonContainer.DrawObjects(pad, doLegend)
         if doLegend:
-            pad.CreateLegend(self.__legendAttributes["xmin"], self.__legendAttributes["ymin"], self.__legendAttributes["xmax"], self.__legendattributes["ymax"])
+            pad.CreateLegend(self.__legendAttributes["xmin"], self.__legendAttributes["ymin"], self.__legendAttributes["xmax"], self.__legendAttributes["ymax"])
         
     def WriteData(self, rootfilename):
         """
