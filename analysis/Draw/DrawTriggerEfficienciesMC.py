@@ -6,7 +6,7 @@ Created on 29.09.2014
 
 from base.MonteCarloFileHandler import MonteCarloFileHandler
 from base.Graphics import Style
-from base.FileHandler import ResultData
+from base.FileHandler import ResultDataBuilder
 from plots.TriggerEfficiencyPlotMC import TriggerEfficiencyPlotMC,TriggerEfficiencySumPlot,TriggerEfficiencyPlotClasses
 from base.TriggerEfficiency import TriggerEfficiency
 from os import getcwd
@@ -115,7 +115,8 @@ def DrawTriggerEfficiencySummed(trigger, basedir = None):
     return plot
 
 def DrawMergedTriggerEfficiency(inputfile):
-    data = ResultData.BuildFromRootFile(inputfile, "merged")
+    reader = ResultDataBuilder("resultfile", inputfile)
+    data = reader.GetResults()
     tcname = "tracksWithClusters"
     plotter = TriggerEfficiencyPlotClasses()
     styles = {"EMCJHigh":Style(kBlue, 24), "EMCJLow":Style(kRed,25), "EMCGHigh":Style(kGreen,26), "EMCGLow":Style(kOrange,27)}

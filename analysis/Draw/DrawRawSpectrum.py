@@ -2,7 +2,7 @@
 from ROOT import kRed
 from base.Graphics import Frame, GraphicsObject, SinglePanelPlot, Style
 from base.SpectrumContainer import SpectrumContainer
-from base.FileHandler import LegoTrainFileReader
+from base.FileHandler import ResultDataBuilder
 import sys
 
 class RawSpectrumPlot(SinglePanelPlot):
@@ -33,7 +33,7 @@ def MakeNormalisedSpectrum(inputcontainer):
 
 
 def CreatePlot(filename, trigger, saveCanvas = False):
-    reader = LegoTrainFileReader(filename)
+    reader = ResultDataBuilder("lego", filename)
     data = reader.ReadData().GetData(trigger)
     spectrum = MakeNormalisedSpectrum(data.FindTrackContainer("tracksAll"))
     

@@ -4,7 +4,7 @@ Created on 19.09.2014
 @author: markusfasel
 '''
 
-from base.FileHandler import LegoTrainFileReader
+from base.FileHandler import ResultDataBuilder
 from base.SpectrumContainer import SpectrumContainer
 from plots.RawspectrumPeriodComparisonPlot import RawspectrumPeriodComparisonPlot
 from base.Graphics import Style
@@ -20,8 +20,8 @@ def MakeNormalisedRawSpectrum(data):
     return data.MakeProjection(0, "ptSpectrum%s", "p_{#rm{t}} (GeV/c)", "1/N_{event} 1/(#Delta p_{#rm t}) dN/dp_{#rm{t}} ((GeV/c)^{-2}")
 
 def GetRawSpectrum(filename, trigger):
-    reader = LegoTrainFileReader(filename)
-    return MakeNormalisedRawSpectrum(reader.ReadFile().GetData(trigger).FindTrackContainer("tracksAll")) 
+    reader = ResultDataBuilder("lego", filename)
+    return MakeNormalisedRawSpectrum(reader.GetResults().GetData(trigger).FindTrackContainer("tracksAll")) 
 
 def DrawPeriodComparison(reference, periods, trigger):
     styles = [Style(kRed, 24), Style(kBlue, 25), Style(kGreen, 26), Style(kMagenta, 27), Style(kOrange, 28), Style(kYellow, 29), Style(kTeal, 30)]

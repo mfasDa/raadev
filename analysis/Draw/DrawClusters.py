@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-from base.FileHandler import LegoTrainFileReader
+from base.FileHandler import ResultDataBuilder
 from base.Graphics import FourPanelPlot,GraphicsObject,Style,Frame
 from ROOT import kBlack,kBlue,kGreen,kRed,kOrange
 
@@ -77,12 +77,12 @@ def MakeClusterEnergySpectrum(data, trigger):
     cont.Reset()
     return result
     
-def DrawClusters():
-    readerDE = LegoTrainFileReader("merged_DE/AnalysisResults.root")
-    dataDE = readerDE.ReadFile()
+def DrawClusters(fileformat = "lego"):
+    readerDE = ResultDataBuilder(fileformat, "merged_DE/AnalysisResults.root")
+    dataDE = readerDE.GetResults()
     dataDE.SetName("LHC13de")
-    readerC = LegoTrainFileReader("LHC13c/AnalysisResults.root")
-    dataC = readerC.ReadFile()
+    readerC = ResultDataBuilder("LHC13c/AnalysisResults.root")
+    dataC = readerC.GetResults()
     dataC.SetName("LHC13c")
     
     clustersCalibTRG = {}
