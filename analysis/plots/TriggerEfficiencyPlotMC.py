@@ -124,7 +124,7 @@ class TriggerEfficiencyPlotClasses(ComparisonPlot):
         """
         Add trigger class to the comparison data
         """
-        self._efficiencyContainer.AddEfficiency("triggertype", triggername, efficiency, style)
+        self._comparisonContainer.AddEfficiency("triggertype", triggername, efficiency, style)
         
     def Create(self):
         self._Create("triggerclasses", "Trigger efficiencies")

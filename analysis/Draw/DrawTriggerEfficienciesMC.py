@@ -114,13 +114,20 @@ def DrawTriggerEfficiencySummed(trigger, basedir = None):
     drawer.WriteSummedData("SumPtHatBins.root")
     return plot
 
-def DrawMergedTriggerEfficiency(inputfile):
+def DrawMergedTriggerEfficiency(inputfile, datatype="tracks",  sourcetype="tracksWithClusters"):
     reader = ResultDataBuilder("resultfile", inputfile)
     data = reader.GetResults()
-    tcname = "tracksWithClusters"
     plotter = TriggerEfficiencyPlotClasses()
     styles = {"EMCJHigh":Style(kBlue, 24), "EMCJLow":Style(kRed,25), "EMCGHigh":Style(kGreen,26), "EMCGLow":Style(kOrange,27)}
     for trigger in ["EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow"]:
-        plotter.AddTriggerEfficiency(trigger, TriggerEfficiency(trigger, data.GetData("MinBias").FindTrackContainer(tcname), data.GetData(trigger).FindTrackContainer(tcname)).GetEfficiencyCurve(), styles[trigger])
+        dataminbias = None
+        datatriggered = None
+        if datatype == "clusters":
+            dataminbias = data.GetData("MinBias").FindClusterContainer(sourcetype)
+            datatriggered = data.GetData(trigger).FindClusterContainer(sourcetype)
+        elif datatype == "tracks":
+            dataminbias = data.GetData("MinBias").FindTrackContainer(sourcetype)
+            datatriggered = data.GetData(trigger).FindTrackContainer(sourcetype)
+        plotter.AddTriggerEfficiency(trigger, TriggerEfficiency(trigger, dataminbias, datatriggered).GetEfficiencyCurve(), styles[trigger])
     plotter.Create()
     return plotter
