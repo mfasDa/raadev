@@ -22,8 +22,9 @@ class TriggerEfficiency:
     def __MakeNormalisedSpectrum(self, container, name):
         container.SetVertexRange(-10., 10.)
         container.SetPileupRejection(True)
-        container.SelectTrackCuts(1)
-        container.RequestSeenInMinBias()
+        if container.__class__ == "TrackContainer":
+            container.SelectTrackCuts(1)
+            container.RequestSeenInMinBias()
         return container.MakeProjection(0, "ptSpectrum%s" %(name), "p_{#rm{t}} (GeV/c)", "1/N_{event} 1/(#Delta p_{#rm t}) dN/dp_{#rm{t}} ((GeV/c)^{-2}", doNorm = False)
         
     def __CalculateTriggerEfficiency(self):

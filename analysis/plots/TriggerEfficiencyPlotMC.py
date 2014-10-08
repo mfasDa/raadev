@@ -94,7 +94,7 @@ class TriggerEfficiencyPlotMC(ComparisonPlot):
         """
         Add new efficiency container to the data structure
         """
-        self._efficiencyContainer.AddEfficiency("pthat", pthatbin, efficiency, style)
+        self._comparisonContainer.AddEfficiency("pthat", pthatbin, efficiency, style)
         
     def Create(self):
         """
