@@ -52,6 +52,9 @@ class ComparisonData(object):
         """
         self.__entries = []
         
+    def GetEntries(self):
+        return self.__entries
+        
     def AddEntry(self, entry):
         self.__entries.append(entry)
         
