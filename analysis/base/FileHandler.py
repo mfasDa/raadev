@@ -189,12 +189,11 @@ class ResultData(object):
             if key.GetName() == "MCTruth":
                 result.SetMCTruth(SpectrumContainer.BuildFromRootPrimitive(key.ReadObj()))
             else:
-                print key.ReadObj()
                 result.SetData(key.GetName(), DataSet.BuildFromRootPrimitive(key.ReadObj()))
             key = keyIter.Next()
         inputfile.Close()
         print "Results successfully reconstructed from file %s" %(filename)
-        result.Print()
+        #result.Print()
         return result
     
     def Print(self):
