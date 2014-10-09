@@ -67,7 +67,7 @@ class ComparisonData(object):
         Get a list of root-primitive trigger efficiencies
         """
         rootprimitives = []
-        for entry in self.__trefficiencies:
+        for entry in self.__entries:
             rootprimitives.append(entry.GetRootPrimitive())
         return rootprimitives
     
@@ -121,6 +121,6 @@ class ComparisonPlot(SinglePanelPlot):
         Write out trigger efficiency curves to a root file
         """
         outputfile = TFile(rootfilename, "RECREATE")
-        for rootprim in self._efficiencyContainer.GetListOfRootObjects():
+        for rootprim in self._comparisonContainer.GetListOfRootObjects():
             rootprim.Write()
         outputfile.Close()
