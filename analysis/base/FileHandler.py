@@ -77,17 +77,19 @@ class ResultData(object):
         """
         Shallow copy constructor
         """
+        print "Simple copy called from %s" %(self.__class__)
         newobject = ResultData(self.Name)
         if self.__mctruth:
             newobject.MCTruth = copy(self.__mctruth)
         for trigger in self.__data.keys():
             newobject.SetData(trigger, copy(self.__data[trigger]))
         return newobject
-    
+     
     def __deepcopy__(self, memo):
         """
         Deep copy constructor
         """
+        print "deep copy called from %s" %(self.__class__)
         newobject = ResultData(self.Name)
         if self.__mctruth:
             newobject.MCTruth = deepcopy(self.__mctruth, memo)
@@ -369,6 +371,8 @@ class FileReader(object):
         for trigger in triggers:
             eventhist = hlist.FindObject("hEventHist%s" %(trigger))
             trackhist = hlist.FindObject("hTrackHist%s" %(trigger))
+            #eventhist.Sumw2()
+            #trackhist.Sumw2()
             triggerdata = DataSet()
             triggerdata.AddTrackContainer("tracksAll", TrackContainer(eventHist = deepcopy(eventhist), trackHist = trackhist))
             tracksWithClusters = hlist.FindObject("hTrackInAcceptanceHist%s" %(trigger)) 
@@ -379,6 +383,7 @@ class FileReader(object):
                 clhist = hlist.FindObject("%s%s" %(clust, trigger))
                 if clhist:
                     tag = clust.replace("hCluster","").replace("Hist","")
+                    #clhist.Sumw2()
                     triggerdata.AddClusterContainer(tag, ClusterContainer(eventHist = deepcopy(eventhist), clusterHist = clhist))
             result.SetData(trigger, triggerdata)
         return result

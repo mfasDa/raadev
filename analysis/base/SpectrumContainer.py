@@ -46,17 +46,19 @@ class DataSet(object):
         """
         shallow copy constructor
         """
+        print "Simple copy called from %s" %(self.__class__)
         newobject = DataSet()
         for name,tc in self.__trackContainers.iteritems():
             newobject.AddTrackContainer(name, copy(tc))
         for name,cc in self.__clusterContainers.iteritems():
             newobject.AddClusterContainer(name, copy(cc))
         return newobject
-        
+         
     def __deepcopy__(self, memo):
         """
         deep copy constructor
         """
+        print "deep copy called from %s" %(self.__class__)
         newobject = DataSet()
         for name,tc in self.__trackContainers.iteritems():
             newobject.AddTrackContainer(name, deepcopy(tc, memo))
@@ -129,7 +131,7 @@ class DataSet(object):
                 nfailure += 1
         if nfailure > 0:
             raise MergeException("Several containers have not been found inside the other datase")
-        
+         
     def Scale(self, scalefactor):
         """
         Scale all track or cluster containers with the underlying scale factor
@@ -138,7 +140,7 @@ class DataSet(object):
             cont.Scale(scalefactor)
         for cont in self.__clusterContainers.values():
             cont.Scale(scalefactor)
-    
+     
     def GetRootPrimitive(self, listname):
         """
         Make root primitives (for root IO)
@@ -156,7 +158,7 @@ class DataSet(object):
         result.Add(tracklist)
         result.Add(clusterlist)
         return result
-    
+     
     @staticmethod
     def BuildFromRootPrimitive(rootprimitive):
         """
@@ -182,7 +184,7 @@ class DataSet(object):
                 result.AddClusterContainer(contname, ClusterContainer.BuildFromRootPrimitive(currententry))
             currententry = clusterIter.Next()
         return result
-    
+     
     def Print(self):
         """
         Print content of the data set
@@ -266,12 +268,14 @@ class DataContainer(object):
             return self.__max
         
         def __copy__(self):
+            print "Simple copy called from %s" %(self.__class__)
             newobject = DataContainer.SpectrumCut(self.Dimension, self.Minimumm, self.Maximum)
             return newobject
-        
+         
         def __deepcopy__(self, memo):
+            print "deep copy called from %s" %(self.__class__)
             return self.__copy__()
-        
+         
         # Properties
         Minimum = property(GetMinimum, SetMinimum)
         Maximum = property(GetMaximum, SetMaximum)
@@ -313,14 +317,16 @@ class DataContainer(object):
         """
         Shallow copy constructor
         """
+        print "Simple copy called from %s" %(self.__class__)
         newobject = DataContainer(self.__events, self.__spectrum)
         newobject._Copy(self)
         return newobject
-            
+             
     def __deepcopy__(self, memo):
         """
         Deep copy constructor
         """
+        print "deep copy called from %s" %(self.__class__)
         newobject = DataContainer(None, None)
         newobject._Deepcopy(self, memo)
         return newobject
@@ -393,7 +399,7 @@ class DataContainer(object):
         for cut in othercuts:
             self.__cutList.append(copy(cut))
         self.__SetValues(other.GetValues())
-    
+     
     def _Deepcopy(self, other, memo):
         """
         Make a deep copy of the other object into this
@@ -408,7 +414,7 @@ class DataContainer(object):
         for cut in othercuts:
             self.__cutList.append(deepcopy(cut, memo))
         self.__SetValues(other.GetValues())
-        
+         
     def Add(self, other):
         """
         Add other data container to this data container
@@ -425,13 +431,13 @@ class DataContainer(object):
         else:
             if other.SpectrumHist:
                 self.__spectrum = other.SpectrumHist
-        
+         
     def Scale(self, scalefactor):
         """
         Scale the underlying spectrum container with the scale factor
         """
         self.__spectrum.Scale(scalefactor)
-        
+         
     def GetRootPrimitive(self, name):
         """
         Convert object to a root primitive (so that it can be wirtten to a rootfile)
@@ -444,7 +450,7 @@ class DataContainer(object):
         spectrum.SetName("spectrum")
         result.Add(spectrum)
         return result
-    
+     
     @staticmethod
     def GetHistoPair(rootprimitive):
         """
@@ -578,18 +584,20 @@ class TrackContainer(DataContainer):
         """
         Shallow copy constructor
         """
+        print "Simple copy called from %s" %(self.__class__)
         newobject = TrackContainer(self.__events, self.__spectrum)
         newobject._Copy(self)
         return newobject
-            
+             
     def __deepcopy__(self, memo):
         """
         Deep copy constructor
         """
+        print "deep copy called from %s" %(self.__class__)
         newobject = TrackContainer(None, None)
         newobject._Deepcopy(self, memo)
         return newobject
-    
+   
     @staticmethod
     def BuildFromRootPrimitive(rootprimitive):
         """
@@ -627,23 +635,28 @@ class ClusterContainer(DataContainer):
             self._AddCut(2, 1., 1.)
         else:
             self._usePileupRejected = False
+            
+    def RequestSeenInMinBias(self):
+        self._AddCut(3, 1., 1.)
 
     def __copy__(self):
         """
         Shallow copy constructor
         """
+        print "Simple copy called from %s" %(self.__class__)
         newobject = ClusterContainer(self.__events, self.__spectrum)
         newobject._Copy(self)
         return newobject
-            
+             
     def __deepcopy__(self, memo):
         """
         Deep copy constructor
         """
+        print "deep copy called from %s" %(self.__class__)
         newobject = ClusterContainer(None, None)
         newobject._Deepcopy(self, memo)
         return newobject
-    
+       
     @staticmethod
     def BuildFromRootPrimitive(rootprimitive):
         """
@@ -700,19 +713,21 @@ class SpectrumContainer(object):
         Constructor, defining underlying THnSparse
         """
         self.__hsparse = hsparse
-        self.__hsparse.Sumw2()
+#        self.__hsparse.Sumw2()
         
     def __copy__(self):
         """
         Shallow copy constructor
         """
+        print "Simple copy called from %s" %(self.__class__)
         newobject = SpectrumContainer(self.__hsparse)
         return newobject
-
+ 
     def __deepcopy__(self, memo):
         """
         Deep copy constructor
         """
+        print "deep copy called from %s" %(self.__class__)
         newobject = SpectrumContainer(deepcopy(self.__hsparse, memo))
         return newobject
         
@@ -737,7 +752,7 @@ class SpectrumContainer(object):
         if not isinstance(other, SpectrumContainer):
             raise MergeException("Incompatible types: this(SpectrumContainer), other(%s)" %(str(other.__class__)))
         self.__hsparse.Add(other.GetData())
-        
+         
     def Scale(self, scalefactor):
         """
         Scale the underlying THnSparse with the scale factor
