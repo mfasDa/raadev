@@ -373,8 +373,8 @@ void SetupUtil(bool isMC, bool isAOD){
 	 */
 	//==== Physics Selection ====
 	if(!isAOD){
-		gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPhysicsSelection.C");
-		AddTaskPhysicsSelection(isMC);
+		gROOT->LoadMacro("$ALICE_ROOT/PWG/EMCAL/macros/AddTaskEmcalPhysicsSelection.C");
+		AddTaskEmcalPhysicsSelection(kFALSE);
 	}
 
 	//===== ADD CENTRALITY: =====
@@ -471,26 +471,33 @@ void SetupTask(bool isMC, bool isAOD, const char *sample){
 
 	// 1st step: Jetfinder for MC and data
 	gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskEmcalJet.C", gSystem->Getenv("ALICE_ROOT")));
-	if(isMC) AddTaskEmcalJet("MCParticlesSelected", "", 1, 0.5, 0, 0, 0);		// MC
-	AddTaskEmcalJet("ESDFilterTracks", "CaloClusters", 1, 0.5, 0, 0.15, 0.3);	// Data
+	const TString kUsedTracks = "PicoTracks",
+               	  kUsedClusters = "CaloClusters",
+				  kUsedMCParticles = "MCParticlesSelected";
+	const double kTrackPtCut = 0.30,
+               	 kClusPtCut = 0.15;
+	if(isMC) AddTaskEmcalJet(kUsedMCParticles.Data(),"",1,0.5,1,0.,0.);		// MC
+	AddTaskEmcalJet(kUsedTracks.Data(),kUsedClusters.Data(),1,0.5,1,kTrackPtCut,kClusPtCut);	// Data
+	//if(isMC) AddTaskEmcalJet("MCParticlesSelected", "", 1, 0.5, 0, 0, 0);		// MC
+	//AddTaskEmcalJet("ESDFilterTracks", "CaloClusters", 1, 0.5, 0, 0.15, 0.3);	// Data
 	//Decode complicated names
 	const char *tag = "Jet",
 			*algoString = "AKT",
-			*typeString = "Full",
+			*typeString = "Charged",
 			*radiusString = Form("R0%2.0f",0.5*100.0),
-			*pTString = Form("pT0%3.0f",0.15*1000.0),
-			*ETString = Form("ET0%3.0f",0.3*1000.0),
+			*pTString = Form("pT0%3.0f",kTrackPtCut*1000.0),
+			*ETString = Form("ET0%3.0f",kClusPtCut*1000.0),
 			*mcpTString = "pT0000",
 			*recombSchemeString = "pt_scheme";
 
-	TString nameMC = isMC ? Form("%s_%s%s%s_%s_%s_%s",tag,algoString,typeString,radiusString,"MCParticlesSelected",mcpTString,recombSchemeString) : "",
-			nameData = Form("%s_%s%s%s_%s_%s_%s_%s_%s",tag,algoString,typeString,radiusString,"ESDFilterTracks",pTString,"CaloClusters",ETString,recombSchemeString);
+	TString nameMC = isMC ? Form("%s_%s%s%s_%s_%s_%s",tag,algoString,typeString,radiusString,kUsedMCParticles.Data(),mcpTString,recombSchemeString) : "",
+			nameData = Form("%s_%s%s%s_%s_%s_%s_%s_%s",tag,algoString,typeString,radiusString,kUsedTracks.Data(),pTString,kUsedClusters.Data(),ETString,recombSchemeString);
 
 	std::cout << "Name of the jet container for MonteCarlo:     " << nameMC.Data() << std::endl;
 	std::cout << "Name of the jet container for Data:           " << nameData.Data() << std::endl;
 
 	gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskPtEMCalTrigger.C", gSystem->Getenv("ALICE_ROOT")));
-	AddTaskPtEMCalTrigger(isMC, !strcmp(sample, "LHC13b4_plus"), sample, nameData.Data(), nameMC.Data(), 0.5);
+	AddTaskPtEMCalTrigger(isMC, !strcmp(sample, "LHC13b4_plus"), sample, kUsedTracks.Data(), kUsedClusters.Data(), nameData.Data(), nameMC.Data(), 0.5);
 }
 
 void SetupTrain(const TMap &lookup){
