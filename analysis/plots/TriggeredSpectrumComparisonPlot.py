@@ -9,15 +9,15 @@ from base.Graphics import Frame
 
 class PtSpectrumFrame(Frame):
     
-    def __init__(self):
-        Frame.__init__(self, "ptframe", 0., 100., 1e-10, 100)
+    def __init__(self, name):
+        Frame.__init__(self, "ptframe%s" %(name), 0., 100., 1e-10, 100)
         self.SetXtitle("p_{t} (GeV/c)")
         self.SetYtitle("1/N_{event} dN/dp_{t} ((GeV/c)^{-1})")
     
 class EnergySpectrumFrame(Frame):
     
-    def __init__(self):
-        Frame.__init__(self, "ptframe", 0., 100., 1e-10, 100)
+    def __init__(self, name):
+        Frame.__init__(self, "ptframe%s" %(name), 0., 100., 1e-10, 100)
         self.SetXtitle("p_{t} (GeV/c)")
         self.SetYtitle("1/N_{event} dN/dp_{t} ((GeV/c)^{-1})")
     
@@ -38,7 +38,7 @@ class TriggeredSpectrumComparisonPlot(ComparisonPlot):
     Comparing raw spectra of different classes
     """
 
-    def __init__(self, frame, canvasname = "spectrumcomparison"):
+    def __init__(self, frame, name = "spectrumcomparison"):
         """
         Constructor
         """
@@ -47,21 +47,21 @@ class TriggeredSpectrumComparisonPlot(ComparisonPlot):
         self.SetFrame(frame)
         self.SetLegendAttributes(0.5, 0.65, 0.89, 0.89)
         self.SetPadAttributes(True, True, False, False)
-        self.__canvasname = canvasname
+        self.__name = name
         
     def AddSpectrum(self, trigger, spectrum, style):
         self._comparisonContainer.AddEntry(SpectraComparisonObject(trigger, spectrum, style))
         
     def Create(self):
-        self._Create(self.__canvasname, "Spectrum Comparison")
+        self._Create("canvas%s" %(self.__name), "Spectrum Comparison %s" %(self.__name))
         
 class PtTriggeredSpectrumComparisonPlot(TriggeredSpectrumComparisonPlot):
     
-    def __init__(self, canvasname):
-        TriggeredSpectrumComparisonPlot.__init__(self, PtSpectrumFrame(), canvasname)
+    def __init__(self,name):
+        TriggeredSpectrumComparisonPlot.__init__(self, PtSpectrumFrame(name), name)
         
 class EnergyTriggeredSpectrumComparisonPlot(TriggeredSpectrumComparisonPlot):
     
-    def __init__(self, canvasname):
-        TriggeredSpectrumComparisonPlot.__init__(self, EnergySpectrumFrame(), canvasname)
+    def __init__(self, name):
+        TriggeredSpectrumComparisonPlot.__init__(self, EnergySpectrumFrame(name), name)
         

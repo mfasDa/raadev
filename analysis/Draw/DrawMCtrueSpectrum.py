@@ -50,7 +50,7 @@ class MCTrueDrawer(PtHatBinDrawer):
         spectrum = cont.ProjectToDimension(0,"MCtruth%d" %(pthatbin))
         spectrum.Sumw2()
         NormaliseBinWidth(spectrum)
-        trackCont = self.datacol.GetData(pthatbin).GetData("MinBias").FindTrackContainer("tracksAll")
+        trackCont = self._datacol.GetData(pthatbin).GetData("MinBias").FindTrackContainer("tracksAll")
         spectrum.Scale(1./trackCont.GetEventCount())
         return spectrum
    
@@ -106,7 +106,8 @@ def DrawWeights(basedir = None):
 
 def DrawMCtrue(basedir = None):
     drawer = MCTrueDrawer()
-    drawer.SetNumberOfPtHatBins(9)
+    #drawer.SetNumberOfPtHatBins(9)
+    drawer.SetNumberOfPtHatBins(2)
     if not basedir:
         basedir = getcwd()
     print "Using results from directory %s" %(basedir)

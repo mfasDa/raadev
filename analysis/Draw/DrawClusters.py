@@ -81,7 +81,7 @@ def DrawClusters(fileformat = "lego"):
     readerDE = ResultDataBuilder(fileformat, "merged_DE/AnalysisResults.root")
     dataDE = readerDE.GetResults()
     dataDE.SetName("LHC13de")
-    readerC = ResultDataBuilder("LHC13c/AnalysisResults.root")
+    readerC = ResultDataBuilder(fileformat, "LHC13c/AnalysisResults.root")
     dataC = readerC.GetResults()
     dataC.SetName("LHC13c")
     
