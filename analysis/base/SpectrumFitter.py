@@ -128,6 +128,23 @@ class SpectrumFitter:
             #print "min %f, max %f, value %e" %(result.GetXaxis().GetBinLowEdge(mybin),result.GetXaxis().GetBinUpEdge(mybin), value)
             result.SetBinContent(mybin, value)
         return result
+    
+    def MakeBinnedParameterisationDefault(self, normBinWidth = False):
+        """
+        Make binned parameterisation. If normBinWith is set to True, the integral is 
+        normalised by the bin width
+        """
+        result = TH1F("binned%s" %(self.__name), "", self.__data.GetXaxis().GetNbins(), self.__data.GetXaxis().GetXbins().GetArray())
+        for mybin in range(2, result.GetXaxis().GetNbins()+1):
+            value = 0
+            if normBinWidth:
+                value = self.CalculateBinMean(result.GetXaxis().GetBinLowEdge(mybin),result.GetXaxis().GetBinUpEdge(mybin))
+            else:
+                value = self.CalculateIntegral(result.GetXaxis().GetBinLowEdge(mybin),result.GetXaxis().GetBinUpEdge(mybin))
+            #print "min %f, max %f, value %e" %(result.GetXaxis().GetBinLowEdge(mybin),result.GetXaxis().GetBinUpEdge(mybin), value)
+            result.SetBinContent(mybin, value)
+            result.SetBinError(mybin, 0)
+        return result
             
     def CalculateIntegral(self, xmin, xmax):
         if not self.__fitDone:
