@@ -101,6 +101,9 @@ class WeightHandler:
             self.__pthatbins.append(PtHatBin(binID, crosssechist, ntrialshist))
         else:
             self.__pthatbins[self.__pthatbins.index(binID)].Set(crosssechist, ntrialshist)
+            
+    def GetWeight(self, pthardbin):
+        return self.__pthatbins[self.__pthatbins.index(pthardbin)].GetWeight()
         
     def ReweightSpectrum(self, binId, spectrum):
         """ 
