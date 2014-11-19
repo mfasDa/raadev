@@ -378,6 +378,12 @@ class FileReader(object):
             tracksWithClusters = hlist.FindObject("hTrackInAcceptanceHist%s" %(trigger)) 
             if tracksWithClusters:
                 triggerdata.AddTrackContainer("tracksWithClusters", TrackContainer(eventHist = deepcopy(eventhist), trackHist = tracksWithClusters))
+            tracksMCKine = hlist.FindObject("hMCTrackHist%s" %(trigger))
+            if tracksMCKine:
+                triggerdata.AddTrackContainer("tracksMCKine", TrackContainer(eventHist=deepcopy(eventhist)), trackHist = tracksMCKine)
+            tracksMCKineWithClusters = hlist.FindObject("hMCTrackInAcceptanceHist%s" %(trigger)) 
+            if tracksMCKineWithClusters:
+                triggerdata.AddTrackContainer("tracksMCKineWithClusters", TrackContainer(eventHist=deepcopy(eventhist)), trackHist = tracksMCKineWithClusters)
             clusterhists = ["hClusterCalibHist","hClusterUncalibHist"]
             for clust in clusterhists:
                 clhist = hlist.FindObject("%s%s" %(clust, trigger))
