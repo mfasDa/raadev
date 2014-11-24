@@ -42,12 +42,19 @@ class MonteCarloWriter(object):
         self.__inputcol = self.ReadData()
         self.__pthardbins = {}
         self.__inAcceptance = False
+        self.__MCKine = False
         
     def SetInAcceptance(self):
         self.__inAcceptance = True
         
     def SetAll(self):
         self.__inAcceptance = False
+        
+    def SetMCKine(self):
+        self.__MCKine = True
+        
+    def SetRecKine(self):
+        self.__MCKine = False
 
     def ReadData(self):
         reader = MonteCarloFileHandler(True)
@@ -64,8 +71,12 @@ class MonteCarloWriter(object):
         results = BinContent()
         bindata = self.__inputcol.GetData(mybin)
         results.SetMCtruth(self.ProjectMCtruth(bindata.GetMCTruth(), "MCTruthBin%d" %(mybin)))
+        kinestring = "tracksMCKine" if self.__MCKine else "tracks"
+        acceptancestring = "WithClusters" if self.__inAcceptance else "All"
         for trigger in ["MinBias","EMCJHigh","EMCJLow","EMCGHigh","EMCGLow"]:
-            tc = bindata.GetData(trigger).FindTrackContainer("tracksWithClusters" if self.__inAcceptance else "tracksAll")
+            histname = "%s%s" %(kinestring, acceptancestring)
+            print "histname: %s" %(histname)
+            tc = bindata.GetData(trigger).FindTrackContainer(histname)
             sn = "%sbin%d" %(trigger, mybin)
             spectrum = self.Project(tc, sn)
             results.AddTrigger(trigger, spectrum)
@@ -83,7 +94,8 @@ class MonteCarloWriter(object):
         return inputcontainer.MakeProjection(0, outputname, doNorm = False)
         
     def WriteResults(self):
-        outputfile = TFile("MonteCarloProjected%s.root" %("Acc" if self.__inAcceptance else "All"), "RECREATE")
+        outputfile = TFile("MonteCarloProjected%s%sKine.root" %("Acc" if self.__inAcceptance else "All", \
+                                                                "MC" if self.__MCKine else "Rec"), "RECREATE")
         outputfile.cd()
         self.__weights.Write(self.__weights.GetName(), TObject.kSingleKey)
         for mybin in self.__pthardbins:
@@ -91,11 +103,15 @@ class MonteCarloWriter(object):
             bindata.Write(bindata.GetName(), TObject.kSingleKey)
         outputfile.Close()
         
-def RunProjection(doAcc = False):
+def RunProjection(doAcc = False, doMCKine = False):
     writer = MonteCarloWriter()
     if doAcc:
         writer.SetInAcceptance()
     else:
         writer.SetAll()
+    if doMCKine:
+        writer.SetMCKine()
+    else:
+        writer.SetRecKine()
     writer.Convert()
     writer.WriteResults()
