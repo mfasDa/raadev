@@ -22,10 +22,11 @@ class TriggerTurnonCurve:
             if minval < 15:
                 continue
             maxval = emcaldata.GetXaxis().GetBinUpEdge(mybin)
-            binnedMb = self.__mbfitter.CalculateBinned(minval, maxval)
+            binnedMb = self.__mbfitter.CalculateBinMean(minval, maxval)
             statError = emcaldata.GetBinError(mybin)/binnedMb
             datapoint = Datapoint(emcaldata.GetXaxis().GetBinCenter(mybin), emcaldata.GetBinContent(mybin)/binnedMb, emcaldata.GetXaxis().GetBinWidth(mybin)/2.)
             datapoint.AddErrorSource("stat", statError, statError)
+            result.AddDataPoint(datapoint)
         return result;
     
     def GetPoints(self):
