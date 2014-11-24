@@ -50,6 +50,7 @@ class TriggerTurnonPlot(SinglePanelPlot):
         def DrawAll(self, frame):
             graphicsList = self.GetGraphicsList()
             for entry in sorted(graphicsList):
+                print "Drawing %s" %(entry)
                 frame.DrawGraphicsObject(graphicsList[entry], addToLegend = True, title = entry)
                     
         def Write(self, filename):
@@ -59,7 +60,7 @@ class TriggerTurnonPlot(SinglePanelPlot):
                 self.__data[trigger].GetData().WriteData(trigger)
                 outputfile.Close()
 
-    def __init__(self, data):
+    def __init__(self):
         SinglePanelPlot.__init__(self)
         self.__data = self.TriggerDataContainer()
         
@@ -70,7 +71,7 @@ class TriggerTurnonPlot(SinglePanelPlot):
         self._OpenCanvas("EMCalTurnon", "EMCal Turn-on curve")
         frame = Frame("emcturnon", 0., 100., 0., 3000.)
         frame.SetXtitle("p_{t} (GeV/c)")
-        frame.SetYtitle("EMCal/minvalBias")
+        frame.SetYtitle("Trigger enhancement")
         pad = self._GetFramedPad()
         pad.DrawFrame(frame)
         self.__data.DrawAll(pad)

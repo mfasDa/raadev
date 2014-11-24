@@ -27,8 +27,9 @@ def CreateTurnonPlot(filename, filenameMB, fitminval = 15., requireCluster = Fal
     dataMB = ReadData(filenameMB)
     styles = {"EMCJHigh" : Style(kRed, 24), "EMCJLow" : Style(kOrange, 26), "EMCGHigh" : Style(kBlue, 25), "EMCGLow" : Style(kGreen, 27)}
     plot = TriggerTurnonPlot()
+    minbiasspectrum = MakeNormalisedSpectrum(dataMB.GetData("MinBias").FindTrackContainer(trackHistName),"MinBias") 
     for trg in styles.keys():
-        plot.AddData(trg, TriggerTurnonCurve(trg, MakeNormalisedSpectrum(data.GetData(trg).FindTrackContainer(trackHistName), trg), MakeNormalisedSpectrum(dataMB.GetData("MinBias").FindTrackContainer(trackHistName),"MinBias")), styles[trg])  
+        plot.AddData(trg, TriggerTurnonCurve(trg, MakeNormalisedSpectrum(data.GetData(trg).FindTrackContainer(trackHistName), trg), minbiasspectrum, fitminval), styles[trg])  
     plot.Create()
     return plot
 
