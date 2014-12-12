@@ -250,7 +250,7 @@ void Generate_Sample_Lookup(TMap &lookup){
 	AddSample(lookup, "LHC13b4_fix", "/alice/sim/2013/LHC13b4_fix", "*/*/AliESDs.root", "MC", "ESD");
 	AddSample(lookup, "LHC13b4_plus", "/alice/sim/2013/LHC13b4_plus", "10/*/AliESDs.root", "MC", "ESD");
 	AddSample(lookup, "LHC14i1a", "/alice/sim/2014/LHC14i1a", "*/AliESDs.root", "MC", "ESD");
-	AddSample(lookup, "LHC11h.pass2", "/alice/data/2011/LHC11h/", "ESDs/pass2/*/AliESDs.root", "Data", "ESD");
+	AddSample(lookup, "LHC11h.pass2", "/alice/data/2011/LHC11h_2/", "ESDs/pass2/*/AliESDs.root", "Data", "ESD");
 	printf("Lookup table with sample information generated\n");
 }
 
@@ -497,8 +497,10 @@ void SetupTask(bool isMC, bool isAOD, const char *sample){
 	std::cout << "Name of the jet container for MonteCarlo:     " << nameMC.Data() << std::endl;
 	std::cout << "Name of the jet container for Data:           " << nameData.Data() << std::endl;
 
-	gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskPtEMCalTrigger.C", gSystem->Getenv("ALICE_ROOT")));
-	AddTaskPtEMCalTrigger(isMC, !strcmp(sample, "LHC13b4_plus"), sample, kUsedTracks.Data(), kUsedClusters.Data(), nameData.Data(), nameMC.Data(), 0.5);
+	//gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskPtEMCalTrigger.C", gSystem->Getenv("ALICE_ROOT")));
+	//AddTaskPtEMCalTrigger(isMC, !strcmp(sample, "LHC13b4_plus"), sample, kUsedTracks.Data(), kUsedClusters.Data(), nameData.Data(), nameMC.Data(), 0.5);
+	gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskPtEMCalTriggerV1.C", gSystem->Getenv("ALICE_ROOT")));
+	AddTaskPtEMCalTriggerV1(isMC, !strcmp(sample, "LHC13b4_plus"), sample, kUsedTracks.Data(), kUsedClusters.Data(), nameData.Data(), nameMC.Data(), 0.5);
 }
 
 void SetupTrain(const TMap &lookup){
