@@ -374,8 +374,8 @@ void SetupUtil(bool isMC, bool isAOD){
 	 */
 	//==== Physics Selection ====
 	if(!isAOD){
-		gROOT->LoadMacro("$ALICE_ROOT/PWG/EMCAL/macros/AddTaskEmcalPhysicsSelection.C");
-		AddTaskEmcalPhysicsSelection(kFALSE);
+		gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPhysicsSelection.C");
+		AddTaskPhysicsSelection(isMC);
 	}
 
 	//===== ADD CENTRALITY: =====
@@ -477,8 +477,12 @@ void SetupTask(bool isMC, bool isAOD, const char *sample){
 				  kUsedMCParticles = "MCParticlesSelected";
 	const double kTrackPtCut = 0.30,
                	 kClusPtCut = 0.15;
-	if(isMC) AddTaskEmcalJet(kUsedMCParticles.Data(),"",1,0.5,1,0.,0.);		// MC
-	AddTaskEmcalJet(kUsedTracks.Data(),kUsedClusters.Data(),1,0.5,1,kTrackPtCut,kClusPtCut);	// Data
+	if(isMC){
+		AliEmcalJetTask * mcjets = AddTaskEmcalJet(kUsedMCParticles.Data(),"",1,0.5,1,0.,0.);		// MC
+		mcjets->SelectCollisionCandidates(AliVEvent::kAny);
+	}
+	AliEmcalJetTask * datajets = AddTaskEmcalJet(kUsedTracks.Data(),kUsedClusters.Data(),1,0.5,1,kTrackPtCut,kClusPtCut);	// Data
+	datajets->SelectCollisionCandidates(AliVEvent::kAny);
 	//if(isMC) AddTaskEmcalJet("MCParticlesSelected", "", 1, 0.5, 0, 0, 0);		// MC
 	//AddTaskEmcalJet("ESDFilterTracks", "CaloClusters", 1, 0.5, 0, 0.15, 0.3);	// Data
 	//Decode complicated names
