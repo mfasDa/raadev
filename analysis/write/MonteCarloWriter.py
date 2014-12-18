@@ -79,6 +79,7 @@ class TrackWriter(MonteCarloWriter):
         MonteCarloWriter.__init__(self)
         self.__inAcceptance = False
         self.__MCKine = False
+        self.__etacut = None
         
     def SetInAcceptance(self):
         self.__inAcceptance = True
@@ -92,6 +93,9 @@ class TrackWriter(MonteCarloWriter):
     def SetRecKine(self):
         self.__MCKine = False
         
+    def SetEtaCut(self, etaMin, etaMax, tag):
+        self.__etacut = {"etaMin":etaMin, "etaMax":etaMax, "tag":tag}
+        
     def ProcessBin(self, mybin):
         results = BinContent()
         bindata = self._inputcol.GetData(mybin)
@@ -102,13 +106,18 @@ class TrackWriter(MonteCarloWriter):
             histname = "%s%s" %(kinestring, acceptancestring)
             print "histname: %s" %(histname)
             tc = bindata.GetData(trigger).FindTrackContainer(histname)
+            if self.__etacut:
+                tc.SetEtaRange(self.__etacut["etaMin"], self.__etacut["etaMax"])
             sn = "%sbin%d" %(trigger, mybin)
             spectrum = self.Project(tc, sn)
             results.AddTrigger(trigger, spectrum)
         return results
     
     def CreateOutputFilename(self):
-        return "MonteCarloProjected%s%sKine.root" %("Acc" if self.__inAcceptance else "All", "MC" if self.__MCKine else "Rec")
+        etastring="etaall"
+        if self.__etacut:
+            etastring = "eta%s" %(self.__etacut["tag"])
+        return "MonteCarloProjected%s%sKine%s.root" %("Acc" if self.__inAcceptance else "All", "MC" if self.__MCKine else "Rec", etastring)
     
     def ProjectMCtruth(self, inputcontainer, outputname):
         inputcontainer.ApplyCut(3,-10., 10.)
@@ -156,7 +165,7 @@ class ClusterWriter(MonteCarloWriter):
         return "MonteCarloClusterProjection%s.root" %("Calib" if self.__calibrated else "Uncalib")
 
         
-def RunTrackProjection(doAcc = False, doMCKine = False):
+def RunTrackProjection(doAcc = False, doMCKine = False, etaSel = "all"):
     writer = TrackWriter()
     if doAcc:
         writer.SetInAcceptance()
@@ -166,6 +175,8 @@ def RunTrackProjection(doAcc = False, doMCKine = False):
         writer.SetMCKine()
     else:
         writer.SetRecKine()
+    if etaSel == "centcms":
+        writer.SetEtaCut(-0.8, -0.3)
     writer.Convert()
     writer.WriteResults()
     
