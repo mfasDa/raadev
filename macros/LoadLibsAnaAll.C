@@ -26,7 +26,7 @@ void LoadLibsAnaAll(){
         gSystem->Load("libTRDbase");
         gSystem->Load("libVZERObase");
         gSystem->Load("libVZEROrec");
-        gSystem->Load("libTENDER");
+        gSystem->Load("libTender");
         gSystem->Load("libPWGUDbase");
         gSystem->Load("libTPCbase");
         gSystem->Load("libTPCrec");
@@ -45,8 +45,7 @@ void LoadLibsAnaAll(){
         gSystem->Load("libEMCALraw");
         gSystem->Load("libEMCALbase");
         gSystem->Load("libEMCALrec");
-        gSystem->Load("libTENDER");
-        gSystem->Load("libTENDERSupplies");
+        gSystem->Load("libTenderSupplies");
         gSystem->Load("libPWGTools");
         gSystem->Load("libPWGEMCAL");
         gSystem->Load("libCGAL");

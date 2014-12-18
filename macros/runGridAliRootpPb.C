@@ -68,7 +68,6 @@ AliAnalysisAlien *CreateGridHandler(){
 	additionalLibs.push_back("ANALYSISalice");
 	additionalLibs.push_back("ANALYSIScalib");
 	additionalLibs.push_back("CORRFW");
-	additionalLibs.push_back("TENDER");
 	additionalLibs.push_back("STAT");
 	additionalLibs.push_back("CORRFW");
 	additionalLibs.push_back("PWGUDbase");
@@ -94,8 +93,8 @@ AliAnalysisAlien *CreateGridHandler(){
 	additionalLibs.push_back("EMCALraw");
 	additionalLibs.push_back("EMCALbase");
 	additionalLibs.push_back("EMCALrec");
-	additionalLibs.push_back("TENDER");
-	additionalLibs.push_back("TENDERSupplies");
+	additionalLibs.push_back("Tender");
+	additionalLibs.push_back("TenderSupplies");
 	additionalLibs.push_back("PWGTools");
 	additionalLibs.push_back("PWGEMCAL");
 	for(TString * libiter = fastjetlibs; libiter < fastjetlibs + sizeof(fastjetlibs)/sizeof(TString); libiter++)

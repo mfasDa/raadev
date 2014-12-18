@@ -23,7 +23,7 @@ void LoadLibsAna(){
         gSystem->Load("libTRDbase.so");
         gSystem->Load("libVZERObase.so");
         gSystem->Load("libVZEROrec.so");
-        gSystem->Load("libTENDER.so");
+        gSystem->Load("libTender.so");
         gSystem->Load("libPWGUDbase.so");
         gSystem->Load("libTPCbase.so");
         gSystem->Load("libTPCrec.so");
