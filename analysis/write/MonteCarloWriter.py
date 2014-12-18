@@ -122,6 +122,8 @@ class TrackWriter(MonteCarloWriter):
     def ProjectMCtruth(self, inputcontainer, outputname):
         inputcontainer.ApplyCut(3,-10., 10.)
         inputcontainer.ApplyCut(4, 1, 1)
+        if self.__etacut:
+            inputcontainer.ApplyCut(1, self.__etacut["etaMin"], self.__etacut["etaMax"])
         return inputcontainer.ProjectToDimension(0, outputname)
 
     def Project(self, inputcontainer, outputname):
@@ -176,7 +178,7 @@ def RunTrackProjection(doAcc = False, doMCKine = False, etaSel = "all"):
     else:
         writer.SetRecKine()
     if etaSel == "centcms":
-        writer.SetEtaCut(-0.8, -0.3)
+        writer.SetEtaCut(-0.8, -0.3, "centcms")
     writer.Convert()
     writer.WriteResults()
     
