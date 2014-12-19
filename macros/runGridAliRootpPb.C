@@ -503,7 +503,7 @@ void SetupTask(bool isMC, bool isAOD, const char *sample){
 	//gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskPtEMCalTrigger.C", gSystem->Getenv("ALICE_ROOT")));
 	//AddTaskPtEMCalTrigger(isMC, !strcmp(sample, "LHC13b4_plus"), sample, kUsedTracks.Data(), kUsedClusters.Data(), nameData.Data(), nameMC.Data(), 0.5);
 	gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskPtEMCalTriggerV1.C", gSystem->Getenv("ALICE_ROOT")));
-	AddTaskPtEMCalTriggerV1(isMC, !strcmp(sample, "LHC13b4_plus"), sample, kUsedTracks.Data(), kUsedClusters.Data(), nameData.Data(), nameMC.Data(), 0.5);
+	AddTaskPtEMCalTriggerV1(isMC, !strcmp(sample, "LHC13b4_plus"), sample, kUsedTracks.Data(), kUsedClusters.Data(), nameData.Data(), nameMC.Data(), "EmcalTriggers", 0.5);
 }
 
 void SetupTrain(const TMap &lookup){
