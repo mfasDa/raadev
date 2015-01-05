@@ -7,7 +7,6 @@ Created on Nov 17, 2014
 from ROOT import TFile,TH1D,TList,TObject
 
 from base.MonteCarloFileHandler import MonteCarloFileHandler
-from __builtin__ import True
 
 class BinContent(object):
     
