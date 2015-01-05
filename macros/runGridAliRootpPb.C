@@ -6,6 +6,7 @@
 #include <TObjArray.h>
 #include <TObjString.h>
 #include <TROOT.h>
+#include <TInterpreter.h>
 #include <TString.h>
 #include <TSystem.h>
 
@@ -26,6 +27,7 @@ TString g_plugin_mode;
 TString g_train_dir;
 TArrayI g_runlist;
 TString g_grid_workdir;
+bool kUsePythiaHard = false;
 
 AliAnalysisAlien *CreateGridHandler(){
 	//
@@ -184,6 +186,7 @@ bool FindDataSample(const TMap &lookup, TObjArray &sampleinfis){
 		printf("Sample %s not found in the list of samples", g_sample.Data());
 		return false;
 	}
+	if(g_sample.Contains("LHC13b4_plus")) kUsePythiaHard = true;
 	// Copy to output container
 	sampleinfis.SetOwner(kFALSE);
 	for(int ival = 0; ival < 4; ival++) sampleinfis.AddAt(entry->At(ival), ival);
@@ -503,7 +506,10 @@ void SetupTask(bool isMC, bool isAOD, const char *sample){
 	//gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskPtEMCalTrigger.C", gSystem->Getenv("ALICE_ROOT")));
 	//AddTaskPtEMCalTrigger(isMC, !strcmp(sample, "LHC13b4_plus"), sample, kUsedTracks.Data(), kUsedClusters.Data(), nameData.Data(), nameMC.Data(), 0.5);
 	gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskPtEMCalTriggerV1.C", gSystem->Getenv("ALICE_ROOT")));
-	AddTaskPtEMCalTriggerV1(isMC, !strcmp(sample, "LHC13b4_plus"), sample, kUsedTracks.Data(), kUsedClusters.Data(), nameData.Data(), nameMC.Data(), "EmcalTriggers", 0.5);
+	bool usePH = TString(sample).Contains("LHC13b4_plus");
+	AddTaskPtEMCalTriggerV1(isMC, usePH, sample,
+			kUsedTracks.Data(), kUsedClusters.Data(), nameData.Data(),
+			nameMC.Data(), "EmcalTriggers", 0.5);
 }
 
 void SetupTrain(const TMap &lookup){
