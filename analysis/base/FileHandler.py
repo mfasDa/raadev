@@ -7,8 +7,9 @@ FileHandler.py
 
 from ROOT import TFile,TIter,TObject,gDirectory,gROOT
 from copy import deepcopy
-from SpectrumContainer import DataSet, ClusterContainer, TrackContainer, SpectrumContainer
-from FileResults import ResultData
+from base.SpectrumContainer import ClusterContainer, TrackContainer, SpectrumContainer
+from base.DataSet import DataSet
+from base.FileResults import ResultData
     
 class FileReader(object):
     
@@ -41,12 +42,19 @@ class FileReader(object):
         self.__isMC = isMC
         self.__isReadWeights = False
         self.__weightlist = None
+        self._histlist = "histosPtEMCalTriggerHistograms"
+        
+    def SetHistList(self, histlist):
+        self._histlist = histlist
         
     def SetReadWeights(self):
         """
         Read also histograms for the weight calculation
         """
         self.__isReadWeights = True
+        
+    def GetDataFormat(self):
+        return "old" if self._histlist == "histosPtEMCalTriggerHistograms" else "new"
         
     def GetWeightHistograms(self):
         """
@@ -99,6 +107,8 @@ class FileReader(object):
                 trgstring += ", %s" %(trg)
         print trgstring
         
+        dataformat = self.GetDataFormat()
+        
         # Add the result hists to the result container
         for trigger in triggers:
             eventhist = hlist.FindObject("hEventHist%s" %(trigger))
@@ -106,26 +116,54 @@ class FileReader(object):
             #eventhist.Sumw2()
             #trackhist.Sumw2()
             triggerdata = DataSet()
-            triggerdata.AddTrackContainer("tracksAll", TrackContainer(eventHist = deepcopy(eventhist), trackHist = trackhist))
+            triggerdata.AddEventHistForJets(eventhist)
+            triggerdata.AddTrackContainer("tracksAll", TrackContainer(eventHist = deepcopy(eventhist), trackHist = trackhist, dataformat=dataformat))
             tracksWithClusters = hlist.FindObject("hTrackInAcceptanceHist%s" %(trigger)) 
             if tracksWithClusters:
-                triggerdata.AddTrackContainer("tracksWithClusters", TrackContainer(eventHist = deepcopy(eventhist), trackHist = tracksWithClusters))
+                triggerdata.AddTrackContainer("tracksWithClusters", TrackContainer(eventHist = deepcopy(eventhist), trackHist = tracksWithClusters, dataformat=dataformat))
             tracksMCKine = hlist.FindObject("hMCTrackHist%s" %(trigger))
             if tracksMCKine:
-                triggerdata.AddTrackContainer("tracksMCKineAll", TrackContainer(eventHist=deepcopy(eventhist), trackHist = tracksMCKine))
+                triggerdata.AddTrackContainer("tracksMCKineAll", TrackContainer(eventHist=deepcopy(eventhist), trackHist = tracksMCKine, dataformat=dataformat))
             tracksMCKineWithClusters = hlist.FindObject("hMCTrackInAcceptanceHist%s" %(trigger)) 
             if tracksMCKineWithClusters:
-                triggerdata.AddTrackContainer("tracksMCKineWithClusters", TrackContainer(eventHist=deepcopy(eventhist), trackHist = tracksMCKineWithClusters))
+                triggerdata.AddTrackContainer("tracksMCKineWithClusters", TrackContainer(eventHist=deepcopy(eventhist), trackHist = tracksMCKineWithClusters, dataformat=dataformat))
             clusterhists = ["hClusterCalibHist","hClusterUncalibHist"]
             for clust in clusterhists:
                 clhist = hlist.FindObject("%s%s" %(clust, trigger))
                 if clhist:
                     tag = clust.replace("hCluster","").replace("Hist","")
                     #clhist.Sumw2()
-                    triggerdata.AddClusterContainer(tag, ClusterContainer(eventHist = deepcopy(eventhist), clusterHist = clhist))
+                    triggerdata.AddClusterContainer(tag, ClusterContainer(eventHist = deepcopy(eventhist), clusterHist = clhist, dataformat=dataformat))
+            self.ProcessJets(trigger, triggerdata, hlist)
             result.SetData(trigger, triggerdata)
         return result
     
+    def ProcessJets(self, triggerclass, dataset, histlist):
+        """
+        Fill jet hists to the histogram container
+        
+        1. find all histograms for the given trigger class that contain the trigger class name and Jet
+        2. Group them according to jet pt and histogram type
+        """
+        histiter = TIter(histlist)
+        histfound = histiter.Next()
+        histlist = []
+        while histfound:
+            histname = str(histfound.GetName())
+            if triggerclass in histname and "TrackJetHist" in histname:
+                histlist.append(histfound)
+            histfound = histiter.Next()
+            
+        for jethist in histlist:
+            histname = str(jethist.GetName())
+            jetpt = self.__GetJetPt(histname)
+            dataset.AddJetSpectrum(jethist,jetpt, True if "MC" in histname else False)
+            
+    def __GetJetPt(self, histname):
+        start = histname.index("jetPt") + 5
+        ptstring = histname[start:start + 3]
+        return float(ptstring)
+        
     def __ReadHistList(self):
         """
         Read the list of histograms from a given rootfile
@@ -150,10 +188,10 @@ class FileReader(object):
         rlist = mydirectory.Get("results")
         if self.__isReadWeights:
             result["weights"] = {"crosssection":rlist.FindObject("fHistXsection"), "trials":rlist.FindObject("fHistTrials")}
-        hlist = rlist.FindObject("histosPtEMCalTriggerHistograms")
+        hlist = rlist.FindObject(self._histlist)
         inputfile.Close()
         if not hlist:
-            raise self.FileReaderException("%s/histosPtEMCalTriggerHistograms" %(path))
+            raise self.FileReaderException("%s/%s" %(path, self._histlist))
         result["spectra"] = hlist
         return result
     
@@ -162,13 +200,15 @@ class LegoTrainFileReader(FileReader):
     File reader adapted to the file format in the lego train
     """
     
-    def __init__(self, filename, isMC = False):
+    def __init__(self, filename, isMC = False, isNew = True):
         """
         Initialise file reader with filename and set the directory according to the definition in
         the lego train
         """
         FileReader.__init__(self, filename, isMC)
         self.SetDirectory("PtEMCalTriggerTask")
+        if isNew:
+            self.SetHistList("histosptemcaltriggertask")
         
 class ResultStructureReader(object):
     

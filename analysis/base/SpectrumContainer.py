@@ -2,211 +2,9 @@
 
 from base.Helper import NormaliseBinWidth
 from copy import copy,deepcopy
-from ROOT import TList,TIter
-
-class MergeException(Exception):
-    """
-    Error handling for the merge processes
-    """
-    
-    def __init__(self, message):
-        """
-        Constructor
-        """
-        self.__message = message
-        
-    def __str__(self):
-        """
-        Make exception a string object
-        """
-        return self.__message
-
-class DataSet(object):
-    """
-    Data set for a given trigger class. A data set contains a set of cluster containers and an set of track containers
-    """
-    
-    class ContentException(Exception):
-        
-        def __init__(self, searchkey, container):
-            self.__searchkey = searchkey
-            self.__container = container
-            
-        def __str__(self):
-            return "%s already present in container %s" %(self.__searchkey, self.__container)
-    
-    def __init__(self):
-        """
-        Constructor
-        """
-        self.__trackContainers = {}
-        self.__clusterContainers = {}
-        
-    def __copy__(self):
-        """
-        shallow copy constructor
-        """
-        print "Simple copy called from %s" %(self.__class__)
-        newobject = DataSet()
-        for name,tc in self.__trackContainers.iteritems():
-            newobject.AddTrackContainer(name, copy(tc))
-        for name,cc in self.__clusterContainers.iteritems():
-            newobject.AddClusterContainer(name, copy(cc))
-        return newobject
-         
-    def __deepcopy__(self, memo):
-        """
-        deep copy constructor
-        """
-        print "deep copy called from %s" %(self.__class__)
-        newobject = DataSet()
-        for name,tc in self.__trackContainers.iteritems():
-            newobject.AddTrackContainer(name, deepcopy(tc, memo))
-        for name,cc in self.__clusterContainers.iteritems():
-            newobject.AddClusterContainer(name, deepcopy(cc, memo))
-        return newobject
-        
-    def AddTrackContainer(self, name, data):
-        """
-        Add a new track container to the dataset
-        """
-        if name in self.__trackContainers.keys():
-            raise DataSet.ContentException(name, "TrackContainer")
-        self.__trackContainers[name] = data
-        
-    def AddClusterContainer(self, name, data):
-        """
-        Add a new cluster container to the dataset
-        """
-        if name in self.__clusterContainers.keys():
-            raise DataSet.ContentException(name, "ClusterContainer")
-        self.__clusterContainers[name] = data
-        
-    def FindTrackContainer(self, name):
-        """
-        Find a track container within the dataset
-        """
-        if not name in self.__trackContainers.keys():
-            return None
-        return self.__trackContainers[name]
-
-    def FindClusterContainer(self, name):
-        """
-        Find a cluster container within the dataset
-        """
-        if not name in self.__clusterContainers:
-            return None
-        return self.__clusterContainers[name]
-    
-    def GetListOfTrackContainers(self):
-        """
-        Get a list of track container names
-        """
-        return self.__trackContainers.keys()
-    
-    def GetListOfClusterContainers(self):
-        """
-        Get a list of cluster container names
-        """
-        return self.__clusterContainers.keys()
-    
-    def Add(self, other):
-        """
-        Add other data set to this one
-        """
-        if not isinstance(other, DataSet):
-            raise MergeException("Incompatible types: this(Dataset), other(%s)" %(str(other.__class__)))
-        nfailure = 0
-        for cont in self.GetListOfTrackContainers():
-            othercont = other.FindTrackContainer(cont)
-            if othercont:
-                self.__trackContainers[cont].Add(othercont)
-            else:
-                nfailure += 1
-        for cont in self.GetListOfClusterContainers():
-            othercont = other.FindClusterContainer(cont)
-            if othercont:
-                self.__clusterContainers[cont].Add(othercont)
-            else:
-                nfailure += 1
-        if nfailure > 0:
-            raise MergeException("Several containers have not been found inside the other datase")
-         
-    def Scale(self, scalefactor):
-        """
-        Scale all track or cluster containers with the underlying scale factor
-        """
-        for cont in self.__trackContainers.values():
-            cont.Scale(scalefactor)
-        for cont in self.__clusterContainers.values():
-            cont.Scale(scalefactor)
-     
-    def GetRootPrimitive(self, listname):
-        """
-        Make root primitives (for root IO)
-        """
-        result = TList()
-        result.SetName(listname)
-        tracklist = TList()
-        tracklist.SetName("trackContainers")
-        for name,tc in self.__trackContainers.iteritems():
-            tracklist.Add(tc.GetRootPrimitive("trackcontainer_%s" %(name)))
-        clusterlist = TList()
-        clusterlist.SetName("clusterContainers")
-        for name,cc in self.__clusterContainers.iteritems():
-            clusterlist.Add(cc.GetRootPrimitive("clustercontainer_%s" %(name)))
-        result.Add(tracklist)
-        result.Add(clusterlist)
-        return result
-     
-    @staticmethod
-    def BuildFromRootPrimitive(rootprimitive):
-        """
-        Build dataset from a root primitive
-        """
-        result = DataSet()
-        trackContainers = rootprimitive.FindObject("trackContainers")
-        clusterContainers = rootprimitive.FindObject("clusterContainers")
-        trackIter = TIter(trackContainers)
-        clusterIter = TIter(clusterContainers)
-        currententry = trackIter.Next()
-        while currententry:
-            entryname = currententry.GetName()
-            if "trackcontainer" in entryname:
-                contname = entryname.replace("trackcontainer_","")
-                result.AddTrackContainer(contname, TrackContainer.BuildFromRootPrimitive(currententry))
-            currententry = trackIter.Next()
-        currententry = clusterIter.Next()
-        while currententry:
-            entryname = currententry.GetName()
-            if "clustercontainer" in entryname:
-                contname = entryname.replace("clustercontainer_","")
-                result.AddClusterContainer(contname, ClusterContainer.BuildFromRootPrimitive(currententry))
-            currententry = clusterIter.Next()
-        return result
-     
-    def Print(self):
-        """
-        Print content of the data set
-        """
-        print "Dataset content:"
-        print "============================================"
-        print "   Track Containers:"
-        for cont in self.__trackContainers.keys():
-            print "      %s" %(cont)
-        print "   Cluster Containers:"
-        for cont in self.__clusterContainers.keys():
-            print "      %s" %(cont)
-        print "--------------------------------------------"
-        print "Status of the different containers:"
-        for contname, container in self.__trackContainers.iteritems():
-            print "   %s:" %(contname)
-            container.Print()
-        for contname, container in self.__clusterContainers.iteritems():
-            print "   %s:" %(cont)
-            container.Print()
-
-    
+from ROOT import TList
+from base.MergeException import MergeException
+ 
 class DataContainer(object):
     """
     Data container (event and spectum container)
@@ -299,18 +97,21 @@ class DataContainer(object):
             return "Container %s missing" 
     
     
-    def __init__(self, eventHist = None, dataHist = None):
+    def __init__(self, eventHist = None, dataHist = None, histotype=None, dataformat = None):
         """
         Construct spectrum container
         """
-        self.__events = deepcopy(eventHist)
+        self._events = None
+        if eventHist:
+            self._events = EventHistFactory.CreateEventHist(deepcopy(eventHist), dataformat)
         self.__spectrum = None
         if dataHist:
             self.__spectrum = SpectrumContainer(dataHist)
         self.__cutList = []
-        self._usePileupRejected = True
-        self._vertexrange = {}
         self.__doNormBW = True
+        self._AxisDefinition = None
+        if dataformat:
+            self._AxisDefinition = AxisFactory.GetAxisFormat(histotype, True if dataformat == "old" else False)
         self._datahistname = "DataHist"
         
     def __copy__(self):
@@ -318,7 +119,7 @@ class DataContainer(object):
         Shallow copy constructor
         """
         print "Simple copy called from %s" %(self.__class__)
-        newobject = DataContainer(self.__events, self.__spectrum)
+        newobject = DataContainer(self.__events, self.__spectrum, None, None)
         newobject._Copy(self)
         return newobject
              
@@ -327,23 +128,23 @@ class DataContainer(object):
         Deep copy constructor
         """
         print "deep copy called from %s" %(self.__class__)
-        newobject = DataContainer(None, None)
+        newobject = DataContainer(None, None, None, None)
         newobject._Deepcopy(self, memo)
         return newobject
+    
+    def GetAxisDefinition(self):
+        return self._AxisDefinition
         
     def GetValues(self):
         """
         For copy constructors
         """
-        return {"pr":self._usePileupRejected, "vr":self._vertexrange, "dn": self.__doNormBW, "hn": self._datahistname}
+        return {"dn": self.__doNormBW, "hn": self._datahistname}
     
     def __SetValues(self, values):
         """
         For copy constructors
         """
-        self._usePileupRejected = values["pr"]
-        for key,value in values["vr"].iteritems():
-            self._vertexrange[key] = value
         self.__doNormBW = values["dn"]
         self._datahistname = values["hn"]
                         
@@ -351,7 +152,7 @@ class DataContainer(object):
         """
         Set the event hist
         """
-        self.__events = eventHist
+        self._events = eventHist
         
     def SetTrackHist(self, trackhist):
         """
@@ -369,7 +170,7 @@ class DataContainer(object):
         """
         Access event counter histogram
         """
-        return self.__events
+        return self._events
     
     def GetSpectrumContainer(self):
         """
@@ -395,6 +196,7 @@ class DataContainer(object):
             self.EventHist = copy(evhist)
         if speccont:
             self.SpectrumHist = copy(speccont)
+        self._AxisDefinition = copy(other.GetAxisDefinition())
         othercuts = other.GetCutList()
         for cut in othercuts:
             self.__cutList.append(copy(cut))
@@ -410,6 +212,7 @@ class DataContainer(object):
             self.EventHist = deepcopy(evhist, memo)
         if speccont:
             self.SpectrumHist = deepcopy(speccont, memo)
+        self._AxisDefinition = deepcopy(other.GetAxisDefinition(), memo)
         othercuts = other.GetCutList()
         for cut in othercuts:
             self.__cutList.append(deepcopy(cut, memo))
@@ -444,8 +247,9 @@ class DataContainer(object):
         """
         result = TList()
         result.SetName(name)
-        self.__events.SetName("events")
-        result.Add(self.__events)
+        events = self._events.GetROOTHisto()
+        events.SetName("events")
+        result.Add(events)
         spectrum = self.__spectrum.GetRootPrimitive()
         spectrum.SetName("spectrum")
         result.Add(spectrum)
@@ -476,16 +280,7 @@ class DataContainer(object):
         """
         Get the number of selected events
         """
-        if len(self._vertexrange):
-            binMin = self.__events.GetYaxis().FindBin(self._vertexrange["min"])
-            binMax = self.__events.GetYaxis().FindBin(self._vertexrange["max"])
-            eventcounter = self.__events.ProjectionX("eventCounter", binMin, binMax)
-        else:
-            eventcounter = self.__events.ProjectionX("eventcounter")
-        pileupbin = 1
-        if self._usePileupRejected:
-            pileupbin = 2
-        return eventcounter.GetBinContent(pileupbin)
+        return self._events.GetEventCount()
             
     def MakeProjection(self, dim, histname = None, xtitle = None, ytitle = None, doNorm = True):
         """
@@ -540,52 +335,66 @@ class TrackContainer(DataContainer):
     Data representation of track specific histograms
     """
     
-    def __init__(self, eventHist = None, trackHist = None):
+    def __init__(self, eventHist = None, trackHist = None, dataformat = "new"):
         """
         Constructor, initialising base class and additional data members
         """
-        DataContainer.__init__(self, eventHist, trackHist)
+        DataContainer.__init__(self, eventHist, trackHist, "tracks", dataformat)
         self._datahistname = "TrackHist"
     
     def SetVertexRange(self, minv, maxv):
         """
         Apply vertex selection both to the event counter and the track hist
         """
-        self._vertexrange["min"] = minv
-        self._vertexrange["max"] = maxv
-        self._AddCut(3, minv, maxv)
+        vzaxis = self._AxisDefinition.FindAxis("vertexz")
+        if vzaxis > -1:
+            self._events.SetVertexRange(minv, maxv)
+            self._AddCut(vzaxis, minv, maxv)
         
     def SetEtaRange(self, etamin, etamax):
         """
         Select tracks in a given eta range
         """
-        self._AddCut(1, etamin, etamax)
+        etaaxis = self._AxisDefinition.FindAxis("eta")
+        if etaaxis > -1:
+            self._AddCut(etaaxis, etamin, etamax)
+            
+    def SePhiRange(self, phimin, phimax):
+        """
+        Select tracks in a given eta range
+        """
+        phiaxis = self._AxisDefinition.FindAxis("phi")
+        if phiaxis > -1:
+            self._AddCut(phiaxis, phimin, phimax)
         
     def SetPileupRejection(self, on):
         """
         Apply pileup rejection (yes or no)
         """
-        if on == True:
-            self._usePileupRejected = True
-            self._AddCut(4, 1., 1.)
-        else:
-            self._usePileupRejected = False
+        self._events.SetUsePileupRejected(on)
+        pileupaxis = self._AxisDefinition.FindAxis("pileup")
+        if pileupaxis > -1:
+            self._AddCut(pileupaxis, 1., 1.)
             
     def SelectTrackCuts(self, cutID):
         """
         Select a set of track cuts
         """
-        self._AddCut(5, cutID, cutID)
+        traxis = self._AxisDefinition.FindAxis("trackcuts")
+        if traxis > -1:
+            self._AddCut(traxis, cutID, cutID)
     
     def RequestSeenInMinBias(self):
-        self._AddCut(6, 1., 1.)
+        mbaxis = self._AxisDefinition.FindAxis("MBtrigger")
+        if mbaxis > -1:
+            self._AddCut(mbaxis, 1., 1.)
         
     def __copy__(self):
         """
         Shallow copy constructor
         """
         print "Simple copy called from %s" %(self.__class__)
-        newobject = TrackContainer(self.__events, self.__spectrum)
+        newobject = TrackContainer(self.__events, self.__spectrum, None)
         newobject._Copy(self)
         return newobject
              
@@ -594,7 +403,7 @@ class TrackContainer(DataContainer):
         Deep copy constructor
         """
         print "deep copy called from %s" %(self.__class__)
-        newobject = TrackContainer(None, None)
+        newobject = TrackContainer(None, None, None)
         newobject._Deepcopy(self, memo)
         return newobject
    
@@ -611,40 +420,58 @@ class ClusterContainer(DataContainer):
     Data representation of cluster specific histograms
     """
     
-    def __init__(self, eventHist = None, clusterHist = None):
+    def __init__(self, eventHist = None, clusterHist = None, dataformat = "new"):
         """
         Constructor, initialising base class and additional data members
         """
-        DataContainer.__init__(self, eventHist, clusterHist)
+        DataContainer.__init__(self, eventHist, clusterHist, "clusters", dataformat)
         self._datahistname = "ClusterHist"
-        
+
     def SetVertexRange(self, minv, maxv):
         """
         Apply vertex selection both to the event counter and the track hist
         """
-        self._vertexrange["min"] = minv
-        self._vertexrange["max"] = maxv
-        self._AddCut(1, minv, maxv)
+        vzaxis = self._AxisDefinition.FindAxis("vertexz")
+        if vzaxis > -1:
+            self._events.SetVertexRange(minv, maxv)
+            self._AddCut(vzaxis, minv, maxv)
+        
+    def SetEtaRange(self, etamin, etamax):
+        """
+        Select tracks in a given eta range
+        """
+        etaaxis = self._AxisDefinition.FindAxis("eta")
+        if etaaxis > -1:
+            self._AddCut(etaaxis, etamin, etamax)
+            
+    def SePhiRange(self, phimin, phimax):
+        """
+        Select tracks in a given eta range
+        """
+        phiaxis = self._AxisDefinition.FindAxis("phi")
+        if phiaxis > -1:
+            self._AddCut(phiaxis, phimin, phimax)
         
     def SetPileupRejection(self, on):
         """
         Apply pileup rejection (yes or no)
         """
-        if on == True:
-            self._usePileupRejected = True
-            self._AddCut(2, 1., 1.)
-        else:
-            self._usePileupRejected = False
-            
+        self._events.SetUsePileupRejected(on)
+        pileupaxis = self._AxisDefinition.FindAxis("pileup")
+        if pileupaxis > -1:
+            self._AddCut(pileupaxis, 1., 1.)
+           
     def RequestSeenInMinBias(self):
-        self._AddCut(3, 1., 1.)
+        mbaxis = self._AxisDefinition.FindAxis("MBtrigger")
+        if mbaxis > -1:
+            self._AddCut(mbaxis, 1., 1.)
 
     def __copy__(self):
         """
         Shallow copy constructor
         """
         print "Simple copy called from %s" %(self.__class__)
-        newobject = ClusterContainer(self.__events, self.__spectrum)
+        newobject = ClusterContainer(self.__events, self.__spectrum, None)
         newobject._Copy(self)
         return newobject
              
@@ -653,7 +480,7 @@ class ClusterContainer(DataContainer):
         Deep copy constructor
         """
         print "deep copy called from %s" %(self.__class__)
-        newobject = ClusterContainer(None, None)
+        newobject = ClusterContainer(None, None, None)
         newobject._Deepcopy(self, memo)
         return newobject
        
@@ -859,4 +686,232 @@ class SpectrumContainer(object):
                 result = r
                 break
         return result
+    
+class AxisFactory(object):
+    
+    def __init__(self):
+        pass
+    
+    @staticmethod
+    def GetAxisFormat(histotype, useold):
+        result = None
+        if histotype == "tracks":
+            if useold:
+                result = AxisFormatTracksOld()
+            else:
+                result = AxisFormatTracksNew()
+        elif histotype == "clusters":
+            if useold:
+                result = AxisFormatClustersOld()
+            else:
+                result = AxisFormatClustersNew()
+        return result
+    
+class AxisFormat(object):
+    
+    def __init__(self, formatname):
+        self._axes = {}
+        self.__formatname = ""
         
+    def GetAxes(self):
+        return self._axes
+    
+    def FindAxis(self, axisname):
+        result = -1
+        if axisname in self._axes.keys():
+            result = self._axes[axisname]
+        return result
+    
+    def _Deepcopy(self, other, memo):
+        self._axes = deepcopy(other.GetAxes(), memo)
+       
+    def _Copy(self, other):
+        self._axes = copy(other.GetAxes()) 
+    
+class AxisFormatTracksOld(AxisFormat):
+    
+    def __init__(self):
+        AxisFormat.__init__(self, "tracksold")
+        self._axes["pt"] = 0
+        self._axes["eta"] = 1
+        self._axes["phi"] = 2
+        self._axes["vertexz"] = 3
+        self._axes["pileup"] = 4
+        self._axes["trackcuts"] = 5
+        self._axes["MBtrigger"] = 6
+        
+    def __deepcopy__(self, other, memo):
+        newobj = AxisFormatTracksOld()
+        newobj._Deepcopy(other, memo)
+        return newobj
+    
+    def __copy__(self, other):
+        newobj = AxisFormatTracksOld()
+        newobj._Copy()
+        return newobj
+        
+class AxisFormatTracksNew(AxisFormat):
+    
+    def __init__(self):
+        AxisFormat.__init__(self, "tracksnew")        
+        self._axes["pt"] = 0
+        self._axes["eta"] = 1
+        self._axes["phi"] = 2
+        self._axes["vertexz"] = 3
+        self._axes["MBtrigger"] = 4
+        
+    def __deepcopy__(self, other, memo):
+        newobj = AxisFormatTracksNew()
+        newobj._Deepcopy(other, memo)
+        return newobj
+    
+    def __copy__(self, other):
+        newobj = AxisFormatTracksNew()
+        newobj._Copy()
+        return newobj
+    
+class AxisFormatClustersOld(AxisFormat):
+    
+    def __init__(self):
+        AxisFormat.__init__(self, "clustersold")
+        self._axes["energy"] = 0
+        self._axes["vertexz"] = 1
+        self._axes["pileup"] = 2
+        self._axes["MBtrigger"] = 3
+        
+    def __deepcopy__(self, other, memo):
+        newobj = AxisFormatClustersOld()
+        newobj._Deepcopy(other, memo)
+        return newobj
+    
+    def __copy__(self, other):
+        newobj = AxisFormatClustersOld()
+        newobj._Copy()
+        return newobj
+    
+class AxisFormatClustersNew(AxisFormat):
+    
+    def __init__(self):
+        AxisFormat.__init__(self, "clustersnew")
+        self._axes["energy"] = 0
+        self._axes["eta"] = 1
+        self._axes["phi"] = 2
+        self._axes["vertexz"] = 3
+        self._axes["pileup"] = 4
+        self._axes["MBtrigger"] = 5   
+        
+    def __deepcopy__(self, other, memo):
+        newobj = AxisFormatClustersNew()
+        newobj._Deepcopy(other, memo)
+        return newobj
+    
+    def __copy__(self, other):
+        newobj = AxisFormatClustersNew()
+        newobj._Copy()
+        return newobj
+
+class EventHistFactory(object):
+    
+    def __init__(self):
+        pass
+    
+    @staticmethod
+    def CreateEventHist(histo, dataformat):
+        if dataformat == "new":
+            return EventHistogramNew(histo)
+        elif dataformat == "old":
+            return EventHistogramOld(histo)
+
+class EventHistogram(object):
+    
+    def __init__(self, histo):
+        self._histo = histo
+        self._vertexrange = {}
+    
+    def GetROOTHisto(self):
+        return self._histo
+    
+    def GetVertexRange(self):
+        return self._vertexrange
+    
+    def SetVertexRange(self, vtxmin, vtxmax):
+        self._vertexrange["min"] = vtxmin
+        self._vertexrange["max"] = vtxmax
+
+    def GetEventCount(self):
+        print "Method virtual - to be implemented by inheriting classes"
+        
+    def _Deepcopy(self, other, memo):
+        underlyinghist = other.GetROOTHisto()
+        self._histo = deepcopy(underlyinghist, memo)
+        self._vertexrange = deepcopy(other.GetVertexRange(), memo)
+    
+    def _Copy(self, other):
+        underlyinghist = other.GetROOTHisto()
+        self._histo = copy(underlyinghist)
+        self._vertexrange = copy(other.GetVertexRange())
+        
+    def Add(self, otherhisto):
+        self._histo.Add(otherhisto)
+    
+    def Scale(self, scalefactor):
+        self._histo.Scale(scalefactor)
+    
+        
+class EventHistogramOld(EventHistogram):
+    
+    def __init__(self, histo):
+        EventHistogram.__init__(self, histo)
+        self.__usePileupRejected = True
+        
+    def SetUsePileupRejected(self, doUse = True):
+        self.__usePileupRejected = doUse
+        
+    def IsUsingPileupRejected(self):
+        return self.__usePileupRejected
+        
+    def GetEventCount(self):
+        if len(self._vertexrange):
+            binMin = self._histo.GetYaxis().FindBin(self._vertexrange["min"])
+            binMax = self._histo.GetYaxis().FindBin(self._vertexrange["max"])
+            eventcounter = self._histo.ProjectionX("eventCounter", binMin, binMax)
+        else:
+            eventcounter = self._histo.ProjectionX("eventcounter")
+        pileupbin = 1
+        if self._usePileupRejected:
+            pileupbin = 2
+        return eventcounter.GetBinContent(pileupbin)
+    
+    def __copy__(self, other):
+        newobj = EventHistogramOld(None)
+        newobj._Copy(other)
+        newobj.SetUsePileupRejected(other.IsUsingPileupRejected())
+        return newobj
+        
+    def __deepcopy__(self, other, memo):
+        newobj = EventHistogramOld(None)
+        newobj._Deepcopy(other, memo)
+        newobj.SetUsePileupRejected(other.IsUsingPileupRejected())
+        return newobj
+    
+    
+class EventHistogramNew(EventHistogram):
+
+    def __init__(self, histo):
+        EventHistogram.__init__(self, histo)
+        
+    def SetUsePileupRejected(self, doUse = True):
+        pass
+        
+    def GetEventCount(self):
+        pass
+    
+    def __copy__(self, other):
+        newobj = EventHistogramNew(None)
+        newobj._Copy(other)
+        return newobj
+    
+    def __deepcopy__(self, other, memo):
+        newobj = EventHistogramNew(None)
+        newobj._Deepcopy(other, memo)
+        return newobj

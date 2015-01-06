@@ -5,7 +5,9 @@ Created on Jan 5, 2015
 '''
 from ROOT import TFile,TIter,TObject,gDirectory,gROOT
 from copy import copy, deepcopy
-from SpectrumContainer import DataSet, SpectrumContainer, MergeException
+from base.DataSet import DataSet
+from base.MergeException import MergeException
+from base.SpectrumContainer import SpectrumContainer
 
 class ResultData(object):
     """
