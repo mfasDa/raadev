@@ -130,11 +130,26 @@ class JetContainer(object):
         for entry in self.__jetpts:
             entry.SetRequestSeenInMinBias()
             
-    def MakeProjectionRec(self, jetpt, dimension, name, doNorm = False):
+    def GetListOfJetPts(self):
+        listpts = []
+        for entry in self.__jetpts:
+            listpts.append(entry.GetJetPt())
+        return listpts
+            
+    def MakeProjectionRecKine(self, jetpt, dimension, name, doNorm = False):
         existing = self.FindJetPt(jetpt)
         if not existing:
             return None
         projected = existing.GetProjectedRecSpectrum(dimension, name, doNorm)
+        if projected and doNorm:
+            projected.Scale(1./self.__eventhist.GetEventCount())
+        return projected
+
+    def MakeProjectionMCKine(self, jetpt, dimension, name, doNorm = False):
+        existing = self.FindJetPt(jetpt)
+        if not existing:
+            return None
+        projected = existing.GetProjectedMCSpectrum(dimension, name, doNorm)
         if projected and doNorm:
             projected.Scale(1./self.__eventhist.GetEventCount())
         return projected
