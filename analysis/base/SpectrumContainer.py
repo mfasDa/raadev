@@ -904,7 +904,12 @@ class EventHistogramNew(EventHistogram):
         pass
         
     def GetEventCount(self):
-        pass
+        if not len(self._vertexrange):
+            return self._histo.Integral()
+        else:
+            binmin = self._histo.GetXaxis().FindBin(self._vertexrange["min"])
+            binmax = self._histo.GetXaxis().FindBin(self._vertexrange["max"])
+            return self._histo.Integral(binmin, binmax)
     
     def __copy__(self, other):
         newobj = EventHistogramNew(None)
