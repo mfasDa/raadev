@@ -6,8 +6,9 @@ Handling of jet-dependenet histograms in the analysis framework
 @author: markus
 '''
 
-from base.SpectrumContainer import SpectrumContainer
+from base.SpectrumContainer import SpectrumContainer,EventHistogramNew
 from base.Helper import NormaliseBinWidth
+from copy import deepcopy
 
 class JetPtBin():
     
@@ -87,7 +88,7 @@ class JetContainer(object):
         self.__eventhist = None
         
     def SetEventHist(self, hist):
-        self.__eventhist = hist
+        self.__eventhist = EventHistogramNew(deepcopy(hist))
         
     def AddJetPt(self, jetpt):
         existing = self.FindJetPt(jetpt)
@@ -129,14 +130,11 @@ class JetContainer(object):
         for entry in self.__jetpts:
             entry.SetRequestSeenInMinBias()
             
-    def GetEventCount(self):
-        pass
-            
     def MakeProjectionRec(self, jetpt, dimension, name, doNorm = False):
         existing = self.FindJetPt(jetpt)
         if not existing:
             return None
         projected = existing.GetProjectedRecSpectrum(dimension, name, doNorm)
         if projected and doNorm:
-            projected.Scale(1./self.GetEventCount())
+            projected.Scale(1./self.__eventhist.GetEventCount())
         return projected
