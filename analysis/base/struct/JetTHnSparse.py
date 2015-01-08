@@ -17,7 +17,17 @@ class AxisFormatJetTHnSparse(AxisFormat):
         self._axes["tracketa"] = 2
         self._axes["trackphi"] = 3
         self._axes["vertexz"] = 4
-        self._axes["mbtrigger"] = 5
+        self._axes["mbtrigger"] = 5    
+    
+    def __deepcopy__(self, other, memo):
+        newobj = AxisFormatJetTHnSparse()
+        newobj._Deepcopy(other, memo)
+        return newobj
+    
+    def __copy__(self, other):
+        newobj = AxisFormatJetTHnSparse()
+        newobj._Copy()
+        return newobj
 
 class AxisFormatReducedJetTHnSparse(AxisFormat):
     
@@ -28,6 +38,16 @@ class AxisFormatReducedJetTHnSparse(AxisFormat):
         self._axes["trackphi"] = 2
         self._axes["vertexz"] = 3
         self._axes["mbtrigger"] = 4
+
+    def __deepcopy__(self, other, memo):
+        newobj = AxisFormatReducedJetTHnSparse()
+        newobj._Deepcopy(other, memo)
+        return newobj
+    
+    def __copy__(self, other):
+        newobj = AxisFormatReducedJetTHnSparse()
+        newobj._Copy()
+        return newobj
         
 class JetTHnSparseBase(THnSparseWrapper):
     
