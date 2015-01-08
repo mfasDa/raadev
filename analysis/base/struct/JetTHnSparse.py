@@ -1,17 +1,26 @@
 '''
 Created on Jan 8, 2015
 
+Representation of a jet-based THnSparse
+
 @author: markus
 '''
 
 from base.struct.THnSparseWrapper import AxisFormat
 from base.struct.THnSparseWrapper import THnSparseWrapper
+from copy import copy, deepcopy
 from numpy import array as nparray
 
 class AxisFormatJetTHnSparse(AxisFormat):
+    '''
+    Axis format for jet-based track THnSparse
+    '''
     
     def __init__(self):
-        AxisFormat.__init__(self)
+        '''
+        Constructor
+        '''
+        AxisFormat.__init__(self, "jets")
         self._axes["tracktpt"] = 0
         self._axes["jetpt"] = 1
         self._axes["tracketa"] = 2
@@ -20,19 +29,31 @@ class AxisFormatJetTHnSparse(AxisFormat):
         self._axes["mbtrigger"] = 5    
     
     def __deepcopy__(self, other, memo):
+        '''
+        Deep copy constructor
+        '''
         newobj = AxisFormatJetTHnSparse()
         newobj._Deepcopy(other, memo)
         return newobj
     
     def __copy__(self, other):
+        '''
+        Shallow copy constructor
+        '''
         newobj = AxisFormatJetTHnSparse()
         newobj._Copy()
         return newobj
 
 class AxisFormatReducedJetTHnSparse(AxisFormat):
+    '''
+    Axis format for projected THnSparse
+    '''
     
     def __init__(self):
-        AxisFormat.__init__(self)
+        '''
+        Constructor
+        '''
+        AxisFormat.__init__(self, "jetsreduced")
         self._axes["tracktpt"] = 0
         self._axes["tracketa"] = 1
         self._axes["trackphi"] = 2
@@ -40,35 +61,60 @@ class AxisFormatReducedJetTHnSparse(AxisFormat):
         self._axes["mbtrigger"] = 4
 
     def __deepcopy__(self, other, memo):
+        '''
+        Deep copy constructor
+        '''
         newobj = AxisFormatReducedJetTHnSparse()
         newobj._Deepcopy(other, memo)
         return newobj
     
     def __copy__(self, other):
+        '''
+        Shallow copy constructor
+        '''
         newobj = AxisFormatReducedJetTHnSparse()
         newobj._Copy()
         return newobj
         
 class JetTHnSparseBase(THnSparseWrapper):
+    '''
+    Base class for Jet THnSparses
+    Can not be used directly, but classes must inherit from it
+    '''
     
     def __init__(self, roothist):
+        '''
+        Constructor
+        '''
         THnSparseWrapper.__init__(self, roothist)
 
     def SetEtaCut(self, etamin, etamax):
+        '''
+        Apply eta cut
+        '''
         self.ApplyCut("tracketa", etamin, etamax)
         
     def SetPhiCut(self, phimin, phimax):
+        '''
+        Apply phi cut
+        '''
         self.ApplyCut("trackphi", phimin, phimax)
 
     def SetVertexCut(self, vzmin, vzmax):
+        '''
+        Apply cut on the position of the z-vertex
+        '''
         self.ApplyCut("vertexz", vzmin, vzmax)
         
     def SetRequestSeenInMB(self, vzmin, vzmax):
+        '''
+        Request that the track was also in a min. bias event
+        '''
         self.ApplyCut("mbtrigger", 1., 1.)
 
 class JetTHnSparse(JetTHnSparseBase):
     '''
-    classdocs
+    THnSparse with information for Tracks in jets
     '''
 
     def __init__(self, roothist):
@@ -77,6 +123,22 @@ class JetTHnSparse(JetTHnSparseBase):
         '''
         JetTHnSparseBase.__init__(self, roothist)
         self._axisdefinition = AxisFormatJetTHnSparse()
+
+    def __deepcopy__(self, memo):
+        '''
+        Deep copy constructor
+        '''
+        result = JetTHnSparse(deepcopy(self._rootthnsparse))
+        result.CopyCuts(self._cutlist, True)
+        return result
+        
+    def __copy__(self):
+        '''
+        Shallow copy constructor
+        '''
+        result = JetTHnSparse(copy(self._rootthnsparse))
+        result.CopyCuts(self._cutlist, False)
+        return result
     
     def MakeProjectionMinJetPt(self, minpt):
         '''
@@ -112,8 +174,30 @@ class JetTHnSparse(JetTHnSparseBase):
     
     
 class ReducedJetTHnSparse(JetTHnSparseBase):
+    '''
+    Class for Jet THnSparse after projecting for different minimum jet pts
+    '''
     
     def __init__(self, roothist):
+        '''
+        Constructor
+        '''
         JetTHnSparseBase.__init__(self, roothist)
         self._axisdefinition = AxisFormatReducedJetTHnSparse()
+
+    def __deepcopy__(self, memo):
+        '''
+        Deep copy constructor
+        '''
+        result = ReducedJetTHnSparse(deepcopy(self._rootthnsparse))
+        result.CopyCuts(self._cutlist, True)
+        return result
+        
+    def __copy__(self):
+        '''
+        Shallow copy constructor
+        '''
+        result = ReducedJetTHnSparse(copy(self._rootthnsparse))
+        result.CopyCuts(self._cutlist, False)
+        return result
     
