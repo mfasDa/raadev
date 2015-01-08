@@ -157,12 +157,12 @@ class FileReader(object):
         for jethist in histlist:
             histname = str(jethist.GetName())
             jetpt = self.__GetJetPt(histname)
-            dataset.AddJetSpectrum(jethist,jetpt, True if "MC" in histname else False)
+            dataset.AddJetSpectrum(jethist,jetpt, True if "hMC" in histname else False)
             
     def __GetJetPt(self, histname):
         start = histname.index("jetPt") + 5
         ptstring = histname[start:start + 3]
-        return float(ptstring)
+        return int(ptstring)
         
     def __ReadHistList(self):
         """
