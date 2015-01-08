@@ -11,6 +11,7 @@ from base.struct.DataContainers import ClusterContainer, TrackContainer
 from base.DataSet import DataSet
 from base.FileResults import ResultData
 from base.struct.ParticleTHnSparse import ParticleTHnSparse
+from base.struct.DataContainerFactory import DataContainerFactory
     
 class FileReader(object):
     
@@ -43,6 +44,7 @@ class FileReader(object):
         self.__isMC = isMC
         self.__isReadWeights = False
         self.__weightlist = None
+        self.__datafactory = DataContainerFactory("new")
         self._histlist = "histosPtEMCalTriggerHistograms"
         
     def SetHistList(self, histlist):
@@ -108,7 +110,7 @@ class FileReader(object):
                 trgstring += ", %s" %(trg)
         print trgstring
         
-        dataformat = self.GetDataFormat()
+        self.__datafactory.SetDataFormat(self.GetDataFormat())
         
         # Add the result hists to the result container
         for trigger in triggers:
@@ -118,23 +120,23 @@ class FileReader(object):
             #trackhist.Sumw2()
             triggerdata = DataSet()
             triggerdata.AddEventHistForJets(eventhist)
-            triggerdata.AddTrackContainer("tracksAll", TrackContainer(eventHist = deepcopy(eventhist), trackHist = trackhist, dataformat=dataformat))
+            triggerdata.AddTrackContainer("tracksAll", self.__datafactory.CreateTrackContainer(eventhist, trackhist))
             tracksWithClusters = hlist.FindObject("hTrackInAcceptanceHist%s" %(trigger)) 
             if tracksWithClusters:
-                triggerdata.AddTrackContainer("tracksWithClusters", TrackContainer(eventHist = deepcopy(eventhist), trackHist = tracksWithClusters, dataformat=dataformat))
+                triggerdata.AddTrackContainer("tracksWithClusters", self.__datafactory.CreateTrackContainer(eventhist, tracksWithClusters))
             tracksMCKine = hlist.FindObject("hMCTrackHist%s" %(trigger))
             if tracksMCKine:
-                triggerdata.AddTrackContainer("tracksMCKineAll", TrackContainer(eventHist=deepcopy(eventhist), trackHist = tracksMCKine, dataformat=dataformat))
+                triggerdata.AddTrackContainer("tracksMCKineAll", self.__datafactory.CreateTrackContainer(eventhist, tracksMCKine))
             tracksMCKineWithClusters = hlist.FindObject("hMCTrackInAcceptanceHist%s" %(trigger)) 
             if tracksMCKineWithClusters:
-                triggerdata.AddTrackContainer("tracksMCKineWithClusters", TrackContainer(eventHist=deepcopy(eventhist), trackHist = tracksMCKineWithClusters, dataformat=dataformat))
+                triggerdata.AddTrackContainer("tracksMCKineWithClusters", self.__datafactory.CreateTrackContainer(eventhist, tracksMCKineWithClusters))
             clusterhists = ["hClusterCalibHist","hClusterUncalibHist"]
             for clust in clusterhists:
                 clhist = hlist.FindObject("%s%s" %(clust, trigger))
                 if clhist:
                     tag = clust.replace("hCluster","").replace("Hist","")
                     #clhist.Sumw2()
-                    triggerdata.AddClusterContainer(tag, ClusterContainer(eventHist = deepcopy(eventhist), clusterHist = clhist, dataformat=dataformat))
+                    triggerdata.AddClusterContainer(tag, self.__datafactory.CreateClusterContainer(eventhist, clhist))
             self.ProcessJets(trigger, triggerdata, hlist)
             result.SetData(trigger, triggerdata)
         return result
