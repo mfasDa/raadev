@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 from base.Helper import NormaliseBinWidth
-from base.THnSparseWrapper import AxisFormat
+from base.struct.THnSparseWrapper import AxisFormat
 from base.MergeException import MergeException
 from copy import copy,deepcopy
 from ROOT import TList
