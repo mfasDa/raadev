@@ -19,6 +19,9 @@ class DataContainerFactory(object):
         Constructor
         '''
         self.__dataformat = dataformat
+        
+    def SetDataFormat(self, df):
+        self.__dataformat = df
        
     def CreateTrackContainer(self, eventhist, trackhist):
         return TrackContainer(self.MakeEventHist(eventhist), trackhist, self.__dataformat)
