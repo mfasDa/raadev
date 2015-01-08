@@ -1,9 +1,10 @@
 #! /usr/bin/env python
 
 from base.Helper import NormaliseBinWidth
+from base.THnSparseWrapper import AxisFormat
+from base.MergeException import MergeException
 from copy import copy,deepcopy
 from ROOT import TList
-from base.MergeException import MergeException
  
 class DataContainer(object):
     """
@@ -707,26 +708,6 @@ class AxisFactory(object):
                 result = AxisFormatClustersNew()
         return result
     
-class AxisFormat(object):
-    
-    def __init__(self, formatname):
-        self._axes = {}
-        self.__formatname = ""
-        
-    def GetAxes(self):
-        return self._axes
-    
-    def FindAxis(self, axisname):
-        result = -1
-        if axisname in self._axes.keys():
-            result = self._axes[axisname]
-        return result
-    
-    def _Deepcopy(self, other, memo):
-        self._axes = deepcopy(other.GetAxes(), memo)
-       
-    def _Copy(self, other):
-        self._axes = copy(other.GetAxes()) 
     
 class AxisFormatTracksOld(AxisFormat):
     
