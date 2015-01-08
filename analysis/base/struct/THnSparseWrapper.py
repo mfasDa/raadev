@@ -1,6 +1,9 @@
 '''
 Created on Jan 8, 2015
 
+Wrapper class around a ROOT THnSparse adding the functionality of cut and project in one step,
+making the handling of THnSparses a lot more handy for users.
+
 @author: markus
 '''
 
@@ -8,60 +11,125 @@ from copy import copy,deepcopy
 from numpy import array as nparray
 
 class AxisFormat(object):
+    '''
+    Definition of the axis format of a THnSparse
+    '''
     
     def __init__(self, formatname):
+        '''
+        Constructor
+        '''
         self._axes = {}
         self.__formatname = ""
         
     def GetAxes(self):
+        '''
+        Get the list of axes defined
+        '''
         return self._axes
     
     def FindAxis(self, axisname):
+        '''
+        Find axis by axis name. Returns the dimension of the axis.
+        '''
         result = -1
         if axisname in self._axes.keys():
             result = self._axes[axisname]
         return result
     
     def _Deepcopy(self, other, memo):
+        '''
+        Performing deep copy
+        '''
         self._axes = deepcopy(other.GetAxes(), memo)
        
     def _Copy(self, other):
+        '''
+        Performing shallow copy
+        '''
         self._axes = copy(other.GetAxes()) 
         
 
 class THnSparseCut(object):
+    '''
+    Cut class used in the THnSparse wrapper
+    '''
     
     def __init__(self, axisname, minv, maxv):
+        '''
+        Constructor
+        '''
         self.__axisname = axisname
         self.__minimum = minv
         self.__maximum = maxv
         
     def GetCutname(self):
+        '''
+        Get axis name
+        '''
         return self.__axisname
         
     def GetMinimum(self):
+        '''
+        Get the minimum of the range
+        '''
         return self.__minimum
     
     def GetMaximum(self):
+        '''
+        Get the maximum of the range
+        '''
         return self.__maximum
     
     def SetMinimum(self, minv):
+        '''
+        Set the minimum of the range
+        '''
         self.__minimum = minv
         
     def SetMaximum(self, maxv):
+        '''
+        Set the maximum of the range
+        '''
         self.__maximum = maxv
 
 class THnSparseWrapper(object):
+    '''
+    Wrapper class around THnSparse applying cuts on axes and performing projections
+    '''
     
     def __init__(self, rootthnsparse):
+        '''
+        Constructor
+        '''
         self._rootthnsparse = rootthnsparse
         self._axisdefinition = None
         self._cutlist = []
         
+    def __deepcopy__(self, memo):
+        '''
+        Deep copy constructor
+        '''
+        return THnSparseWrapper(deepcopy(self._rootthnsparse))
+        
+    def __copy__(self):
+        '''
+        Shallow copy constructor
+        '''
+        return THnSparseWrapper(copy(self._rootthnsparse))
+
     def GetHistogram(self):
+        '''
+        Access to underlying root histogram
+        '''
         return self._rootthnsparse
         
     def ApplyCut(self, axisname, minv, maxv):
+        '''
+        Apply cut on a given variable, defined by its axis name
+        minv and maxv define the range. If either of them is None, the range is 
+        open on one side.
+        '''
         if not self._axisdefinition or self._axisdefinition.FindAxis(axisname) < 0:
             return
         existing = self.__FindCut(axisname)
@@ -70,8 +138,19 @@ class THnSparseWrapper(object):
         else:
             existing.SetMinimum(minv)
             existing.SetMaximum(maxv)
+            
+    def RemoveCut(self, axisname):
+        '''
+        Remove cut again from the list
+        '''
+        for entry in self._cutlist:
+            if entry.GetCutname() == axisname:
+                self._cutlist.remove(entry)
         
     def ResetAxis(self, axisname):
+        '''
+        Reset axis range
+        '''
         if not self._axisdefinition or self._axisdefinition.FindAxis(axisname) < 0:
             return
         myaxis = self._rootthnsparse.GetAxis(self._axisdefinition.FindAxis(axisname))
@@ -146,6 +225,9 @@ class THnSparseWrapper(object):
         return result
     
     def _PrepareProjection(self):
+        '''
+        Apply all requested cuts before the projection
+        '''
         for entry in self._cutlist:
             myaxis = self._rootthnsparse.GetAxis(self._axisdefinition.FindAxis(entry.GetCutname()))
             minv = 0 if not entry.GetMinimum() else myaxis.FindBin(entry.GetMinimum())
@@ -153,10 +235,17 @@ class THnSparseWrapper(object):
             myaxis.SetRange(minv, maxv)
             
     def _CleanumProjection(self):
+        '''
+        Reset all possible axis cuts
+        Does not remove a cut again from the list, but only releases the THnSparse
+        '''
         for entry in self._cutlist:
             self.ResetAxis(entry.GetCutname())
 
     def __FindCut(self, cutname):
+        '''
+        Find cut in list by the axis name
+        '''
         if not len(self._cutlist):
             return None
         result = None
