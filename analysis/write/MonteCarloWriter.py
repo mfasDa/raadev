@@ -17,8 +17,8 @@ class BinContent(object):
     def SetMCtruth(self, mctruth):
         self.__MCtruth = mctruth
         
-    def AddTrigger(self, triggername, spectrum):
-        self.__triggers[triggername] = spectrum
+    def AddTrigger(self, triggername, content):
+        self.__triggers[triggername] = content
         
     def MakeROOTPrimitive(self, name):
         result = TList()
@@ -41,7 +41,7 @@ class MonteCarloWriter(object):
 
     def ReadData(self):
         reader = MonteCarloFileHandler(True)
-        for pthardbin in range(1,10):
+        for pthardbin in range(1,11):
             reader.AddFile("%02d/AnalysisResults.root" %(pthardbin), pthardbin)
         return reader.GetCollection()
 
@@ -164,8 +164,66 @@ class ClusterWriter(MonteCarloWriter):
     
     def CreateOutputFilename(self):
         return "MonteCarloClusterProjection%s.root" %("Calib" if self.__calibrated else "Uncalib")
-
+    
+class JetData(object):
+    """
+    Container object for jet based histogram with a given minimum jet pt
+    """
+    
+    def __init__(self, jetpt, trigger):
+        """
+        Constructor
+        """
+        self.__jetpt = jetpt
+        self.__trigger = trigger
+        self.__spectra = []
         
+    def ROOTify(self):
+        """
+        Create simple primitive ROOT object structure
+        """
+        outputlist = TList()
+        outputlist.SetName("JetSpectraPt%03d" %(int(self.__jetpt)))
+        for spec in self.__spectra:
+            outputlist.Add(spec)
+        return outputlist
+        
+    def AddSpectrum(self, spectrum, isMCkine):
+        """
+        Add new object to data set
+        """
+        histname = "spectrumTrackJetData%s%s" %("MCKine" if isMCkine else "RecKine", self.__trigger)
+        spectrum.SetName(histname)
+        self.__spectra.append(spectrum)
+        
+        
+class JetWriter(MonteCarloWriter):
+    
+    def __init__(self):
+        MonteCarloWriter.__init__(self)
+        
+    def ProcessBin(self, mybin):
+        results = BinContent()
+        bindata = self._inputcol.GetData(mybin)
+        for trigger in ["MinBias","EMCJHigh","EMCJLow","EMCGHigh","EMCGLow"]:
+            print "Doing trigger %s" %(trigger)
+            jetcont =  bindata.GetData(trigger).GetJetContainer()
+            outputcont = TList()
+            outputcont.SetName(trigger)
+            for jetpt in jetcont.GetListOfJetPts():
+                print "Inspecting jet pt %f" %(jetpt)
+                jetdat = JetData(jetpt,trigger)
+                projectedRec = jetcont.MakeProjectionRecKine(jetpt, 0, "projectedPtRec")
+                projectedMC = jetcont.MakeProjectionMCKine(jetpt, 0, "projectedPtMC")
+                jetdat.AddSpectrum(projectedRec, False)
+                jetdat.AddSpectrum(projectedMC, True)
+                outputcont.Add(jetdat.ROOTify())
+            results.AddTrigger(trigger, outputcont)
+        return results
+    
+    def CreateOutputFilename(self):
+        return "MCTracksInJets.root"
+    
 def RunTrackProjection(doAcc = False, doMCKine = False, etaSel = "all"):
     writer = TrackWriter()
     if doAcc:
@@ -187,5 +245,10 @@ def RunClusterProjection(doCalib = True):
         writer.SetCalibrated()
     else:
         writer.SetUncalibrated()
+    writer.Convert()
+    writer.WriteResults()
+    
+def RunJetProjection():
+    writer = JetWriter()
     writer.Convert()
     writer.WriteResults()
