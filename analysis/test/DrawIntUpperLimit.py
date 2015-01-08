@@ -5,7 +5,7 @@ Created on 19.09.2014
 '''
 
 from base.FileHandler import LegoTrainFileReader
-from base.SpectrumContainer import SpectrumContainer
+from base.struct.DataContainers import SpectrumContainer
 from test.IntegralRangePlot import IntegralRangePlot
 
 def MakeNormalisedSpectrum(container):

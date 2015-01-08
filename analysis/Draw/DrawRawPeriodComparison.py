@@ -5,7 +5,7 @@ Created on 19.09.2014
 '''
 
 from base.FileHandler import ResultDataBuilder
-from base.SpectrumContainer import SpectrumContainer
+from base.struct.DataContainers import SpectrumContainer
 from plots.RawspectrumPeriodComparisonPlot import RawspectrumPeriodComparisonPlot
 from base.Graphics import Style
 from ROOT import kRed, kBlack, kBlue, kGreen, kMagenta, kOrange, kYellow, kTeal

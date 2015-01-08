@@ -3,7 +3,7 @@ Created on 21.09.2014
 
 @author: markusfasel
 '''
-from base.SpectrumContainer import SpectrumContainer
+from base.struct.DataContainers import SpectrumContainer
 from base.FileHandler import LegoTrainFileReader
 from plots.TrackYieldEventPlot import TrackYieldEventPlot
 from base.SpectrumCombiner import SpectrumCombiner

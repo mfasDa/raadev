@@ -4,7 +4,7 @@ Created on 18.09.2014
 @author: markusfasel
 '''
 
-from base.SpectrumContainer import SpectrumContainer
+from base.struct.DataContainers import SpectrumContainer
 from base.Graphics import Style
 from plots.PtReachPlot import PtReachData, PtReachPlot
 from base.FileHandler import LegoTrainFileReader

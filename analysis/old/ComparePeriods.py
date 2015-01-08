@@ -6,7 +6,7 @@ from ROOT import TCanvas,TFile,TH1F,TLegend,TPaveText
 from ROOT import gROOT,kRed,kBlue,kBlack
 from base.Helper import FileReaderException,HistNotFoundException,ReadHistList
 from base.Graphics import Style
-from base.SpectrumContainer import DataContainer
+from base.struct.DataContainers import DataContainer
 
 gObjects = list()
 

@@ -5,7 +5,7 @@ Created on 22.09.2014
 '''
 
 from base.FileHandler import LegoTrainFileReader
-from base.SpectrumContainer import SpectrumContainer
+from base.struct.DataContainers import SpectrumContainer
 from test.PlotScaledTriggered import PlotScaledTriggeredToMinBias
 
 def MakeNormalisedSpectrum(container):
