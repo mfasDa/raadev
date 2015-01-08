@@ -7,7 +7,7 @@ from ROOT import TFile,TIter,TObject,gDirectory,gROOT
 from copy import copy, deepcopy
 from base.DataSet import DataSet
 from base.MergeException import MergeException
-from base.SpectrumContainer import SpectrumContainer
+from base.struct.ParticleTHnSparse import ParticleTHnSparse
 
 class ResultData(object):
     """
@@ -189,7 +189,7 @@ class ResultData(object):
         key = keyIter.Next()
         while key:
             if key.GetName() == "MCTruth":
-                result.SetMCTruth(SpectrumContainer.BuildFromRootPrimitive(key.ReadObj()))
+                result.SetMCTruth(ParticleTHnSparse(key.ReadObj()))
             else:
                 result.SetData(key.GetName(), DataSet.BuildFromRootPrimitive(key.ReadObj()))
             key = keyIter.Next()

@@ -7,9 +7,10 @@ FileHandler.py
 
 from ROOT import TFile,TIter,TObject,gDirectory,gROOT
 from copy import deepcopy
-from base.struct.DataContainers import ClusterContainer, TrackContainer, SpectrumContainer
+from base.struct.DataContainers import ClusterContainer, TrackContainer
 from base.DataSet import DataSet
 from base.FileResults import ResultData
+from base.struct.ParticleTHnSparse import ParticleTHnSparse
     
 class FileReader(object):
     
@@ -84,7 +85,7 @@ class FileReader(object):
         
         # Handle MC-truth data
         if self.__isMC:
-            result.SetMCTruth(SpectrumContainer(hlist.FindObject("hMCtrueParticles")))
+            result.SetMCTruth(ParticleTHnSparse(hlist.FindObject("hMCtrueParticles")))
         
         # build list of histograms and extract trigger names
         histnames = []
