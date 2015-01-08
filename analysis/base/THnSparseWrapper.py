@@ -5,6 +5,7 @@ Created on Jan 8, 2015
 '''
 
 from copy import copy,deepcopy
+from numpy import array as nparray
 
 class AxisFormat(object):
     
@@ -57,6 +58,9 @@ class THnSparseWrapper(object):
         self._axisdefinition = None
         self._cutlist = []
         
+    def GetHistogram(self):
+        return self._rootthnsparse
+        
     def ApplyCut(self, axisname, minv, maxv):
         if not self._axisdefinition or self._axisdefinition.FindAxis(axisname) < 0:
             return
@@ -68,10 +72,78 @@ class THnSparseWrapper(object):
             existing.SetMaximum(maxv)
         
     def ResetAxis(self, axisname):
-        if not len(self._axisdefinition) or self._axisdefinition.FindAxis(axisname) < 0:
+        if not self._axisdefinition or self._axisdefinition.FindAxis(axisname) < 0:
             return
         myaxis = self._rootthnsparse.GetAxis(self._axisdefinition.FindAxis(axisname))
         myaxis.SetRange(0, myaxis.GetNbins()+1)
+
+    def Projection1D(self, histname, axisname):
+        '''
+        Make projection, applying cuts defined before, and releasing the cuts afterwards.
+        Projects to 1D with the axisname as dimension
+        '''
+        if not self._axisdefinition or self._axisdefinition.FindAxis(axisname):
+            return None
+        self._PrepareProjection()
+        result = self._rootthnsparse.Projection(self._axisdefinition.FindAxis(axisname))
+        result.SetName(histname)
+        self._CleanumProjection()
+        return result
+    
+    def Projection2D(self, histname, axisdictionary):
+        '''
+        Make projection, applying cuts defined before, and releasing the cuts afterwards.
+        Projects to 2D with the content in the axis dictionary as dimensions
+        Dictionary works in the way name -> dimension, starting with 0
+        '''
+        if not self._axisdefinition:
+            return None
+        hasfound = True
+        for axisname in axisdictionary.keys():
+            if self._axisdefinition.FindAxis(axisname):
+                hasfound = False
+                break
+        if not hasfound:
+            return None
+        self._PrepareProjection()
+        xdim = None
+        ydim = None
+        for k,v in axisdictionary.iteritems():
+            if v == 1:
+                ydim = self._axisdefinition.FindAxis(k)
+            else:
+                xdim = self._axisdefinition.FindAxis(k)
+        result = self._rootthnsparse.Projection(ydim, xdim)
+        result.SetName(histname)
+        self._CleanumProjection()
+        return result
+    
+    def ProjectionND(self, histname, axisdictionary):
+        '''
+        Make projection, applying cuts defined before, and releasing the cuts afterwards.
+        Projects to 2D with the content in the axis dictionary as dimensions
+        Dictionary works in the way name -> dimension, starting with 0
+        '''
+        if not self._axisdefinition:
+            return None
+        hasfound = True
+        for axisname in axisdictionary.keys():
+            if self._axisdefinition.FindAxis(axisname):
+                hasfound = False
+                break
+        if not hasfound:
+            return None
+        self._PrepareProjection()
+        axismap = {}
+        for k,v in axisdictionary.iteritems():
+            axismap[v] = k
+        axislist = []
+        for mydim in sorted(axismap.keys()):
+            axislist.append(self._axisdefinition.FindAxis(axismap[mydim]))
+        result = self._rootthnsparse.Projection(len(axislist), nparray(axislist))
+        result.SetName(histname)
+        self._CleanumProjection()
+        return result
     
     def _PrepareProjection(self):
         for entry in self._cutlist:
