@@ -110,13 +110,35 @@ class THnSparseWrapper(object):
         '''
         Deep copy constructor
         '''
-        return THnSparseWrapper(deepcopy(self._rootthnsparse))
+        result = THnSparseWrapper(deepcopy(self._rootthnsparse))
+        result.CopyCuts(self._cutlist, True)
+        return result
         
     def __copy__(self):
         '''
         Shallow copy constructor
         '''
-        return THnSparseWrapper(copy(self._rootthnsparse))
+        result = THnSparseWrapper(copy(self._rootthnsparse))
+        result.CopyCuts(self._cutlist, False)
+        return result
+    
+    def CopyCuts(self, reference, isDeep):
+        '''
+        Copy cuts into this object from a reference object
+        '''
+        for cut in reference.GetListOfCuts():
+            newcut = None
+            if isDeep:
+                newcut = deepcopy(cut)
+            else:
+                newcut = copy(cut)
+            self._cutlist.append(newcut)
+        
+    def GetListOfCuts(self):
+        '''
+        Access list of cuts
+        '''
+        return self._cutlist
 
     def GetHistogram(self):
         '''
