@@ -73,7 +73,7 @@ class JetPtBin():
         if doNormBW:
             NormaliseBinWidth(projected)
         return projected
-        
+    
 class JetContainer(object):
     '''
     classdocs
@@ -99,6 +99,7 @@ class JetContainer(object):
         existing = self.FindJetPt(jetpt)
         if not existing:
             existing = JetPtBin(jetpt)
+            self.__jetpts.append(existing)
         if isTrueKine:
             existing.SetMCKineSpectrum(spec)
         else:
@@ -149,7 +150,7 @@ class JetContainer(object):
         existing = self.FindJetPt(jetpt)
         if not existing:
             return None
-        projected = existing.GetProjectedMCSpectrum(dimension, name, doNorm)
+        projected = existing.GetProjectedMCKineSpectrum(dimension, name, doNorm)
         if projected and doNorm:
             projected.Scale(1./self.__eventhist.GetEventCount())
         return projected
