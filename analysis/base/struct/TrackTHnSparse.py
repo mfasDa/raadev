@@ -109,6 +109,17 @@ class TrackTHnSparse(THnSparseWrapper):
         '''
         self.ApplyCut("mbtrigger", 1., 1.)
         
+    def SelectTrackCuts(self, trackcuts):
+        '''
+        Select track cuts (old format only)
+        '''
+        if self._axisdefinition.FindAxis("trackcuts"):
+            self.ApplyCut("trackcuts", trackcuts, trackcuts)
+            
+    def SetPileupRejection(self, on):
+        if on and self._axisdefinition.FindAxis("pileup"):
+            self.ApplyCut("pileup", 1., 1.)
+        
 class TrackTHnSparseOld(TrackTHnSparse):
     '''
     Class for old format track container
