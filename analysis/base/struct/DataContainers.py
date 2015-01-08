@@ -3,7 +3,6 @@
 from base.Helper import NormaliseBinWidth
 from base.struct.ClusterTHnSparse import ClusterTHnSparseNew, ClusterTHnSparseOld
 from base.struct.TrackTHnSparse import TrackTHnSparseNew, TrackTHnSparseOld
-from base.struct.EventHistogram import EventHistogramOld, EventHistogramNew
 from base.MergeException import MergeException
 from copy import copy,deepcopy
 from ROOT import TList
@@ -30,16 +29,12 @@ class DataContainer(object):
             return "Container %s missing" 
     
     
-    def __init__(self, eventHist = None, dataHist = None, histotype=None, dataformat = None):
+    def __init__(self, eventHist = None, dataHist = None, histotype=None):
         """
         Construct spectrum container
         """
-        self._events = None
-        if eventHist:
-            self._events = EventHistFactory.CreateEventHist(deepcopy(eventHist), dataformat)
-        self.__spectrum = None
-        if dataHist:
-            self.__spectrum = dataHist
+        self._events = eventHist
+        self.__spectrum = dataHist
         self.__doNormBW = True
         self._datahistname = "DataHist"
         
@@ -48,7 +43,7 @@ class DataContainer(object):
         Shallow copy constructor
         """
         print "Simple copy called from %s" %(self.__class__)
-        newobject = DataContainer(self.__events, self.__spectrum, None, None)
+        newobject = DataContainer(self.__events, self.__spectrum, None)
         newobject._Copy(self)
         return newobject
              
@@ -57,7 +52,7 @@ class DataContainer(object):
         Deep copy constructor
         """
         print "deep copy called from %s" %(self.__class__)
-        newobject = DataContainer(None, None, None, None)
+        newobject = DataContainer(None, None, None)
         newobject._Deepcopy(self, memo)
         return newobject
     
@@ -231,7 +226,7 @@ class TrackContainer(DataContainer):
                 trackwrapper = TrackTHnSparseNew(trackHist)
             else:
                 trackwrapper = TrackTHnSparseOld(trackHist)
-        DataContainer.__init__(self, eventHist, trackwrapper, "tracks", dataformat)
+        DataContainer.__init__(self, eventHist, trackwrapper, "tracks")
         self._datahistname = "TrackHist"
     
     def SetVertexRange(self, minv, maxv):
@@ -317,7 +312,7 @@ class ClusterContainer(DataContainer):
             clusterwrapper = ClusterTHnSparseNew(clusterHist)
         else:
             clusterwrapper = ClusterTHnSparseOld(clusterHist)
-        DataContainer.__init__(self, eventHist, clusterwrapper, "clusters", dataformat)
+        DataContainer.__init__(self, eventHist, clusterwrapper, "clusters")
         self._datahistname = "ClusterHist"
 
     def SetVertexRange(self, minv, maxv):
@@ -381,16 +376,4 @@ class ClusterContainer(DataContainer):
         """
         infopair = DataContainer.GetHistoPair(rootprimitive)
         return ClusterContainer(infopair["events"], infopair["spectrum"])
-            
-class EventHistFactory(object):
-    
-    def __init__(self):
-        pass
-    
-    @staticmethod
-    def CreateEventHist(histo, dataformat):
-        if dataformat == "new":
-            return EventHistogramNew(histo)
-        elif dataformat == "old":
-            return EventHistogramOld(histo)
 
