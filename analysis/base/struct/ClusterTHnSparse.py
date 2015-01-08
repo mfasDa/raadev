@@ -20,7 +20,7 @@ class AxisFormatClustersOld(AxisFormat):
         self._axes["energy"] = 0
         self._axes["vertexz"] = 1
         self._axes["pileup"] = 2
-        self._axes["MBtrigger"] = 3
+        self._axes["mbtrigger"] = 3
         
     def __deepcopy__(self, other, memo):
         '''
@@ -53,7 +53,7 @@ class AxisFormatClustersNew(AxisFormat):
         self._axes["phi"] = 2
         self._axes["vertexz"] = 3
         self._axes["pileup"] = 4
-        self._axes["MBtrigger"] = 5   
+        self._axes["mbtrigger"] = 5   
         
     def __deepcopy__(self, other, memo):
         '''
@@ -80,7 +80,35 @@ class ClusterTHnSparse(THnSparseWrapper):
         '''
         Constructor
         '''
-        THnSparseWrapper.__init__(self, roothist)
+        THnSparseWrapper.__init__(self, roothist) 
+                                  
+    def SetEtaCut(self, etamin, etamax):
+        '''
+        Apply cut in eta
+        '''
+        self.ApplyCut(self,etamin,etamax)
+    
+    def SetPhiCut(self, phimin, phimax):
+        '''
+        Apply cut in phi
+        '''
+        self.ApplyCut("phi", phimin, phimax)
+    
+    def SetVertexCut(self, vzmin, vzmax):
+        '''
+        Apply cut on vertex-z
+        '''
+        self.ApplyCut("vertexz", vzmin, vzmax)
+
+    def SetRequestSeenInMB(self, vzmin, vzmax):
+        '''
+        Request that the track was also in a min. bias event
+        '''
+        self.ApplyCut("mbtrigger", 1., 1.)
+        
+    def SetPileupRejection(self, on):
+        if on and self._axisdefinition.FindAxis("pileup"):
+            self.ApplyCut("pileup", 1., 1.)
     
 class ClusterTHnSparseOld(THnSparseWrapper):
     '''
