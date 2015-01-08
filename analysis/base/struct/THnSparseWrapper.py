@@ -145,6 +145,12 @@ class THnSparseWrapper(object):
         Access to underlying root histogram
         '''
         return self._rootthnsparse
+    
+    def Add(self, otherwrapper):
+        self._rootthnsparse.Add(otherwrapper.GetHistogram())
+    
+    def Scale(self, scalefactor):
+        self._rootthnsparse.Scale(scalefactor)
         
     def ApplyCut(self, axisname, minv, maxv):
         '''
