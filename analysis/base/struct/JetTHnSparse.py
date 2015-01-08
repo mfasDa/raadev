@@ -4,8 +4,8 @@ Created on Jan 8, 2015
 @author: markus
 '''
 
-from base.THnSparseWrapper import AxisFormat
-from base.struct import THnSparseWrapper.THnSparseWrapper
+from base.struct.THnSparseWrapper import AxisFormat
+from base.struct.THnSparseWrapper import THnSparseWrapper
 from numpy import array as nparray
 
 class AxisFormatJetTHnSparse(AxisFormat):
