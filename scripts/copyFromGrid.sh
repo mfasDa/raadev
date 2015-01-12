@@ -9,7 +9,7 @@ BASEDIR=`pwd`
 
 runs=($(alien_ls $1))
 
-for j in `seq 0 9`;
+for j in `seq 0 10`;
 do
     cd $BASEDIR
     mkdir ${runs[$j]}
