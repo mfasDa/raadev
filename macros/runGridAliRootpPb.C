@@ -52,7 +52,7 @@ AliAnalysisAlien *CreateGridHandler(){
 	plugin->AddExternalPackage("fastjet::v3.0.6_1.012");
 
 	plugin->SetOutputToRunNo();
-	plugin->AddIncludePath("-I. .I$ALIEN_ROOT/api/lib -I$ROOTSYS/lib -I$ROOTSYS/include -I$ALICE_ROOT/include -I$ALICE_ROOT/ANALYSIS");
+	plugin->AddIncludePath("-I. .I$ALIEN_ROOT/api/lib -I$ROOTSYS/lib -I$ROOTSYS/include -I$ALICE_ROOT/include -I$ALICE_ROOT/include");
 
 	TString osname(gSystem->IsA()->GetName());
 	TString libtype = osname.Contains("Mac") ? "dylib" : "so";
@@ -387,7 +387,7 @@ void SetupUtil(bool isMC, bool isAOD){
 	}
 
 	//==== EMCal Setup task =====
-	gROOT->LoadMacro("$ALICE_ROOT/PWG/EMCAL/macros/AddTaskEmcalSetup.C");
+	gROOT->LoadMacro("$ALICE_PHYSICS/PWG/EMCAL/macros/AddTaskEmcalSetup.C");
 	AddTaskEmcalSetup();
 	int indexTest = g_sample.Index(".");
 	TString period = g_sample;
@@ -397,11 +397,11 @@ void SetupUtil(bool isMC, bool isAOD){
 	std::cout << "period: " << period.Data() << std::endl;
 
 	//==== EMCal Preparation task
-	gROOT->LoadMacro("$ALICE_ROOT/PWG/EMCAL/macros/AddTaskEmcalPreparation.C");
+	gROOT->LoadMacro("$ALICE_PHYSICS/PWG/EMCAL/macros/AddTaskEmcalPreparation.C");
 	AddTaskEmcalPreparation(period.Data());
 
 	//==== Jet Preparation task
-	gROOT->LoadMacro("$ALICE_ROOT/PWGJE/EMCALJetTasks/macros/AddTaskJetPreparation.C");
+	gROOT->LoadMacro("$ALICE_PHYSICS/PWGJE/EMCALJetTasks/macros/AddTaskJetPreparation.C");
 	AddTaskJetPreparation(period.Data());
 }
 
@@ -473,7 +473,7 @@ void SetupTask(bool isMC, bool isAOD, const char *sample){
 	//
 
 	// 1st step: Jetfinder for MC and data
-	gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskEmcalJet.C", gSystem->Getenv("ALICE_ROOT")));
+	gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskEmcalJet.C", gSystem->Getenv("ALICE_PHYSICS")));
 	const TString kUsedTracks = "PicoTracks",
                	  kUsedClusters = "CaloClusters",
 				  kUsedMCParticles = "MCParticlesSelected";
@@ -503,9 +503,9 @@ void SetupTask(bool isMC, bool isAOD, const char *sample){
 	std::cout << "Name of the jet container for MonteCarlo:     " << nameMC.Data() << std::endl;
 	std::cout << "Name of the jet container for Data:           " << nameData.Data() << std::endl;
 
-	//gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskPtEMCalTrigger.C", gSystem->Getenv("ALICE_ROOT")));
+	//gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskPtEMCalTrigger.C", gSystem->Getenv("ALICE_PHYSICS")));
 	//AddTaskPtEMCalTrigger(isMC, !strcmp(sample, "LHC13b4_plus"), sample, kUsedTracks.Data(), kUsedClusters.Data(), nameData.Data(), nameMC.Data(), 0.5);
-	gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskPtEMCalTriggerV1.C", gSystem->Getenv("ALICE_ROOT")));
+	gROOT->LoadMacro(Form("%s/PWGJE/EMCALJetTasks/macros/AddTaskPtEMCalTriggerV1.C", gSystem->Getenv("ALICE_PHYSICS")));
 	bool usePH = TString(sample).Contains("LHC13b4_plus");
 	AddTaskPtEMCalTriggerV1(isMC, usePH, sample,
 			kUsedTracks.Data(), kUsedClusters.Data(), nameData.Data(),
