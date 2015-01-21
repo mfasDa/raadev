@@ -376,13 +376,13 @@ void SetupUtil(bool isMC, bool isAOD){
 	 */
 	//==== Physics Selection ====
 	if(!isAOD){
-		gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskPhysicsSelection.C");
+		gROOT->LoadMacro("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C");
 		AddTaskPhysicsSelection(isMC);
 	}
 
 	//===== ADD CENTRALITY: =====
 	if(!isAOD){
-		gROOT->LoadMacro("$ALICE_ROOT/ANALYSIS/macros/AddTaskCentrality.C");
+		gROOT->LoadMacro("$ALICE_PHYSICS/OADB/macros/AddTaskCentrality.C");
 		AddTaskCentrality();
 	}
 
