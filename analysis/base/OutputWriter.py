@@ -5,6 +5,7 @@ Created on 22.09.2014
 '''
 
 from ROOT import TFile, TList, TObject
+from __builtin__ import None
 
 class OutputWriter:
     '''
@@ -49,9 +50,17 @@ class OutputWriter:
             
         def AddRootObject(self, name, rootobject):
             self.__rootobjects.append(OutputWriter.NamedObject(name, rootobject))
+        
+        def AddListObject(self, name):
+            self.__rootobjects.append(OutputWriter.ListObject(name))
             
         def FindUpper(self, path):
-            pass
+            result = None
+            for o in self.__rootobjects:
+                if o.GetName() == path:
+                    result = True
+                    break
+            return result
             
         def GetROOTPrimitive(self):
             output = TList()
@@ -74,8 +83,30 @@ class OutputWriter:
             entry.Write()
         output.Close()
     
-    def MakeList(self, listname, parent):
-        pass
+    def MakeList(self, listname, parent = None):
+        if not parent:
+            self.__globalObjects.append(OutputWriter.ListObject(listname))
+        else:
+            myparent = self.FindParent(parent)
+            if myparent:
+                parent.AddListObject(listname)
     
-    def AddObject(self, name, rootobject, name, parent = None):
-        pass
+    def AddObject(self, name, rootobject, parent = None):
+        if not parent:
+            self.__globalObjects.append(OutputWriter.NamedObject(name, rootobject))
+        else:
+            myparent = self.FindParent(parent)
+            if myparent:
+                parent.AddRootObject(name, rootobject)
+  
+    def FindParent(self, parentname):
+        result = None
+        for o in self.__globalObjects:
+            if o.GetName() == parentname:
+                result = o
+                break
+            else:
+                result = o.FindUpper(parentname)
+            if result:
+                break
+        return result
