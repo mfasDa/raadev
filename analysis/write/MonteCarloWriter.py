@@ -31,29 +31,32 @@ class BinContent(object):
     
 class MonteCarloWriter(object):
     
-    def __init__(self):
+    def __init__(self, isNew):
         '''
         Constructor
         '''
         self._weights = TH1D("weights", "Pythia weights", 11, -0.5, 10.5)
+        self._nevents = TH1D("nevents", "nevent", 11, -0.5, 10.5);
+        self._isNew = isNew 
         self._inputcol = self.ReadData()
         self._pthardbins = {}
-
+        
     def ReadData(self):
         reader = MonteCarloFileHandler(True)
-        for pthardbin in range(1,11):
-            reader.AddFile("%02d/AnalysisResults.root" %(pthardbin), pthardbin)
+        for pthardbin in range(1,10):
+            reader.AddFile("%02d/AnalysisResults.root" %(pthardbin), pthardbin, isNew = self._isNew)
         return reader.GetCollection()
 
     def Convert(self):
         for mybin in range(1,10):
-            self._weights.SetBinContent(mybin, self._inputcol.GetWeigthHandler().GetWeight(mybin))
+            self._weights.SetBinContent(mybin+1, self._inputcol.GetWeigthHandler().GetWeight(mybin))
             self._pthardbins[mybin] = self.ProcessBin(mybin)
             
     def WriteResults(self):
         outputfile = TFile(self.CreateOutputFilename(), "RECREATE")
         outputfile.cd()
         self._weights.Write(self._weights.GetName(), TObject.kSingleKey)
+        self._nevents.Write(self._nevents.GetName(), TObject.kSingleKey)
         for mybin in self._pthardbins:
             bindata = self._pthardbins[mybin].MakeROOTPrimitive("bin%d" %(mybin))
             bindata.Write(bindata.GetName(), TObject.kSingleKey)
@@ -71,11 +74,11 @@ class TrackWriter(MonteCarloWriter):
     Class Writing projected raw spectrum and MC truth 
     '''
 
-    def __init__(self):
+    def __init__(self, isNew):
         '''
         Constructor
         '''
-        MonteCarloWriter.__init__(self)
+        MonteCarloWriter.__init__(self, isNew)
         self.__inAcceptance = False
         self.__MCKine = False
         self.__etacut = None
@@ -98,7 +101,7 @@ class TrackWriter(MonteCarloWriter):
     def ProcessBin(self, mybin):
         results = BinContent()
         bindata = self._inputcol.GetData(mybin)
-        results.SetMCtruth(self.ProjectMCtruth(bindata.GetMCTruth(), "MCTruthBin%d" %(mybin)))
+        results.SetMCtruth(self.ProjectMCtruth(bindata.GetMCTruth(), "MCTruthbin%d" %(mybin)))
         kinestring = "tracksMCKine" if self.__MCKine else "tracks"
         acceptancestring = "WithClusters" if self.__inAcceptance else "All"
         for trigger in ["MinBias","EMCJHigh","EMCJLow","EMCGHigh","EMCGLow"]:
@@ -106,10 +109,12 @@ class TrackWriter(MonteCarloWriter):
             print "histname: %s" %(histname)
             tc = bindata.GetData(trigger).FindTrackContainer(histname)
             if self.__etacut:
+                print "Using eta range %f %f" %(self.__etacut["etaMin"], self.__etacut["etaMax"])
                 tc.SetEtaRange(self.__etacut["etaMin"], self.__etacut["etaMax"])
             sn = "%sbin%d" %(trigger, mybin)
             spectrum = self.Project(tc, sn)
             results.AddTrigger(trigger, spectrum)
+            self._nevents.SetBinContent(mybin+1, tc.GetEventCount())
         return results
     
     def CreateOutputFilename(self):
@@ -119,11 +124,13 @@ class TrackWriter(MonteCarloWriter):
         return "MonteCarloProjected%s%sKine%s.root" %("Acc" if self.__inAcceptance else "All", "MC" if self.__MCKine else "Rec", etastring)
     
     def ProjectMCtruth(self, inputcontainer, outputname):
-        inputcontainer.ApplyCut(3,-10., 10.)
-        inputcontainer.ApplyCut(4, 1, 1)
+        print "Projecting MC-truth"
+        inputcontainer.ApplyCut(inputcontainer.GetAxisDefinition().GetAxisName(3),-10., 10.)
+        inputcontainer.ApplyCut(inputcontainer.GetAxisDefinition().GetAxisName(4), 1, 1)
+        print "finish applying cut"
         if self.__etacut:
             inputcontainer.ApplyCut(1, self.__etacut["etaMin"], self.__etacut["etaMax"])
-        return inputcontainer.ProjectToDimension(0, outputname)
+        return inputcontainer.Projection1D(outputname, inputcontainer.GetAxisDefinition().GetAxisName(0))
 
     def Project(self, inputcontainer, outputname):
         inputcontainer.SetVertexRange(-10., 10.)
@@ -134,8 +141,8 @@ class TrackWriter(MonteCarloWriter):
         
 class ClusterWriter(MonteCarloWriter):
     
-    def __init__(self):
-        MonteCarloWriter.__init__(self)
+    def __init__(self, isNew):
+        MonteCarloWriter.__init__(self, isNew)
         self.__calibrated = True
         
     def SetCalibrated(self):
@@ -155,6 +162,7 @@ class ClusterWriter(MonteCarloWriter):
             clustercont = bindata.GetData(trigger).FindClusterContainer("Calib" if self.__calibrated else "Uncalib")
             spectrum = self.ProjectContainer(clustercont, "%sbin%d" %(trigger, pthatbin))
             results.AddTrigger(trigger, spectrum)
+            self._nevents.SetBinContent(pthatbin+1, clustercont.GetEventCount())
         return results
 
     def ProjectContainer(self, inputcontainer, outputname):
@@ -199,8 +207,8 @@ class JetData(object):
         
 class JetWriter(MonteCarloWriter):
     
-    def __init__(self):
-        MonteCarloWriter.__init__(self)
+    def __init__(self, isNew):
+        MonteCarloWriter.__init__(self, isNew)
         
     def ProcessBin(self, mybin):
         results = BinContent()
@@ -224,8 +232,8 @@ class JetWriter(MonteCarloWriter):
     def CreateOutputFilename(self):
         return "MCTracksInJets.root"
     
-def RunTrackProjection(doAcc = False, doMCKine = False, etaSel = "all"):
-    writer = TrackWriter()
+def RunTrackProjection(doAcc = False, doMCKine = False, etaSel = "all", isNew = False):
+    writer = TrackWriter(isNew)
     if doAcc:
         writer.SetInAcceptance()
     else:
@@ -239,7 +247,7 @@ def RunTrackProjection(doAcc = False, doMCKine = False, etaSel = "all"):
     writer.Convert()
     writer.WriteResults()
     
-def RunClusterProjection(doCalib = True):
+def RunClusterProjection(doCalib = True, isNew = False):
     writer = ClusterWriter()
     if doCalib:
         writer.SetCalibrated()
@@ -248,7 +256,7 @@ def RunClusterProjection(doCalib = True):
     writer.Convert()
     writer.WriteResults()
     
-def RunJetProjection():
-    writer = JetWriter()
+def RunJetProjection(isNew = False):
+    writer = JetWriter(isNew)
     writer.Convert()
     writer.WriteResults()

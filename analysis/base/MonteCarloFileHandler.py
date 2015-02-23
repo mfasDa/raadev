@@ -74,6 +74,7 @@ class MonteCarloFileHandler(object):
         Constructor
         """
         self.__datacollection = MonteCarloDataCollection(hasPtHardBins)
+        self.__histlist = ""
         
     def GetCollection(self):
         """
@@ -81,11 +82,11 @@ class MonteCarloFileHandler(object):
         """
         return self.__datacollection
     
-    def AddFile(self, filename, pthatbin = -1):
+    def AddFile(self, filename, pthatbin = -1, isNew = True):
         """
         Handle new file
         """
-        reader = LegoTrainFileReader(filename, True)
+        reader = LegoTrainFileReader(filename, isMC = True, isNew = isNew)
         if pthatbin >= 0:
             reader.SetReadWeights() 
         self.__datacollection.AddData(reader.ReadFile(), pthatbin, reader.GetWeightHistograms())

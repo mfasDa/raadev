@@ -110,7 +110,7 @@ class ClusterTHnSparse(THnSparseWrapper):
         if on and self._axisdefinition.FindAxis("pileup"):
             self.ApplyCut("pileup", 1., 1.)
     
-class ClusterTHnSparseOld(THnSparseWrapper):
+class ClusterTHnSparseOld(ClusterTHnSparse):
     '''
     Old format cluster THnSparse
     '''
@@ -138,7 +138,7 @@ class ClusterTHnSparseOld(THnSparseWrapper):
         result.CopyCuts(self._cutlist, False)
         return result
 
-class ClusterTHnSparseNew(THnSparseWrapper):
+class ClusterTHnSparseNew(ClusterTHnSparse):
     '''
     New format cluster THnSparse
     '''

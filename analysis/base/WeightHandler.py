@@ -5,6 +5,7 @@ Created on 26.09.2014
 '''
 
 from base.DataCollection import DataCollection, Datapoint
+from gtk._gtk import Entry
 
 class PtHatBin:
     """
@@ -120,6 +121,17 @@ class WeightHandler:
         for mybin in self.__pthatbins:
             result.AddDataPoint(Datapoint(mybin.GetBinID(), mybin.GetWeight(), 0.5))
         return result.MakeLimitCurve(None, direction="central")
+    
+    def _FindPtHardBin(self, binID):
+        ''' 
+        Find pt-hard bin by bin id
+        '''
+        result = None
+        for entry in self.__pthatbins:
+            if entry.GetBinID() == binID:
+                result = Entry
+                break
+        return result
             
     def Print(self):
         print "Weighting factors: "

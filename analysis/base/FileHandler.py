@@ -83,10 +83,6 @@ class FileReader(object):
             raise self.FileReaderException("Empty list of histograms in file %s" %(self.__filename))
         result = ResultData("result")
         
-        # Handle MC-truth data
-        if self.__isMC:
-            result.SetMCTruth(ParticleTHnSparse(hlist.FindObject("hMCtrueParticles")))
-        
         # build list of histograms and extract trigger names
         histnames = []
         for oID in range(0, hlist.GetEntries()):
@@ -109,6 +105,10 @@ class FileReader(object):
         print trgstring
         
         self.__datafactory.SetDataFormat(self.GetDataFormat())
+        
+        # Handle MC-truth data
+        if self.__isMC:
+            result.SetMCTruth(self.__datafactory.CreateParticleContainer(hlist.FindObject("hMCtrueParticles")))
         
         # Add the result hists to the result container
         for trigger in triggers:

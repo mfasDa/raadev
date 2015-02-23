@@ -49,6 +49,23 @@ class AxisFormat(object):
         '''
         self._axes = copy(other.GetAxes()) 
         
+    def GetAxisName(self, dim):
+        '''
+        Get the name of the axis by dimension
+        '''
+        if not dim in self._axes.values():
+            return ""
+        result = ""
+        for k,v in self._axes.iteritems():
+            if v == dim:
+                result = k 
+                break
+        return result
+    
+    def Print(self):
+        for axis, dimension in self.axes.iteritems:
+            print "Axis %s with dimension %d" %(axis, dimension)
+        
 
 class THnSparseCut(object):
     '''
@@ -152,6 +169,9 @@ class THnSparseWrapper(object):
     def Scale(self, scalefactor):
         self._rootthnsparse.Scale(scalefactor)
         
+    def GetAxisDefinition(self):
+        return self._axisdefinition
+        
     def ApplyCut(self, axisname, minv, maxv):
         '''
         Apply cut on a given variable, defined by its axis name
@@ -159,6 +179,10 @@ class THnSparseWrapper(object):
         open on one side.
         '''
         if not self._axisdefinition or self._axisdefinition.FindAxis(axisname) < 0:
+            print "No axis definition or axis name (%s) not found" %(axisname)
+            if self._axisdefinition:
+                print "Known axes:"
+                self._axisdefinition.Print()
             return
         existing = self.__FindCut(axisname)
         if not existing:

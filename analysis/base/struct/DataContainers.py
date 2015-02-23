@@ -34,7 +34,7 @@ class DataContainer(object):
         Construct spectrum container
         """
         self._events = eventHist
-        self.__spectrum = dataHist
+        self._spectrum = dataHist
         self.__doNormBW = True
         self._datahistname = "DataHist"
         
@@ -43,7 +43,7 @@ class DataContainer(object):
         Shallow copy constructor
         """
         print "Simple copy called from %s" %(self.__class__)
-        newobject = DataContainer(self.__events, self.__spectrum, None)
+        newobject = DataContainer(self.__events, self._spectrum, None)
         newobject._Copy(self)
         return newobject
              
@@ -79,7 +79,7 @@ class DataContainer(object):
         """
         Initialise spectrum with container
         """
-        self.__spectrum = cont
+        self._spectrum = cont
         
     def GetEventHist(self):
         """
@@ -128,16 +128,16 @@ class DataContainer(object):
         """
         if not isinstance(other, DataContainer):
             raise MergeException("Incompatible types: this(DataContainer), other(%s)" %(str(other.__class__)))
-        if self.__events and other.EventHist:
-            self.__events.Add(other.EventHist)
+        if self._events and other.EventHist:
+            self._events.Add(other.EventHist)
         else:
             if other.EventHist:
-                self.__events = deepcopy(other.EventHist)
-        if self.__spectrum and other.SpectrumHist:
-            self.__spectrum.Add(other.SpectrumHist)
+                self._events = deepcopy(other.EventHist)
+        if self._spectrum and other.SpectrumHist:
+            self._spectrum.Add(other.SpectrumHist)
         else:
             if other.SpectrumHist:
-                self.__spectrum = other.SpectrumHist
+                self._spectrum = other.SpectrumHist
          
     def Scale(self, scalefactor):
         """
@@ -176,18 +176,18 @@ class DataContainer(object):
         """
         Make event-normalised projection to 1D
         """
-        if not self.__spectrum:
+        if not self._spectrum:
             raise DataContainer.DataException(self._datahistname)
-        if not self.__events:
+        if not self._events:
             raise DataContainer.DataException("EventHist")
         
         if not histname:
-            histname = "%s/" %(self.__spectrum.GetData().GetName())
+            histname = "%s/" %(self._spectrum.GetData().GetName())
         if not xtitle:
             xtitle = ""
         if not ytitle:
             ytitle = ""
-        projected = self.__spectrum.Project1D(histname, dim)
+        projected = self._spectrum.Projection1D(histname, self._spectrum.GetAxisDefinition().GetAxisName(dim))
         projected.GetXaxis().SetTitle(xtitle)
         projected.GetYaxis().SetTitle(ytitle)
         projected.Sumw2()
@@ -202,14 +202,14 @@ class DataContainer(object):
         Print status of the data container
         """
         statusEvents = "no"
-        if self.__events:
+        if self._events:
             statusEvents = "yes"
         statusSpectrum = "no"
-        if self.__spectrum:
+        if self._spectrum:
             statusSpectrum = "yes"
         print "Datacontainer status: events: %s , Spectrum: %s" %(statusEvents, statusSpectrum)
-        if self.__spectrum:
-            self.__spectrum.Print() 
+        if self._spectrum:
+            self._spectrum.Print() 
             
 class TrackContainer(DataContainer):
     """
@@ -233,51 +233,50 @@ class TrackContainer(DataContainer):
         """
         Apply vertex selection both to the event counter and the track hist
         """
-        if self.__spectrum:
-            self.__spectrum.SetVertexCut(minv, maxv)
-        if self.__events:
+        if self._spectrum:
+            self._spectrum.SetVertexCut(minv, maxv)
+        if self._events:
             self._events.SetVertexRange(minv, maxv)
         
     def SetEtaRange(self, etamin, etamax):
         """
         Select tracks in a given eta range
         """
-        if self.__spectrum:
-            self.__spectrum.SetEtaCut(etamin, etamax)
+        if self._spectrum:
+            self._spectrum.SetEtaCut(etamin, etamax)
             
     def SePhiRange(self, phimin, phimax):
         """
         Select tracks in a given eta range
         """       
-        if self.__spectrum:
-            self.__spectrum.SetPhiCut(phimin, phimax)
+        if self._spectrum:
+            self._spectrum.SetPhiCut(phimin, phimax)
         
     def SetPileupRejection(self, on):
         """
         Apply pileup rejection (yes or no)
         """
         self._events.SetUsePileupRejected(on)
-        pileupaxis = self._AxisDefinition.FindAxis("pileup")
-        if pileupaxis > -1:
-            self._AddCut(pileupaxis, 1., 1.)
+        if self._spectrum:
+            self._spectrum.SetPileupRejection(on)
             
     def SelectTrackCuts(self, cutID):
         """
         Select a set of track cuts
         """
-        if self.__spectrum:
-            self.__spectrum.SelectTrackCuts(cutID)
+        if self._spectrum:
+            self._spectrum.SelectTrackCuts(cutID)
     
     def RequestSeenInMinBias(self):
-        if self.__spectrum:
-            self.__spectrum.SetRequestSeenInMB()
+        if self._spectrum:
+            self._spectrum.SetRequestSeenInMB()
         
     def __copy__(self):
         """
         Shallow copy constructor
         """
         print "Simple copy called from %s" %(self.__class__)
-        newobject = TrackContainer(self.__events, self.__spectrum, None)
+        newobject = TrackContainer(self._events, self._spectrum, None)
         newobject._Copy(self)
         return newobject
              
@@ -319,24 +318,24 @@ class ClusterContainer(DataContainer):
         """
         Apply vertex selection both to the event counter and the track hist
         """
-        if self.__spectrum:
-            self.__spectrum.SetVertexCut(minv, maxv)
-        if self.__events:
+        if self._spectrum:
+            self._spectrum.SetVertexCut(minv, maxv)
+        if self._events:
             self._events.SetVertexRange(minv, maxv)
         
     def SetEtaRange(self, etamin, etamax):
         """
         Select tracks in a given eta range
         """
-        if self.__spectrum:
-            self.__spectrum.SetEtaCut(etamin, etamax)
+        if self._spectrum:
+            self._spectrum.SetEtaCut(etamin, etamax)
             
     def SePhiRange(self, phimin, phimax):
         """
         Select tracks in a given eta range
         """       
-        if self.__spectrum:
-            self.__spectrum.SetPhiCut(phimin, phimax)
+        if self._spectrum:
+            self._spectrum.SetPhiCut(phimin, phimax)
         
     def SetPileupRejection(self, on):
         """
@@ -348,15 +347,15 @@ class ClusterContainer(DataContainer):
             self._AddCut(pileupaxis, 1., 1.)
             
     def RequestSeenInMinBias(self):
-        if self.__spectrum:
-            self.__spectrum.SetRequestSeenInMB()
+        if self._spectrum:
+            self._spectrum.SetRequestSeenInMB()
 
     def __copy__(self):
         """
         Shallow copy constructor
         """
         print "Simple copy called from %s" %(self.__class__)
-        newobject = ClusterContainer(self.__events, self.__spectrum, None)
+        newobject = ClusterContainer(self._events, self._spectrum, None)
         newobject._Copy(self)
         return newobject
              

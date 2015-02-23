@@ -61,7 +61,7 @@ class EventHistogramOld(EventHistogram):
         else:
             eventcounter = self._histo.ProjectionX("eventcounter")
         pileupbin = 1
-        if self._usePileupRejected:
+        if self.__usePileupRejected:
             pileupbin = 2
         return eventcounter.GetBinContent(pileupbin)
     

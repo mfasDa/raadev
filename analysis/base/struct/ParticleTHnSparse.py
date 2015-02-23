@@ -30,6 +30,17 @@ class AxisDefinitinonTrueParticles(AxisFormat):
         newobj = AxisDefinitinonTrueParticles()
         newobj._Copy()
         return newobj
+    
+class AxisDefinitionTrueParticlesOld(AxisDefinitinonTrueParticles):
+    
+    def __init__(self):
+        AxisDefinitinonTrueParticles.__init__(self)
+        self._axes["isPileup"] = 4
+        
+class AxisDefinitionTrueParticlesNew(AxisDefinitinonTrueParticles):
+    
+    def __init__(self):
+        AxisDefinitinonTrueParticles.__init__(self)
             
 class ParticleTHnSparse(THnSparseWrapper):
     '''
@@ -41,7 +52,6 @@ class ParticleTHnSparse(THnSparseWrapper):
         Constructor
         '''
         THnSparseWrapper.__init__(self, roothist)
-        self._axisdefinition = AxisDefinitinonTrueParticles()
         
     def __deepcopy__(self, memo):
         '''
@@ -76,3 +86,28 @@ class ParticleTHnSparse(THnSparseWrapper):
         Apply cut on vertex-z
         '''
         self.ApplyCut("vertexz", vzmin, vzmax)
+        
+    def SetPileupCut(self):
+        '''
+        Apply Cut on pileup events(old format only)
+        '''
+        self.ApplyCut("isPileup", 1, 1)
+        
+class ParticleTHnSparseNew(ParticleTHnSparse):
+    
+    def __init__(self, roothist):
+        ParticleTHnSparse.__init__(self, roothist)
+        self._axisdefinition = AxisDefinitionTrueParticlesNew()
+    
+class ParticleTHnSparseOld(ParticleTHnSparse):
+    
+    def __init__(self, roothist):
+        ParticleTHnSparse.__init__(self, roothist)
+        self._axisdefinition = AxisDefinitionTrueParticlesOld()
+        
+def CreatePartcileTHnSparse(roothist, isNew):
+    if isNew:
+        return ParticleTHnSparseNew(roothist)
+    else:
+        return ParticleTHnSparseOld(roothist)
+        
