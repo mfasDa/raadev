@@ -114,7 +114,8 @@ class TrackWriter(MonteCarloWriter):
             sn = "%sbin%d" %(trigger, mybin)
             spectrum = self.Project(tc, sn)
             results.AddTrigger(trigger, spectrum)
-            self._nevents.SetBinContent(mybin+1, tc.GetEventCount())
+            if trigger == "MinBias":
+                self._nevents.SetBinContent(mybin+1, tc.GetEventCount())
         return results
     
     def CreateOutputFilename(self):

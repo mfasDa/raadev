@@ -63,7 +63,7 @@ class AxisFormat(object):
         return result
     
     def Print(self):
-        for axis, dimension in self.axes.iteritems:
+        for axis, dimension in self._axes.iteritems():
             print "Axis %s with dimension %d" %(axis, dimension)
         
 
