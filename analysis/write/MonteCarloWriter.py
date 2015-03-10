@@ -3,7 +3,7 @@ Created on Nov 17, 2014
 
 @author: markus
 '''
-
+import os
 from ROOT import TFile,TH1D,TList,TObject
 
 from base.MonteCarloFileHandler import MonteCarloFileHandler
@@ -48,7 +48,11 @@ class MonteCarloWriter(object):
         return reader.GetCollection()
 
     def Convert(self):
-        for mybin in range(1,10):
+        entries = os.listdir(os.getcwd())
+        for mybin in entries:
+            if not str(mybin).isdigit():
+                continue
+            print "Processing %s" %(mybin)
             self._weights.SetBinContent(mybin+1, self._inputcol.GetWeigthHandler().GetWeight(mybin))
             self._pthardbins[mybin] = self.ProcessBin(mybin)
             
