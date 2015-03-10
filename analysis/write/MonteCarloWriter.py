@@ -89,6 +89,7 @@ class TrackWriter(MonteCarloWriter):
         self.__inAcceptance = False
         self.__MCKine = False
         self.__etacut = None
+        self.__phicut = None
         
     def SetInAcceptance(self):
         self.__inAcceptance = True
@@ -105,6 +106,9 @@ class TrackWriter(MonteCarloWriter):
     def SetEtaCut(self, etaMin, etaMax, tag):
         self.__etacut = {"etaMin":etaMin, "etaMax":etaMax, "tag":tag}
         
+    def SetPhiCut(self, phiMin, phiMax, tag):
+        self.__phicut = {"phiMin":phiMin, "phiMax":phiMax, "tag":tag}
+        
     def ProcessBin(self, mybin):
         results = BinContent()
         bindata = self._inputcol.GetData(mybin)
@@ -118,6 +122,8 @@ class TrackWriter(MonteCarloWriter):
             if self.__etacut:
                 print "Using eta range %f %f" %(self.__etacut["etaMin"], self.__etacut["etaMax"])
                 tc.SetEtaRange(self.__etacut["etaMin"], self.__etacut["etaMax"])
+            if self.__phicut:
+                tc.SetPhiRange(self.__phicut["phiMin"], self.__phicut["phiMax"])
             sn = "%sbin%d" %(trigger, mybin)
             spectrum = self.Project(tc, sn)
             results.AddTrigger(trigger, spectrum)
@@ -126,10 +132,12 @@ class TrackWriter(MonteCarloWriter):
         return results
     
     def CreateOutputFilename(self):
-        etastring="etaall"
+        kinestring="etaall"
         if self.__etacut:
-            etastring = "eta%s" %(self.__etacut["tag"])
-        return "MonteCarloProjected%s%sKine%s.root" %("Acc" if self.__inAcceptance else "All", "MC" if self.__MCKine else "Rec", etastring)
+            kinestring = "eta%s" %(self.__etacut["tag"])
+        if self.__phicut:
+            kinestring +=  self.__phicut["tag"]
+        return "MonteCarloProjected%s%sKine%s.root" %("Acc" if self.__inAcceptance else "All", "MC" if self.__MCKine else "Rec", kinestring)
     
     def ProjectMCtruth(self, inputcontainer, outputname):
         print "Projecting MC-truth"
@@ -240,7 +248,7 @@ class JetWriter(MonteCarloWriter):
     def CreateOutputFilename(self):
         return "MCTracksInJets.root"
     
-def RunTrackProjection(doAcc = False, doMCKine = False, etaSel = "all", isNew = False):
+def RunTrackProjection(doAcc = False, doMCKine = False, etaSel = "all", phiSel = False, isNew = False):
     writer = TrackWriter(isNew)
     if doAcc:
         writer.SetInAcceptance()
@@ -252,6 +260,8 @@ def RunTrackProjection(doAcc = False, doMCKine = False, etaSel = "all", isNew = 
         writer.SetRecKine()
     if etaSel == "centcms":
         writer.SetEtaCut(-0.8, -0.3, "centcms")
+    if phiSel:
+        writer.SetPhiCut(1.5, 3.1, "emcphi") 
     writer.Convert()
     writer.WriteResults()
     
