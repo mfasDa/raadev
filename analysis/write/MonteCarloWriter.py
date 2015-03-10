@@ -38,9 +38,9 @@ class MonteCarloWriter(object):
         self._weights = TH1D("weights", "Pythia weights", 11, -0.5, 10.5)
         self._nevents = TH1D("nevents", "nevent", 11, -0.5, 10.5);
         self._isNew = isNew 
-        self._inputcol = self.ReadData()
         self._pthardbins = {}
         self._listofbins = []
+        self._inputcol = self.ReadData()
         
     def ReadData(self):
         reader = MonteCarloFileHandler(True)
