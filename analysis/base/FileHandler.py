@@ -44,9 +44,13 @@ class FileReader(object):
         self.__weightlist = None
         self.__datafactory = DataContainerFactory("new")
         self._histlist = "histosPtEMCalTriggerHistograms"
+        self._trackCutsTag = ""
         
     def SetHistList(self, histlist):
         self._histlist = histlist
+        
+    def SetTrackCuts(self, tc):
+        self._trackCutsTag = tc
         
     def SetReadWeights(self):
         """
@@ -186,7 +190,7 @@ class FileReader(object):
         else:
             mydirectory = inputfile
             path += "#"
-        rlist = mydirectory.Get("results")
+        rlist = mydirectory.Get("TriggerTracksResults%s" %(self._trackCutsTag))
         if self.__isReadWeights:
             result["weights"] = {"crosssection":rlist.FindObject("fHistXsection"), "trials":rlist.FindObject("fHistTrials")}
         hlist = rlist.FindObject(self._histlist)
