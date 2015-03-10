@@ -40,21 +40,24 @@ class MonteCarloWriter(object):
         self._isNew = isNew 
         self._inputcol = self.ReadData()
         self._pthardbins = {}
+        self._listofbins = []
         
     def ReadData(self):
         reader = MonteCarloFileHandler(True)
-        for pthardbin in range(1,10):
+        entries = os.listdir(os.getcwd())
+        for mypthardbin in entries:
+            if not str(mypthardbin).isdigit():
+                continue
+            print "Processing %s" %(mypthardbin)
+            pthardbin = int(mypthardbin)
             reader.AddFile("%02d/AnalysisResults.root" %(pthardbin), pthardbin, isNew = self._isNew)
+            self._listofbins.append(pthardbin)
         return reader.GetCollection()
 
     def Convert(self):
-        entries = os.listdir(os.getcwd())
-        for mybin in entries:
-            if not str(mybin).isdigit():
-                continue
-            print "Processing %s" %(mybin)
+        for mybin in self._listofbins:
             self._weights.SetBinContent(mybin+1, self._inputcol.GetWeigthHandler().GetWeight(mybin))
-            self._pthardbins[mybin] = self.ProcessBin(mybin)
+            self._pthardbins[mybin] = self.ProcessBin(int(mybin))
             
     def WriteResults(self):
         outputfile = TFile(self.CreateOutputFilename(), "RECREATE")
