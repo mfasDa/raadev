@@ -201,15 +201,15 @@ class LegoTrainFileReader(FileReader):
     File reader adapted to the file format in the lego train
     """
     
-    def __init__(self, filename, isMC = False, isNew = True):
+    def __init__(self, filename, trackCuts = "standard", isMC = False, isNew = True):
         """
         Initialise file reader with filename and set the directory according to the definition in
         the lego train
         """
         FileReader.__init__(self, filename, isMC)
-        self.SetDirectory("PtEMCalTriggerTask")
+        self.SetDirectory("PtEMCalTriggerTask%s" %(trackCuts))
         if isNew:
-            self.SetHistList("histosptemcaltriggertask")
+            self.SetHistList("histosptemcaltriggertask%s" %(trackCuts))
         
 class ResultStructureReader(object):
     
