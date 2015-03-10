@@ -212,6 +212,7 @@ class LegoTrainFileReader(FileReader):
         """
         FileReader.__init__(self, filename, isMC)
         self.SetDirectory("PtEMCalTriggerTask%s" %(trackCuts))
+        self.SetTrackCuts(trackCuts)
         if isNew:
             self.SetHistList("histosptemcaltriggertask%s" %(trackCuts))
         
