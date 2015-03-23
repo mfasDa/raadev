@@ -12,7 +12,7 @@ def GetRunlist(basedir):
     runlist = []
     for entry in tmplist:
         if entry.isdigit():
-            runlist.append(entry)
+            runlist.append(int(entry))
     return runlist
 
 def GetFilelist(inputpath, runlist, pthardbin, filename):
@@ -24,7 +24,7 @@ def GetFilelist(inputpath, runlist, pthardbin, filename):
     return result
 
 def DoMerge(inputpath, filename):
-    mergedir = "%s/merged"
+    mergedir = "%s/merged" %(inputpath)
     runlist = GetRunlist(inputpath)
     basedir = os.getcwd()
     if not os.path.exists(mergedir):
@@ -33,7 +33,7 @@ def DoMerge(inputpath, filename):
     for pthard in range(1, 11):
         print "Merging all file from pt-hard bin %d" %(pthard)
         files = GetFilelist(inputpath, runlist, pthard, filename)
-        outputdir = "%s/02d" %(mergedir, pthard)
+        outputdir = "%s/%02d" %(mergedir, pthard)
         if not os.path.exists(outputdir):
             os.makedirs(outputdir, 0755)
         os.chdir(outputdir)
