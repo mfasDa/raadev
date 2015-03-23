@@ -42,4 +42,8 @@ def DoMerge(inputpath, filename):
     print "Done"
 
 if __name__ == "__main__":
-    DoMerge()
+    inputpath = sys.argv[1]
+    rootfile = "AnalysisResults.root"
+    if len(sys.argv) > 2:
+        rootfile = sys.argv[2]
+    DoMerge(inputpath, rootfile)

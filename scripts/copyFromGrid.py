@@ -8,7 +8,7 @@ def aliencopy(sourcelocation, targetlocation):
 def alienlist(directory):
     return commands.getstatusoutput("alien_ls %s" %(directory))
 
-def transfer(trainrun, outputlocation, targetfile, outputfile):
+def transfer(trainrun, outputlocation, targetfile):
     sample = "/alice/sim/2013/LHC13b4_plus"
     runlist =  alienlist(sample)
     for r in runlist:
@@ -29,6 +29,7 @@ def transfer(trainrun, outputlocation, targetfile, outputfile):
 
 if __name__ == "__main__":
     trainrun = sys.argv[1] 
+    outputpath = sys.argv[2]
     outputfile = "root_archive.zip"
     if len(sys.argv) > 3:
         outputfile = sys.argv[3]
