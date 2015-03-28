@@ -119,6 +119,9 @@ class TrackTHnSparse(THnSparseWrapper):
     def SetPileupRejection(self, on):
         if on and self._axisdefinition.FindAxis("pileup"):
             self.ApplyCut("pileup", 1., 1.)
+            
+    def Print(self):
+        pass
         
 class TrackTHnSparseOld(TrackTHnSparse):
     '''
@@ -175,3 +178,4 @@ class TrackTHnSparseNew(TrackTHnSparse):
         result = TrackTHnSparseNew(copy(self._rootthnsparse))
         result.CopyCuts(self._cutlist, False)
         return result
+

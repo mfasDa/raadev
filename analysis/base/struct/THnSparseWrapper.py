@@ -163,6 +163,12 @@ class THnSparseWrapper(object):
         '''
         return self._rootthnsparse
     
+    def GetHistogramName(self):
+        '''
+        Get the name of the underlying histogram
+        '''
+        return self._rootthnsparse.GetName()
+    
     def Add(self, otherwrapper):
         self._rootthnsparse.Add(otherwrapper.GetHistogram())
     
@@ -214,6 +220,7 @@ class THnSparseWrapper(object):
         Projects to 1D with the axisname as dimension
         '''
         if not self._axisdefinition or self._axisdefinition.FindAxis(axisname):
+            print "No axis definition or axis %s not found" %(axisname)
             return None
         self._PrepareProjection()
         result = self._rootthnsparse.Projection(self._axisdefinition.FindAxis(axisname))

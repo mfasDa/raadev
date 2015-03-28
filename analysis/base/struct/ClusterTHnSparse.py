@@ -52,8 +52,7 @@ class AxisFormatClustersNew(AxisFormat):
         self._axes["eta"] = 1
         self._axes["phi"] = 2
         self._axes["vertexz"] = 3
-        self._axes["pileup"] = 4
-        self._axes["mbtrigger"] = 5   
+        self._axes["mbtrigger"] = 4  
         
     def __deepcopy__(self, other, memo):
         '''
@@ -109,6 +108,9 @@ class ClusterTHnSparse(THnSparseWrapper):
     def SetPileupRejection(self, on):
         if on and self._axisdefinition.FindAxis("pileup"):
             self.ApplyCut("pileup", 1., 1.)
+            
+    def Print(self):
+        pass
     
 class ClusterTHnSparseOld(ClusterTHnSparse):
     '''
