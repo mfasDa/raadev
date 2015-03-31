@@ -36,11 +36,16 @@ class MonteCarloWriter(object):
         Constructor
         '''
         self._weights = TH1D("weights", "Pythia weights", 11, -0.5, 10.5)
-        self._nevents = TH1D("nevents", "nevent", 11, -0.5, 10.5);
+        self._nevents = {}
+        self.__CreateEventContainers()
         self._isNew = isNew 
         self._pthardbins = {}
         self._listofbins = []
         self._inputcol = self.ReadData()
+        
+    def __CreateEventContainers(self):
+        for trigger in ["MinBias", "EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow"]:
+            self._nevents[trigger] = TH1D("nevents%s" %(trigger), "nevent for %s events" %(trigger), 11, -0.5, 10.5);
         
     def ReadData(self):
         reader = MonteCarloFileHandler(True)
@@ -53,6 +58,11 @@ class MonteCarloWriter(object):
             reader.AddFile("%02d/AnalysisResults.root" %(pthardbin), pthardbin, isNew = self._isNew)
             self._listofbins.append(pthardbin)
         return reader.GetCollection()
+    
+    def SetNumberOfEvents(self, trigger, pthardbin, nevents):
+        if not trigger in self._nevents.keys():
+            return
+        self._nevents[trigger].SetBinContent(self._nevents[trigger].GetXaxis().FindBin(pthardbin), nevents)
 
     def Convert(self):
         for mybin in self._listofbins:
@@ -63,7 +73,8 @@ class MonteCarloWriter(object):
         outputfile = TFile(self.CreateOutputFilename(), "RECREATE")
         outputfile.cd()
         self._weights.Write(self._weights.GetName(), TObject.kSingleKey)
-        self._nevents.Write(self._nevents.GetName(), TObject.kSingleKey)
+        for trigger in self._nevents.values():
+            trigger.Write(trigger.GetName(), TObject.kSingleKey)
         for mybin in self._pthardbins:
             bindata = self._pthardbins[mybin].MakeROOTPrimitive("bin%d" %(mybin))
             bindata.Write(bindata.GetName(), TObject.kSingleKey)
@@ -127,8 +138,7 @@ class TrackWriter(MonteCarloWriter):
             sn = "%sbin%d" %(trigger, mybin)
             spectrum = self.Project(tc, sn)
             results.AddTrigger(trigger, spectrum)
-            if trigger == "MinBias":
-                self._nevents.SetBinContent(mybin+1, tc.GetEventCount())
+            self.SetNumberOfEvents(trigger, mybin, tc.GetEventCount())
         return results
     
     def CreateOutputFilename(self):
@@ -178,7 +188,7 @@ class ClusterWriter(MonteCarloWriter):
             clustercont = bindata.GetData(trigger).FindClusterContainer("Calib" if self.__calibrated else "Uncalib")
             spectrum = self.ProjectContainer(clustercont, "%sbin%d" %(trigger, pthatbin))
             results.AddTrigger(trigger, spectrum)
-            self._nevents.SetBinContent(pthatbin+1, clustercont.GetEventCount())
+            self.SetNumberOfEvents(trigger, pthatbin, clustercont.GetEventCount())
         return results
 
     def ProjectContainer(self, inputcontainer, outputname):
@@ -260,13 +270,15 @@ def RunTrackProjection(doAcc = False, doMCKine = False, etaSel = "all", phiSel =
         writer.SetRecKine()
     if etaSel == "centcms":
         writer.SetEtaCut(-0.8, -0.3, "centcms")
+    elif etaSel == "emc":
+        writer.SetEtaCut(-0.5, 0.5, "emc")
     if phiSel:
         writer.SetPhiCut(1.5, 3.1, "emcphi") 
     writer.Convert()
     writer.WriteResults()
     
 def RunClusterProjection(doCalib = True, isNew = False):
-    writer = ClusterWriter()
+    writer = ClusterWriter(isNew)
     if doCalib:
         writer.SetCalibrated()
     else:

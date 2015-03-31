@@ -48,7 +48,7 @@ class DataSpectra(object):
             result.SetName(self.triggername)
             self.__eventcount.SetName("events")
             self.__projectedSpectrum.SetName("spectrum")
-            result.Add(self.__events)
+            result.Add(self.__eventcount)
             result.Add(self.__projectedSpectrum)
             return result
     
@@ -71,7 +71,7 @@ class DataSpectra(object):
     triggers = property(get_triggers, set_triggers, del_triggers, "Trigger data list")
         
     def AddTrigger(self, triggerName, spectrum, events):
-        self.__triggers[triggerName] = self.TriggerData(events, spectrum)
+        self.__triggers[triggerName] = self.TriggerData(triggerName, events, spectrum)
         
     def GetListOfROOTPrimitives(self):
         rootprim = []
@@ -81,16 +81,16 @@ class DataSpectra(object):
 
 class DataWriter(object):
     
-    def __init__(self, filename):
-        self._inputdata = self.__ReadFile(filename)
+    def __init__(self, filename, isNew):
+        self._inputdata = self.__ReadFile(filename, isNew)
         self._outputdata = DataSpectra()
         
-    def __ReadFile(self, filename):
-        reader = LegoTrainFileReader(filename)
+    def __ReadFile(self, filename, isNewStruct):
+        reader = LegoTrainFileReader(filename, isNew = isNewStruct)
         return reader.ReadFile()
     
     def Convert(self):
-        for trigger in ["MinBias", "EMCJhigh", "EMCJLow", "EMCGHigh"]:
+        for trigger in ["MinBias", "EMCJHigh", "EMCJLow", "EMCGHigh", "EMCGLow"]:
             trdata = self._ProcessTrigger(trigger, self._inputdata.GetData(trigger))
             self._outputdata.AddTrigger(trigger, trdata["spectrum"], trdata["events"])
         
@@ -102,7 +102,7 @@ class DataWriter(object):
         myoutput.Close()
         
     def _MakeProjection(self, trackContainer):
-        return trackContainer.MakeProjection("spectrum", 0, doNorm = False)
+        return trackContainer.MakeProjection(0, "spectrum", doNorm = False)
     
     def _GetNumberOfEvents(self, trackContainer):
         eventHist = TH1F("events", "Events", 1, 0.5, 1.5)
@@ -118,32 +118,39 @@ class DataWriter(object):
         
 class DataTrackWriter(DataWriter):
     
-    def __init__(self, filename):
-        DataWriter.__init__(self, filename)
+    def __init__(self, filename, isNew):
+        DataWriter.__init__(self, filename, isNew)
         self.__etacut = None
+        self.__phicut = None
         self.__inAcceptance = False
         
     def SetEtaCut(self, tag, emin, emax):
         self.__etacut = {"etamin":emin, "etamax":emax, "tag":tag}
         
+    def SetPhiCut(self, tag, phimin, phimax):
+        self.__phicut = {"phimin":phimin, "phimax":phimax, "tag": tag}
+        
     def SetInAcceptance(self, inAcceptance = True):
         self.__inAcceptance = inAcceptance
         
     def _GetOutputFile(self):
+        kinestring="etaall"
+        if self.__etacut:
+            kinestring = "eta%s" %(self.__etacut["tag"])
+        if self.__phicut:
+            kinestring +=  self.__phicut["tag"]
         accString = "All"
         if self.__inAcceptance:
             accString = "InAcceptance"
-        etastring = "All"
-        if self.__etacut:
-            etastring = self.__etacut["tag"]
-        return "DataTracks%sEta%s.root" %(accString, etastring)
+        return "DataTracks%sEta%s%s.root" %(accString, kinestring)
     
     def __DefineTracks(self, tc):
         tc.SetVertexRange(-10, 10)
         tc.SetPileupRejection()
-        tc.SelectTrackCuts(1)
         if self.__etacut:
             tc.SetEtaRange(self.__etacut["etamin"], self.__etacut["etamax"])
+        if self.__phicut:
+            tc.SetPhiRange(self.__phicut["phimin"], self.__phicut["phimax"])
     
     def _ProcessTrigger(self, trigger, dset):
         containerName = "tracksAll"
@@ -153,13 +160,13 @@ class DataTrackWriter(DataWriter):
         self.__DefineTracks(tc)
         projected = self._MakeProjection(tc)
         nevents = self._GetNumberOfEvents(tc)
-        self._outputdata.AddTrigger(trigger, projected, nevents)
+        return {"spectrum":projected, "events":nevents}
 
         
 class DataClusterWriter(DataWriter): 
     
-    def __init__(self, filename):
-        DataWriter.__init__(self, filename)
+    def __init__(self, filename, isNew):
+        DataWriter.__init__(self, filename, isNew)
         self.__useCalibrated = True
         
     def SetUseCalibratedClusters(self, doUse = True):
@@ -172,20 +179,21 @@ class DataClusterWriter(DataWriter):
         return "DataCluster%s.root" %(calibstring)
     
     def _ProcessTrigger(self, trigger, dset):
+        dset.Print()
         containerName = "Uncalib"
         if self.__useCalibrated:
             containerName = "Calib"
-        cc = dset.FindTrackContainer(containerName)
+        cc = dset.FindClusterContainer(containerName)
         self.__DefineClusters(cc)
-        projected = self.__MakeProjection(cc)
-        nevents = self.__GetNumberOfEvents(cc)
-        self._outputdata.AddTrigger(trigger, projected, nevents)
+        projected = self._MakeProjection(cc)
+        nevents = self._GetNumberOfEvents(cc)
+        return {"spectrum":projected, "events":nevents}
     
     def __DefineClusters(self, cc):
         cc.SetVertexRange(-10, 10)
-        cc.SetPileupRejection()
+        cc.SetPileupRejection(True)
     
-def WriteTracks(filename, inAcceptance = False, etaSel = "all"):
+def WriteTracks(filename, inAcceptance = False, etaSel = "all", isNew = True):
     writer = DataTrackWriter(filename)
     writer.SetInAcceptance(inAcceptance)
     if etaSel == "centcms":
@@ -193,8 +201,8 @@ def WriteTracks(filename, inAcceptance = False, etaSel = "all"):
     writer.Convert()
     writer.WriteOutput()
 
-def WriteClusters(filename, calib = True):
-    writer = DataClusterWriter(filename)
+def WriteClusters(filename, calib = True, isNew = True):
+    writer = DataClusterWriter(filename, isNew)
     writer.SetUseCalibratedClusters(calib)
     writer.Convert()
     writer.WriteOutput()
