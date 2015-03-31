@@ -1,12 +1,11 @@
 #! /bin/bash
 
-SRC=$1
-BASE=$2
+SCRIPTPATH=$(readlink -f $(dirname $0))
+SRC=$SCRIPTPATH/..
+BASE=$1
 
 if [ ! -d $BASE/merged ]; then mkdir $BASE/merged; fi
 dirs=($(ls -1 $BASE | grep "LHC"))
-
-. alice_env.sh 1
 
 isFirst=1
 inputfiles=
