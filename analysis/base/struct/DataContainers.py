@@ -182,7 +182,7 @@ class DataContainer(object):
             raise DataContainer.DataException("EventHist")
         
         if not histname:
-            histname = "%s/" %(self._spectrum.GetData().GetName())
+            histname = "%sProjected" %(self._spectrum.GetHistogramName())
         if not xtitle:
             xtitle = ""
         if not ytitle:
@@ -245,7 +245,7 @@ class TrackContainer(DataContainer):
         if self._spectrum:
             self._spectrum.SetEtaCut(etamin, etamax)
             
-    def SePhiRange(self, phimin, phimax):
+    def SetPhiRange(self, phimin, phimax):
         """
         Select tracks in a given eta range
         """       
@@ -342,9 +342,7 @@ class ClusterContainer(DataContainer):
         Apply pileup rejection (yes or no)
         """
         self._events.SetUsePileupRejected(on)
-        pileupaxis = self._AxisDefinition.FindAxis("pileup")
-        if pileupaxis > -1:
-            self._AddCut(pileupaxis, 1., 1.)
+        self._spectrum.SetPileupRejection(on)
             
     def RequestSeenInMinBias(self):
         if self._spectrum:
