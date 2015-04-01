@@ -75,6 +75,14 @@ class Style:
         """
         return self.__marker
     
+    def DefineROOTPlotObject(self, rootobject):
+        """
+        Sets the style to the root object
+        """
+        rootobject.SetMarkerColor(self.__color)
+        rootobject.SetMarkerStyle(self.__marker)
+        rootobject.SetLineColor(self.__color)
+        
 class GraphicsObject:
     """
     Container for styled objects
@@ -325,8 +333,7 @@ class PlotBase:
         Creating a file with a common name in the formats
         eps, pdf, jpeg, gif and pdf
         """
-        types = ["eps", "pdf", "jpeg", "gif", "png"]
-        for t in types:
+        for t in ["eps", "pdf", "jpeg", "gif", "png"]:
             self._canvas.SaveAs("%s.%s" %(filenamebase, t))
             
 class SinglePanelPlot(PlotBase):
