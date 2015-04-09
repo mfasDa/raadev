@@ -54,12 +54,12 @@ class AxisFormatClustersNew(AxisFormat):
         self._axes["vertexz"] = 3
         self._axes["mbtrigger"] = 4  
         
-    def __deepcopy__(self, other, memo):
+    def __deepcopy__(self, memo):
         '''
         Deep copy constructor
         '''
         newobj = AxisFormatClustersNew()
-        newobj._Deepcopy(other, memo)
+        newobj._Deepcopy(self, memo)
         return newobj
     
     def __copy__(self, other):
@@ -67,7 +67,7 @@ class AxisFormatClustersNew(AxisFormat):
         Shallow copy constructor
         '''
         newobj = AxisFormatClustersNew()
-        newobj._Copy()
+        newobj._Copy(self)
         return newobj
 
 class ClusterTHnSparse(THnSparseWrapper):
