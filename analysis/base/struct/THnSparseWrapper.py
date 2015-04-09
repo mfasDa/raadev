@@ -219,7 +219,7 @@ class THnSparseWrapper(object):
         Make projection, applying cuts defined before, and releasing the cuts afterwards.
         Projects to 1D with the axisname as dimension
         '''
-        if not self._axisdefinition or self._axisdefinition.FindAxis(axisname):
+        if not self._axisdefinition or self._axisdefinition.FindAxis(axisname) < 0:
             print "No axis definition or axis %s not found" %(axisname)
             return None
         self._PrepareProjection()
