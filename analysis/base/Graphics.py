@@ -385,7 +385,7 @@ class MultipanelPlot(PlotBase):
             return None
         mypad = self._GetPad(padID)
         if not mypad:
-            mypad = self._FramedPad(self._canvas.cd(padID))
+            mypad = self._FramedPad(self._canvas.cd(padID+1))
             self._frames.AddFrame(padID, mypad)
         return mypad
     
