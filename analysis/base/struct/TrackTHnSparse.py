@@ -89,7 +89,7 @@ class TrackTHnSparse(THnSparseWrapper):
         '''
         Apply cut in eta
         '''
-        self.ApplyCut(self,etamin,etamax)
+        self.ApplyCut("eta",etamin,etamax)
     
     def SetPhiCut(self, phimin, phimax):
         '''
