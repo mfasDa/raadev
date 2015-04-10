@@ -190,7 +190,10 @@ class FileReader(object):
         else:
             mydirectory = inputfile
             path += "#"
-        rlist = mydirectory.Get("TriggerTracksResults%s" %(self._trackCutsTag))
+            path += "#"
+        rlist = mydirectory.Get("results")  # old structure
+        if not rlist:
+            rlist = mydirectory.Get("TriggerTracksResults%s" %(self._trackCutsTag))
         if self.__isReadWeights:
             result["weights"] = {"crosssection":rlist.FindObject("fHistXsection"), "trials":rlist.FindObject("fHistTrials")}
         hlist = rlist.FindObject(self._histlist)
