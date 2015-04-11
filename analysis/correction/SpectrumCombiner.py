@@ -5,7 +5,7 @@ Created on 22.09.2014
 '''
 
 from copy import deepcopy
-from base.TriggeredSpectrumScaler import TriggeredSpectrumScaler
+from correction.TriggeredSpectrumScaler import TriggeredSpectrumScaler
 
 class SpectrumCombiner(object):
     """
