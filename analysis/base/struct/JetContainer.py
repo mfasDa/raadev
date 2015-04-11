@@ -6,7 +6,8 @@ Handling of jet-dependenet histograms in the analysis framework
 @author: markus
 '''
 
-from base.SpectrumContainer import SpectrumContainer,EventHistogramNew
+from base.struct.JetTHnSparse import JetTHnSparse
+from base.struct.EventHistogram import EventHistogramNew
 from base.Helper import NormaliseBinWidth
 from copy import deepcopy
 
@@ -18,10 +19,10 @@ class JetPtBin():
         self.__spectrumTrue = None
         
     def SetRecSpectrum(self, spec):
-        self.__spectrum = SpectrumContainer(spec)
+        self.__spectrum = JetTHnSparse(spec)
         
     def SetMCKineSpectrum(self, spec):
-        self.__spectrumTrue = SpectrumContainer(spec)
+        self.__spectrumTrue = JetTHnSparse(spec)
          
     def GetJetPt(self):
         return self.__jetpt
@@ -34,27 +35,27 @@ class JetPtBin():
     
     def SetVertexRange(self, vtxmin, vtxmax):
         if self.__spectrum:
-            self.__spectrum.ApplyCut(4, vtxmin, vtxmax)
+            self.__spectrum.SetVertexCut(vtxmin, vtxmax)
         if self.__spectrumTrue:
-            self.__spectrumTrue.ApplyCut(4, vtxmin, vtxmax)
+            self.__spectrumTrue.SetVertexCut(vtxmin, vtxmax)
     
     def SetMinJetPt(self, minpt):
         if self.__spectrum:
-            self.__spectrum.ApplyCut(1, minpt, 1000.)
+            self.__spectrum.ApplyCut("jetpt", minpt, 1000.)
         if self.__spectrumTrue:
-            self.__spectrumTrue.ApplyCut(1, minpt, 1000.)
+            self.__spectrumTrue.ApplyCut("jetpt", minpt, 1000.)
     
     def SetEtaRange(self, etamin, etamax):
         if self.__spectrum:
-            self.__spectrum.ApplyCut(2, etamin, etamax)
+            self.__spectrum.SetEtaCut(etamin, etamax)
         if self.__spectrumTrue:
-            self.__spectrumTrue.ApplyCut(2, etamin, etamax)
+            self.__spectrumTrue.SetEtaCut(etamin, etamax)
             
     def SetPhiRange(self, phimin, phimax):
         if self.__spectrum:
-            self.__spectrum.ApplyCut(3, phimin, phimax)
+            self.__spectrum.SetPhiCut(phimin, phimax)
         if self.__spectrumTrue:
-            self.__spectrumTrue.ApplyCut(3, phimin, phimax)
+            self.__spectrumTrue.SetPhiCut(phimin, phimax)
     
     def SetSeenInMinBias(self):
         if self.__spectrum:
@@ -63,13 +64,13 @@ class JetPtBin():
             self.__spectrumTrue.ApplyCut(5, 1, 1)
             
     def GetProjectedRecSpectrum(self, dim, name, doNormBW = False):
-        projected = self.__spectrum.ProjectToDimension(dim, name, "", "")
+        projected = self.__spectrum.Projection1D(name,self.__spectrum.GetAxisDefinition().GetAxisName(dim))
         if doNormBW:
             NormaliseBinWidth(projected)
         return projected
         
     def GetProjectedMCKineSpectrum(self, dim, name, doNormBW = False):
-        projected = self.__spectrumTrue.ProjectToDimension(dim, name, "", "")
+        projected = self.__spectrumTrue.Projection1D(name, self.__spectrumTrue.GetAxisDefinition().GetAxisName(dim))
         if doNormBW:
             NormaliseBinWidth(projected)
         return projected
