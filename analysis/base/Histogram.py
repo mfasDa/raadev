@@ -57,19 +57,20 @@ class Histogram(object):
         graph = datacoll.MakeErrorGraphForSource(errorsource)
         for i in range(0, graph.GetN()):
             x = graph.GetX()[i]
-            y = graph.GetEX()[i]
-            dx = graph.GetY()[i]
-            dy = graph.GetEY()[i]
+            dx = graph.GetEXlow()[i]
+            y = graph.GetY()[i]
+            dy = graph.GetEYlow()[i]
+            print "Doing bin from %f to %f" %(x-dx, x+dx)
             self.AddBin(x-dx, x+dx, y, dy)
     
     def __GetBinning(self):
         limits = []
         counter = 0
-        for ib in self.__bins:
+        for ib in sorted(self.__bins):
             if counter == 0:
                 limits.append(ib.GetXmin())
-        limits.append(ib.GetXmax())
-        counter += 1
+            limits.append(ib.GetXmax())
+            counter += 1
         return limits
   
     def MakeROOTHist(self, name, title):
@@ -77,6 +78,6 @@ class Histogram(object):
         result = TH1D(name, title, len(limits)-1, array(limits))
         for mybin in self.__bins:
             ib = result.GetXaxis().FindBin(mybin.GetBinCenter())
-        result.SetBinContent(ib, mybin.GetValue())
-        result.SetBinError(ib, mybin.GetError())
+            result.SetBinContent(ib, mybin.GetValue())
+            result.SetBinError(ib, mybin.GetError())
         return result
