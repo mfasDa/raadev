@@ -40,14 +40,19 @@ class SpectrumSmearer(object):
         """
         random.seed()
         smearedspectrum = deepcopy(self.__inputspectrum)
+        # For error propagation
+        smearederror = deepcopy(self.__inputspectrum)
         for jbin in range(1,smearedspectrum.GetXaxis().GetNbins()+1):
             smearedspectrum.SetBinContent(jbin, 0)
             smearedspectrum.SetBinError(jbin, 0)
+            smearederror.SetBinContent(jbin, 0)
+            smearederror.SetBinError(jbin, 0)
         smearedspectrum.SetName("%sSmeared" %(self.__inputspectrum))
         
         # run actual smearing
         for ibin in range(1, self.__spectrum.GetXaxis().GetNbins()+1):
             weight = self.__inputspectrum.GetBinContent(ibin)/self.__niterations
+            weighthigh = (self.__inputspectrum.GetBinContent(ibin)+self.__inputspectrum.GetBinError(ibin))/self.__niterations
             for itrial in range(0, self.__niterations):
                 binval = random.uniform(self.__inputspectrum.GetXaxis().GetBinLowEdge(ibin), self.__inputspectrum.GetXaxis().GetBinUpEdge(ibin))
                 # get the response
@@ -56,4 +61,9 @@ class SpectrumSmearer(object):
                 if binInSpectrum < 1 or binInSpectrum >= smearedspectrum.GetXaxis().GetNbins():
                     continue
                 smearedspectrum.Fill(generated, weight)
+                smearederror.Fill(generated, weighthigh)
+        
+        # Fix errors
+        for ibin in range(1, self.__spectrum.GetXaxis().GetNbins()+1):
+            smearedspectrum.SetBinError(smearederror.GetBinContent(ibin) - smearedspectrum.GetBinContent(ibin))
         return smearedspectrum
