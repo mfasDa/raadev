@@ -86,7 +86,7 @@ class DataWriter(object):
         self._outputdata = DataSpectra()
         
     def __ReadFile(self, filename, isNewStruct):
-        reader = LegoTrainFileReader(filename, isNew = isNewStruct)
+        reader = LegoTrainFileReader(filename, isNew = isNewStruct, trackCuts="")
         return reader.ReadFile()
     
     def Convert(self):
@@ -142,11 +142,12 @@ class DataTrackWriter(DataWriter):
         accString = "All"
         if self.__inAcceptance:
             accString = "InAcceptance"
-        return "DataTracks%sEta%s%s.root" %(accString, kinestring)
+        return "DataTracks%s%s.root" %(accString, kinestring)
     
     def __DefineTracks(self, tc):
         tc.SetVertexRange(-10, 10)
-        tc.SetPileupRejection()
+        tc.SetPileupRejection(True)
+        tc.SelectTrackCuts(1)
         if self.__etacut:
             tc.SetEtaRange(self.__etacut["etamin"], self.__etacut["etamax"])
         if self.__phicut:
@@ -194,10 +195,10 @@ class DataClusterWriter(DataWriter):
         cc.SetPileupRejection(True)
     
 def WriteTracks(filename, inAcceptance = False, etaSel = "all", isNew = True):
-    writer = DataTrackWriter(filename)
+    writer = DataTrackWriter(filename, isNew)
     writer.SetInAcceptance(inAcceptance)
     if etaSel == "centcms":
-        writer.SetEtaCut(-0.8, -0.3, "centcms")
+        writer.SetEtaCut("centcms", -0.7999, -0.300001)
     writer.Convert()
     writer.WriteOutput()
 

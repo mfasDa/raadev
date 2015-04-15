@@ -152,10 +152,11 @@ class TrackWriter(MonteCarloWriter):
     def ProjectMCtruth(self, inputcontainer, outputname):
         print "Projecting MC-truth"
         inputcontainer.ApplyCut(inputcontainer.GetAxisDefinition().GetAxisName(3),-10., 10.)
-        inputcontainer.ApplyCut(inputcontainer.GetAxisDefinition().GetAxisName(4), 1, 1)
+        #inputcontainer.ApplyCut(inputcontainer.GetAxisDefinition().GetAxisName(4), 1, 1)
         print "finish applying cut"
         if self.__etacut:
-            inputcontainer.ApplyCut(1, self.__etacut["etaMin"], self.__etacut["etaMax"])
+            print "apply eta cut"
+            inputcontainer.ApplyCut("eta", self.__etacut["etaMin"], self.__etacut["etaMax"])
         return inputcontainer.Projection1D(outputname, inputcontainer.GetAxisDefinition().GetAxisName(0))
 
     def Project(self, inputcontainer, outputname):
@@ -269,7 +270,7 @@ def RunTrackProjection(doAcc = False, doMCKine = False, etaSel = "all", phiSel =
     else:
         writer.SetRecKine()
     if etaSel == "centcms":
-        writer.SetEtaCut(-0.8, -0.3, "centcms")
+        writer.SetEtaCut(-0.7999, -0.300001, "centcms")
     elif etaSel == "emc":
         writer.SetEtaCut(-0.5, 0.5, "emc")
     if phiSel:
