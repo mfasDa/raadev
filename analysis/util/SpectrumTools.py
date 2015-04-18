@@ -2,125 +2,18 @@
 Toolset module for histogram operations
 
 @author: Jacek Otwinowski
+@organization: ALICE Collaboration
 Translated into PYTHON by Markus Fasel <markus.fasel@cern.ch>, Lawrence Berkeley National Laboratory
 """
 
 from ROOT import TF1, TGraph, TGraphErrors, TMultiGraph
+from util.Interpolator import Interpolator
 import math
 from copy import deepcopy
 from numpy import array
 from scipy.optimize import fsolve 
-
-class Interpolator(object):
-    
-    def __init__(self):
-        """
-        Constructor
-        """
-        pass
-    
-    def Interpolate(self, x, x1, y1, x2, y2, integrate = False, r = 0, method="lin"):
-        """
-        Interpolation handler:
-        forwards methods to the different interpolation functions
-        @param x:  x at which to evaluate the interpolation 
-        @param x1: lower x step
-        @param y1: function value at x1
-        @param x2: upper x step
-        @param y2: function value at x2
-        @param integrate: if true we evaluate the integral
-        @param r: 
-        """ 
-        if method == "lin":
-            return self.__InterpolateLinear(x, x1, y1, x2, y2, integrate, r)
-        elif method == "pow":
-            return self.__InterpolatePowerLaw(x, x1, y1, x2, y2, integrate, r)
-        elif method == "exp":
-            return self.__InterpolateExponential(x, x1, y1, x2, y2)
-        elif method == "hag":
-            return self.__InterpolateSimpleHagedorn(x, x1, y1, x2, y2)
-
-    def __InterpolateLinear(self, x, x1, y1, x2, y2, integrate = False, r = 0):
-        """
-        Linear interpolation method
-        @param x:  x at which to evaluate the interpolation 
-        @param x1: lower x step
-        @param y1: function value at x1
-        @param x2: upper x step
-        @param y2: function value at x2
-        @param integrate: if true we evaluate the integral
-        @param r: 
-        """ 
-        if x1-x2 == 0:
-            return 0
-        if integrate:
-            return 2*r*(y1+((x-x1)*(y1-y2))/(x1-x2))
-        else:
-            return (y1 + (((y2-y1)/(x2-x1))*(x-x1))) 
-        
-
-    def __InterpolatePowerLaw(self, x, x1, y1, x2, y2, integrate = False, r = 0):
-        """
-        Power law interpolation method
-        @param x:  x at which to evaluate the interpolation 
-        @param x1: lower x step
-        @param y1: function value at x1
-        @param x2: upper x step
-        @param y2: function value at x2
-        @param integrate: if true we evaluate the integral
-        @param r: 
-        """ 
-    
-        #assume functional form y=a*x^n
-        if not self.__AssurePositive(x, x1, x2, y1, y2):
-            return 0.
- 
-        n = (math.log(y1)-math.log(y2))/(math.log(x1)-math.log(x2));
-        a = y1*pow(x1,-n)
-
-        print "y: %f" %(a*pow(x,n))
-        print "n: %f" %(n)
-        print "a: %f" %(a)
-
-        if integrate: 
-            return  ((a/(n+1.))*(math.pow(x+r,n+1.)-math.pow(x-r,n+1.))/(2.*r))
-        else:
-            return (a*math.pow(x,n))
-
-    def __InterpolateExponential(self, x, x1, y1, x2, y2):
-        """
-        Exponential interpolation method
-        @param x:  x at which to evaluate the interpolation 
-        @param x1: lower x step
-        @param y1: function value at x1
-        @param x2: upper x step
-        @param y2: function value at x2
-        """ 
-        if not self.__AssurePositive(x, x1, x2, y1, y2):
-            return 0.
-        return math.exp(self.__InterpolateLinear(x,x1,math.log(y1),x2,math.log(y2)))
-
-    def __InterpolateSimpleHagedorn(self, x, x1, y1, x2, y2):
-        """
-        Hagedorn interpolation method
-        @param x:  x at which to evaluate the interpolation 
-        @param x1: lower x step
-        @param y1: function value at x1
-        @param x2: upper x step
-        @param y2: function value at x2
-        """ 
-        
-        if not self.__AssurePositive(x, x1, x2, y1, y2):
-            return 0.
-        return math.exp(self.__InterpolateLinear(math.log(1.+x),math.log(1.+x1),math.log(y1),math.log(1.+x2),math.log(y2)))
-    
-    def __AssurePositive(self, x, x1, x2, y1, y2):
-        """
-        Check if all values are positive
-        """
-        if x <= 0. or x1 <= 0. or x2 <= 0. or y1 <= 0. or y2 <= 0.:
-            return False
-        return True
+import functools
+import operator
 
         
 class SpectrumTools(object):
@@ -255,6 +148,13 @@ class SpectrumTools(object):
         return lower, upper
         
     def RebinPtSpectrum(self, h, nBins = 0, xBins = None):
+        """
+        Apply rebinning of the spectrum
+        @param h: Input histogram
+        @param nBins: Number of bins
+        @param xbins: Binning of the new histogram
+        @return: The rebinned histogram
+        """
         if not h:
             return None
         if not nBins:
@@ -281,11 +181,17 @@ class SpectrumTools(object):
             h2.SetBinError(i,error/(center*width))
         return h2
 
-    def BinShiftCorrection(self, hist):
+    def ApplyBinShiftCorrection(self, hist):
+        """
+        Apply bin-shift correction to the input spectrum using an iterative procedure
+        @param hist: Input spectrum
+        @return: Bin-shift corrected spectrum 
+        """
     
         h = deepcopy(hist)
         h.SetName("htemp")    
     
+        # Bin shift correction performed in model specturm * pt
         for i in range(1, h.GetNbinsX()+1):
             pt = h.GetBinCenter(i)
             h.SetBinContent(i, h.GetBinContent(i)*pt)
@@ -301,29 +207,24 @@ class SpectrumTools(object):
         fitfun.SetParameter(2,5)
         fitfun.FixParameter(3,0)
         h.Fit(fitfun,"") 
-        last = 0
-        while last != (fitfun.GetParameter(0)*fitfun.GetParameter(1)*fitfun.GetParameter(2)): 
-            last = fitfun.GetParameter(0)*fitfun.GetParameter(1)*fitfun.GetParameter(2)
-            h.Fit(fitfun,"IMR")        
+        self.__StableFit(h, fitfun, True)
    
-            y = 0;
-   
+        # Iterative approach:
+        # - Use model to get the mean of the function inside the bin
+        # - Get the X where the mean is found
+        # - Use the new coordinate (x,y) for the next iteration of the fit
         # for now 10 iterations fixed
         for k in range(1, 11):
             for i in range(1, h.GetNbinsX()+1):
-                y = fitfun.Integral(h.GetBinLowEdge(i),(h.GetBinLowEdge(i)+h.GetBinWidth(i))) / h.GetBinWidth(i)
-                x = self.FindX(y, fitfun, h.GetBinLowEdge(i), (h.GetBinLowEdge(i)+h.GetBinWidth(i)) )
-                result.GetX()[i-1] = x
-            result.Fit(fitfun,"MR")
-            last = 0
-            while last != (fitfun.GetParameter(0)*fitfun.GetParameter(1)*fitfun.GetParameter(2)):
-                last = fitfun.GetParameter(0)*fitfun.GetParameter(1)*fitfun.GetParameter(2)
-                result.Fit(fitfun,"MR")
+                y = fitfun.Integral(h.GetBinLowEdge(i), h.GetBinUpEdge(i)) / h.GetBinWidth(i)
+                result.GetX()[i-1] = self.FindX(y, fitfun, h.GetBinLowEdge(i), h.GetBinUpEdge(i))
+            self.__StableFit(result, fitfun, False)
    
+        # Undo multiplication with pt
         for i in range(0, result.GetN()):
             pt = result.GetX()[i]
-            result.GetY()[i]  = result.GetY()[i] / pt
-            result.GetEY()[i] = result.GetEY()[i] / pt
+            result.GetY()[i]  /=  pt
+            result.GetEY()[i] /=  pt
    
         #remove points that are 0
         while result.GetY()[0] < 1.e-99: 
@@ -339,6 +240,62 @@ class SpectrumTools(object):
             continue 
         return result
     
+    def ApplyBinShiftCorrectionGeneral(self, hist, fit):
+        """
+        Alternative method for bin shift correction:
+        - Apply user-default model for bin-shift correction
+        - don't multiply by pt
+        @param hist: Input spectrum for the bin shift correction
+        @param fit: Model for the bin-shift correction
+        @return: The bin-shift corrected spectrum as graph
+        """
+        h = deepcopy(hist)    
+        hist.SetName("htemp")
+   
+        result = TGraphErrors(h);
+        for i in range(0, result.GetN()):
+            result.GetEX()[i] = 0.   
+        y = 0
+   
+        #for now 10 iterations fixes
+        for k in range(0, 10):
+            for i in range(1, h.GetNbinsX()+1):
+                y = fit.Integral(h.GetBinLowEdge(i),h.GetBinUpEdge(i)) / h.GetBinWidth(i)
+                x = self.FindX(y, fit, h.GetBinLowEdge(i), h.GetBinUpEdge(i)) 
+                result.GetX()[i-1] = x
+  
+        # remove points that are 0
+        while result.GetY()[0] < 1.e-99:
+            result.RemovePoint(0) 
+   
+        mybin = 0
+        for biniter in range(0, result.GetN()):
+            if result.GetY()[biniter] < 1.e-99:
+                mybin = biniter
+                break
+        while result.RemovePoint(mybin) > 0:
+            continue 
+      
+        return result
+
+    def __StableFit(self, inputdata, model, doIntegral = False):
+        """
+        Perform stable fit: Fit until parameters don't change anymore with iteration
+        @param inputdata: Input data to fit (TGraph or TH)
+        @param model: Fit model
+        @param doIntegral: if true we perform integration during fit
+        """
+        last = 0
+        while True:
+            inputdata.Fit(model,"IMR" if doIntegral else "MR")
+            params = []
+            for ipar in range(0, model.GetNumberOfParameters()):
+                params.append(model.GetParameter(ipar))
+            current = functools.reduce(operator.mul, params)    
+            if current == last:
+                break
+            last= current
+    
     def FindX(self, y, function, xmin, xmax):
         """
         ROOT-finding in PYTHON style
@@ -351,7 +308,15 @@ class SpectrumTools(object):
         return fsolve(lambda x : function.Eval(x)-y, (xmax - xmin)/2.)
    
 
-    def FinalizePt(self, h, nevents, etarange):
+    def PerformSpectrumNormalization(self, h, nevents, etarange):
+        """
+        Perform normalization
+        1/(2 pi pt deleatEta Nevents)
+        @param h: Spectrum histogram
+        @param nevents: Number of events to scale
+        @param etarange: Delta eta 
+        @deprecated: Use Normalization class in the correction package
+        """
         for i in range(1, h.GetNbinsX()+1):
             pt = h.GetBinCenter(i)
             width = h.GetBinWidth(i)
@@ -365,8 +330,9 @@ class SpectrumTools(object):
             h.SetBinContent(i,cval);
             h.SetBinError(i,cerr);
 
-    def CreateFromGraph(self, g, prototype, options = "lin"):
+    def MakeHisrogramFromGraph(self, g, prototype, options = "lin"):
         """
+        Create a histogram from a TGraphErrors:
         options can be "lin" (default), "log", "exp", "pow" for the functional shape
         and "I" for intergal
         if g is a TGraphErrors errors will be calculated assuming uncorrelated errors
@@ -410,22 +376,6 @@ class SpectrumTools(object):
     
         xmin = g.GetX()[0]
         xmax = g.GetX()[g.GetN()-1]
-        x   = 0
-        y   = 0
-        x1  = 0
-        x2  = 0
-        y1  = 0
-        y2  = 0
-        a   = 0
-        b   = 0
-        ey  = 0
-        dx1 = 0
-        dy1 = 0
-        dx2 = 0
-        dy2 = 0;
-        ymax = 0
-        ymin = 0
-        k = 0
         h = deepcopy(prototype)
         h.Reset()
   
@@ -437,32 +387,26 @@ class SpectrumTools(object):
             if x > xmax: 
                 break
             # find point k in g closest in x
-            kindex = 0
-            for k in range(1, g.GetN()):
-                x1 = g.GetX()[k-1]
-                x2 = g.GetX()[k]
-                if x1 <= x and x2 >= x:
-                    kindex = k
-                    break
+            lower, upper = self.__FindNeighbors(x, g)
             # now x1 and x2 are the points next to x
-            y1 = g.GetY()[kindex-1]
-            y2 = g.GetY()[kindex]
-            a = h.GetBinLowEdge(i)
-            b = a + h.GetBinWidth(i)
-            y  = self.GetInterpolatedValue(x,x1,y1,x2,y2,options,a,b)    
+            x1 = g.GetX()[lower]
+            x2 = g.GetX()[upper]
+            y1 = g.GetY()[lower]
+            y2 = g.GetY()[upper]
+            y  = self.__GetInterpolatedValue(x,x1,y1,x2,y2,options,h.GetBinLowEdge(i),h.GetBinUpEdge(i))    
             if errx:
-                dx1 = g.GetEX()[kindex-1]
-                dx2 = g.GetEX()[kindex]
+                dx1 = g.GetEX()[lower]
+                dx2 = g.GetEX()[upper]
             if erry:
-                dy1 = g.GetEY()[kindex-1]
-                dy2 = g.GetEY()[kindex]
+                dy1 = g.GetEY()[lower]
+                dy2 = g.GetEY()[upper]
             if errx or erry:
                 if errc:
-                    ymax = self.GetInterpolatedValue(x,x1,y1+dy1,x2,y2+dy2,options,a,b)
-                    ymin = self.GetInterpolatedValue(x,x1,y1-dy1,x2,y2-dy2,options,a,b)
+                    ymax = self.__GetInterpolatedValue(x,x1,y1+dy1,x2,y2+dy2,options,h.GetBinLowEdge(i),h.GetBinUpEdge(i))
+                    ymin = self.__GetInterpolatedValue(x,x1,y1-dy1,x2,y2-dy2,options,h.GetBinLowEdge(i),h.GetBinUpEdge(i))
                     ey = max(math.fabs(y-ymin),math.fabs(y-ymax))
                 else:
-                    ey = self.GetInterpolatedUncertainty(x,x1,y1,x2,y2,dx1,dy1,dx2,dy2,options,a,b)
+                    ey = self.__GetInterpolatedUncertainty(x,x1,y1,x2,y2,dx1,dy1,dx2,dy2,options,h.GetBinLowEdge(i),h.GetBinUpEdge(i))
             h.SetBinContent(i,y)
             h.SetBinError(i,ey)
         h.SetName(g.GetName()) 
@@ -492,7 +436,7 @@ class SpectrumTools(object):
             gtemp.Fit(f,"")
 
 
-    def CreateFromGraphEval(self, g, prototype):
+    def MakeHistogramFromGraphSimple(self, g, prototype):
         """
         Create a histogram using TGraph's 
         interpolation between points
@@ -508,62 +452,7 @@ class SpectrumTools(object):
             h.SetBinError(i,0)
         return h
 
-    def BinShiftCorrectionTest(self, hist, fit):
-        h = deepcopy(hist)    
-        hist.SetName("htemp")
-        pt = 0
-            
-#        for i in range(1, h.GetNbinsX()+1):
-#            pt = h.GetBinCenter(i)
-#            h.SetBinContent(i, h.GetBinContent(i)*pt)
-#            h.SetBinError(i, h.GetBinError(i)*pt)
-   
-        result = TGraphErrors(h);
-        for i in range(0, result.GetN()):
-            result.GetEX()[i] = 0.   
-#        fitfun = TF1("fitfun","([0]*(1.+x/[1])^(-[2])*x)-[3]",0.15,100.0)
-#        fitfun.SetParameter(0,1000)
-#        fitfun.SetParameter(1,1)
-#        fitfun.SetParameter(2,5)
-#        fitfun.FixParameter(3,0)
-#        h.Fit(fitfun,"") 
-#        last = 0
-#        while last != (fitfun.GetParameter(0)*fitfun.GetParameter(1)*fitfun.GetParameter(2)):
-#            last = fitfun.GetParameter(0)*fitfun.GetParameter(1)*fitfun.GetParameter(2)
-#            h.Fit(fitfun,"IMR");        
-        y = 0
-   
-        #for now 10 iterations fixes
-        for k in range(0, 10):
-            for i in range(1, h.GetNbinsX()+1):
-                y = fit.Integral(h.GetBinLowEdge(i),(h.GetBinLowEdge(i)+h.GetBinWidth(i))) / h.GetBinWidth(i)
-                x = self.FindX(y, fit, h.GetBinLowEdge(i), (h.GetBinLowEdge(i)+h.GetBinWidth(i)) )
-                result.GetX()[i-1] = x
-#            result.Fit(fitfun,"MR")
-#            last = 0
-#            while last != (fitfun.GetParameter(0)*fitfun.GetParameter(1)*fitfun.GetParameter(2)):
-#                 last = fitfun.GetParameter(0)*fitfun.GetParameter(1)*fitfun.GetParameter(2);
-#                 result.Fit(fitfun,"MR")
-#        for i in range(0, result.GetN()):
-#            pt = result.GetX()[i]
-#            result.GetY()[i]  = result.GetY()[i] / pt
-#            result.GetEY()[i] = result.GetEY()[i] / pt
-#   
-        # remove points that are 0
-        while result.GetY()[0] < 1.e-99:
-            result.RemovePoint(0) 
-   
-        mybin = 0
-        for biniter in range(0, result.GetN()):
-            if result.GetY()[biniter] < 1.e-99:
-                mybin = biniter
-                break
-        while result.RemovePoint(mybin) > 0:
-            continue 
-      
-        return result;
-
-    def GetInterpolatedValue(self, x, x1, y1, x2, y2, options = "lin", xmin = 0, xmax = 0):
+    def __GetInterpolatedValue(self, x, x1, y1, x2, y2, options = "lin", xmin = 0, xmax = 0):
         """
         Get value at x, interpolated using the points (x1,y1) and (x2,y2) as steps for the interpolation.
         Several models can be applied:
@@ -607,7 +496,7 @@ class SpectrumTools(object):
         else:
             return 0
 
-    def GetInterpolatedUncertainty(self, x, x1, y1, x2, y2, dx1, dy1, dx2, dy2, options = "lin", xmin = 0, xmax = 0):
+    def __GetInterpolatedUncertainty(self, x, x1, y1, x2, y2, dx1, dy1, dx2, dy2, options = "lin", xmin = 0, xmax = 0):
         """
         Get error at x, interpolated using the points (x1,y1) and (x2,y2) as steps for the interpolation.
         Several models can be applied:
