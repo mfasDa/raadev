@@ -1,14 +1,28 @@
-#! /usr/bin/env python
-
+#**************************************************************************
+#* Copyright(c) 1998-2014, ALICE Experiment at CERN, All rights reserved. *
+#*                                                                        *
+#* Author: The ALICE Off-line Project.                                    *
+#* Contributors are mentioned in the code where appropriate.              *
+#*                                                                        *
+#* Permission to use, copy, modify and distribute this software and its   *
+#* documentation strictly for non-commercial purposes is hereby granted   *
+#* without fee, provided that the above copyright notice appears in all   *
+#* copies and that both the copyright notice and this permission notice   *
+#* appear in the supporting documentation. The authors make no claims     *
+#* about the suitability of this software for any purpose. It is          *
+#* provided "as is" without express or implied warranty.                  *
+#**************************************************************************
 """
-Graphics.py
- Created on: 28.08.2014
-     Author: markusfasel
-     
-Graphics module, containing basic ROOT plot helper functionality
-"""
+Graphics module, containing basic ROOT plot helper functionality and
+base classes for specific kinds of plots
 
-from ROOT import TCanvas,TH1F,TLegend,TPad,TPaveText,TF1
+@author: Markus Fasel , 
+@contact: <markus.fasel@cern.ch>
+@organization: Lawrence Berkeley National Laboratory
+@organization: ALICE Collaboration
+@copyright: 1998-2014, ALICE Experiment at CERN, All rights reserved
+"""
+from ROOT import TCanvas,TH1F,TLegend,TPad,TPaveText,TF1, TGraph, TH1
 from ROOT import kBlack
 
 class Frame:
@@ -47,96 +61,209 @@ class Style:
     Class for plot styles (currently only color and marker)
     """
         
-    def __init__(self, color, marker):
+    def __init__(self, color, marker, options = None):
+        """
+        Constructor
+        @param color: Color definition of the style
+        @param marker: Marker definition of the style
+        @param option: Optional other style definitions  
+        """
         self.__color = color
         self.__marker = marker
+        self.__linestyle = None
+        self.__linewidth = None
+        self.__fillstyle = None
+        self.__fillcolor = None
+        if options:
+            if "fillstyle" in options.keys():
+                self.__fillstyle = options["fillstyle"]
+            if "fillcolor" in options.keys():
+                self.__fillcolor = options["fillcolor"]
+            if "linestyle" in options.keys():
+                self.__linestyle = options["linestyle"]
+            if "linewidth" in options.keys():
+                self.__linewidth = options["linewidth"]
 
     def SetColor(self, color):
         """
         Change color of the graphics object
+        @param color: The color of the object 
         """
         self.__color = color
 
     def SetMarker(self, marker):
         """
         Change marker style of the graphics object
+        @param marker: The marker style
         """
         self.__marker = marker
+    
+    def SetLineStyle(self, linestyle):
+        """
+        Change the line style
+        @param linestyle: New line style 
+        """
+        self.__linestyle = linestyle
+        
+    def SetLineWidth(self, linewidth):
+        """
+        Change the line width
+        @param linewidth: New line width
+        """ 
+        self.__linewidth = linewidth
+    
+    def SetFillStyle(self, fillstyle):
+        """
+        Change the fill style
+        @param fillstyle: New fill style
+        """
+        self.__fillstyle = fillstyle
+        
+    def SetFillColor(self, fillcolor):
+        """
+        Change the fill color
+        @param fillcolor: the new fill color 
+        """
+        self.__fillcolor = fillcolor
 
     def GetColor(self):
         """
         Access color of the graphics object
+        @return: Marker color
         """
         return self.__color
 
     def GetMarker(self):
         """
         Access marker style
+        @return: Marker style
         """
         return self.__marker
+    
+    def GetLineStyle(self):
+        """
+        Get the line style (if defined)
+        @return: The line style
+        """
+        return self.__linestyle
+    
+    def GetLineWidth(self):
+        """
+        Get the line width
+        @return: The line width
+        """
+        return self.__linewidth
+    
+    def GetFillStyle(self):
+        """
+        Get the fill style (if defined)
+        @return: The fill style
+        """
+        return self.__fillstyle
+    
+    def GetFillColor(self):
+        """
+        Get the fill color (if defined)
+        @return: The fill color
+        """
+        return self.__fillcolor
     
     def DefineROOTPlotObject(self, rootobject):
         """
         Sets the style to the root object
+        @param rootobject: The ROOT graphics object to be defined 
         """
+        #print "Defining root object"
         rootobject.SetMarkerColor(self.__color)
-        rootobject.SetMarkerStyle(self.__marker)
-        rootobject.SetLineColor(self.__color)
+        if self.__linestyle is not None:
+            rootobject.SetLineStyle(self.__linestyle)
+        if self.__linewidth is not None:
+            rootobject.SetLineWidth(self.__linewidth)
+        if not type(rootobject) is TF1:
+            rootobject.SetMarkerStyle(self.__marker)
+            rootobject.SetLineColor(self.__color)
+            if self.__fillstyle is not None:
+                rootobject.SetFillStyle(self.__fillstyle)
+            if self.__fillcolor is not None:
+                rootobject.SetFillColor(self.__fillcolor)
         
 class GraphicsObject:
     """
     Container for styled objects
     """
     
-    def __init__(self, data, style = None):
+    def __init__(self, data, style = None, drawoption = "epsame"):
         """
         Initialise new graphics object with underlying data (can be TH1 or TGraph(Errors)),
         and optionally a plot style. If no plot style is provided, then the default style (black,
         filled circles) is chosen.
+        @param data: Underlying data as root object
+        @param style: Plot style applied
+        @param drawoption: Draw option   
         """
         self.__data = data
         mystyle = Style(kBlack, 20)
         if style:
             mystyle = style
         self.SetStyle(mystyle)
+        self.__drawoption = "epsame"
+        if drawoption:
+            self.__drawoption = drawoption
+            if not "same" in self.__drawoption:
+                self.__drawoption += "same"
+        if type(self.__data) is TF1:
+            self.__drawoption = "lsame"
     
     def SetStyle(self, style):
         """
         Initialise underlying object with style
+        @param style: The plot style used 
         """
-        self.__data.SetLineColor(style.GetColor())
-        if not type(self.__data) is TF1:
-            self.__data.SetMarkerColor(style.GetColor())
-            self.__data.SetMarkerStyle(style.GetMarker())
+        style.DefineROOTPlotObject(self.__data)
         
     def GetData(self):
         """
         Provide access to underlying data
+        @return: The underlying root object
         """
         return self.__data
         
-    def Draw(self, option = None):
+    def Draw(self):
         """
         Draw graphics object. By default, the plot option is 
         "epsame". Option strings will always have the option same
         """
-        myoption = "epsame"
-        if option:
-            myoption = option
-            if not "same" in myoption:
-                myoption = myoption + "same"
-        if type(self.__data) is TF1:
-            myoption = "lsame"
-        self.__data.Draw(myoption)
+        #print "Drawing option %s" %(self.__drawoption)
+        self.__data.Draw(self.__drawoption)
     
     def AddToLegend(self, legend, title):
         """
         Add graphics object to a legend provided from outside
+        @param legend: The legend the object is added to
+        @param title: Legend entry title  
         """
         option = "lep"
         if type(self.__data) is TF1:
             option = "l"
+        elif self.__IsBoxStyle(self.__data):
+            option = "f"
         legend.AddEntry(self.__data, title, option)
+        
+    def __IsBoxStyle(self, plotobject):
+        """
+        Check whether plot object is drawn in a box style
+        @param plotobject: The object to check
+        @return: True if in box style, False otherwise 
+        """
+        if type(self.__data) is TF1:
+            return False
+        elif issubclass(type(self.__data), TGraph):
+            for i in range(2, 6):
+                if "%d" %(i) in self.__drawoption.lower():
+                    return True
+                return False
+        elif issubclass(type(self.__data), TH1):
+            return True if "b" in self.__drawoption.lower() else False 
 
 class PlotBase:
     """
@@ -219,13 +346,13 @@ class PlotBase:
             self.__frame = frame
             self.__frame.Draw()
             
-        def DrawGraphicsObject(self, graphics, addToLegend = False, title = None, option = None):
+        def DrawGraphicsObject(self, graphics, addToLegend = False, title = None):
             """
             Draw a graphics object into the pad. If addToLegend is set, then the object is added to to the 
             legend.
             """
             self.__graphicsObjects.append(self.GraphicsEntry(graphics, title, addToLegend))
-            graphics.Draw(option)
+            graphics.Draw()
             
             
         def DefineLegend(self, xmin, ymin, xmax, ymax):

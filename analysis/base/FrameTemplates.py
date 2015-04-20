@@ -15,8 +15,11 @@
 """
 Helper module with pre-defined frames 
 
-@author: Markus Fasel <markus.fasel@cern.ch>, Lawrence Berkeley National Laboratory
+@author: Markus Fasel , 
+@contact: <markus.fasel@cern.ch>
+@organization: Lawrence Berkeley National Laboratory
 @organization: ALICE Collaboration
+@copyright: 1998-2014, ALICE Experiment at CERN, All rights reserved
 @date: Apr 20, 2015
 """
 from base.Graphics import Frame
@@ -33,7 +36,7 @@ class NormalizedPtSpectrumFrame(Frame):
         """
         Frame.__init__(self, name, 0., 100., 1e-12, 10)
         self.SetXtitle("p_{t} (GeV/c)")
-        self.SetYtitle("1/(2 #pi p_{t} N_{ev}) dN/(dp_{t} d#eta) (GeV/c)^{-2")
+        self.SetYtitle("1/(2 #pi p_{t} N_{ev}) dN/(dp_{t} d#eta) (GeV/c)^{-2}")
         
 class EfficiencyFrame(Frame):
     """
