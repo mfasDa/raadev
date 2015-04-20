@@ -379,8 +379,10 @@ class SpectrumTools(object):
         h = deepcopy(prototype)
         h.Reset()
   
+        dx1 = 0
+        dx2 = 0 
+        ey = 0
         for i in range(1, h.GetNbinsX()+1):
-            print "Doing bin %d" %(i)
             x = h.GetBinCenter(i)   
             # check the x range
             if x < xmin: 
@@ -389,7 +391,6 @@ class SpectrumTools(object):
                 break
             # find point k in g closest in x
             lower, upper = self.__FindNeighbors(x, g)
-            print "Found points lower %d and upper %d" %(lower, upper) 
             # now x1 and x2 are the points next to x
             x1 = g.GetX()[lower]
             x2 = g.GetX()[upper]
@@ -438,9 +439,9 @@ class SpectrumTools(object):
         @return: tuple of lower and upper y error
         """
         if isinstance(inputgraph, TGraphAsymmErrors):
-            return inputgraph.GetEXlow()[pointID], inputgraph.GetEXhigh()[pointID]
+            return inputgraph.GetEYlow()[pointID], inputgraph.GetEYhigh()[pointID]
         elif isinstance(inputgraph, TGraphErrors):
-            return inputgraph.GetEX()[pointID], inputgraph.GetEX()[pointID]
+            return inputgraph.GetEY()[pointID], inputgraph.GetEY()[pointID]
         else:
             return None
 
@@ -515,15 +516,15 @@ class SpectrumTools(object):
                 return y1*math.pow(y1/y2,(x - x1)/(x1 - x2));
             #end of "exp"
         elif "pow" in options:
-            c = math.pow(x1,-math.log(y1/y2)/(math.log(x1) - math.log(x2)));
-            n = math.log(y1/y2)/(math.log(x1) - math.log(x2));
+            c = math.pow(x1,-math.log(y1/y2)/(math.log(x1) - math.log(x2)))
+            n = math.log(y1/y2)/(math.log(x1) - math.log(x2))
             if integrate: 
                 if math.fabs(n+1.) < 1e-6:
                     return (c*(math.log(xmax) - math.log(xmin)))/(xmax - xmin)
                 else: 
-                    (c*(math.pow(xmax,1 + n) - math.pow(xmin,1 + n)))/((1 + n)*(xmax - xmin));
+                    (c*(math.pow(xmax,1 + n) - math.pow(xmin,1 + n)))/((1 + n)*(xmax - xmin))
             else:
-                return c*math.pow(x,n);
+                return c*math.pow(x,n)
             # end of "pow"
         else:
             return 0
@@ -544,7 +545,7 @@ class SpectrumTools(object):
         @param dy1: uncertainty in y at point 1 
         @param dx2: uncertainty in x at point 2 
         @param dy2: uncertainty in y at point 2 
-        @param option: Interpolatoin method
+        @param option: Interpolation method
         @param xmin:
         @param xmax:
         @return: error value

@@ -27,7 +27,10 @@ def GetListOfBinLimits(inputhist):
     for i in range(1, inputhist.GetXaxis().GetNbins()+1):
         if i == 1:
             binlimits.append(inputhist.GetXaxis().GetBinLowEdge(i))
-        binlimits.append(inputhist.GetXaxis().GetBinUpEdge(i))
+        newlimit = inputhist.GetXaxis().GetBinUpEdge(i)
+        if newlimit in binlimits:
+            continue
+        binlimits.append(newlimit)
     return binlimits    
 
 def MakeRatio(num, den, isBinomial = False):
