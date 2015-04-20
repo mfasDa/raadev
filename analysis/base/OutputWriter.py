@@ -5,21 +5,20 @@ Created on 22.09.2014
 '''
 
 from ROOT import TFile, TList, TObject
-from __builtin__ import None
 
 class OutputWriter:
     '''
     classdocs
     '''
-    
+
     class OutputObject:
-        
+
         def __init__(self, name):
             self.__name = name
-            
+
         def GetName(self):
             return self.__name
-        
+
         def Write(self):
             output = self.GetROOTPrimitive()
             output.Write(output.GetName(), TObject.kSingleKey)
@@ -30,30 +29,30 @@ class OutputWriter:
             if self.__name > other.GetName():
                 return 1
             return 0
-            
-    class NamedObject(OutputWriter.OutputObject):
-        
+
+    class NamedObject(OutputObject):
+
         def __init__(self, name, rootobject):
             OutputWriter.OutputObject.__init__(self, name)
             self.__rootobject = rootobject
-            
+
         def GetROOTPrimitive(self):
             self.__rootobject.SetName(self.__name)
             return self.__rootobject
-        
-        
-    class ListObject(OutputWriter.OutputObject):
-        
+
+
+    class ListObject(OutputObject):
+
         def __init__(self, name):
             OutputWriter.OutputObject.__init__(self, name)
             self.__rootobjects = []
-            
+
         def AddRootObject(self, name, rootobject):
             self.__rootobjects.append(OutputWriter.NamedObject(name, rootobject))
-        
+
         def AddListObject(self, name):
             self.__rootobjects.append(OutputWriter.ListObject(name))
-            
+
         def FindUpper(self, path):
             result = None
             for o in self.__rootobjects:
@@ -61,7 +60,7 @@ class OutputWriter:
                     result = True
                     break
             return result
-            
+
         def GetROOTPrimitive(self):
             output = TList()
             output.SetName(self.__name)
@@ -76,13 +75,13 @@ class OutputWriter:
         '''
         self.__globalObjects = []
         self.__filename = filename
-        
+
     def WriteOutput(self):
         output = TFile(self.__filename, "RECREATE")
         for entry in self._globalObjects:
             entry.Write()
         output.Close()
-    
+
     def MakeList(self, listname, parent = None):
         if not parent:
             self.__globalObjects.append(OutputWriter.ListObject(listname))
@@ -90,7 +89,7 @@ class OutputWriter:
             myparent = self.FindParent(parent)
             if myparent:
                 parent.AddListObject(listname)
-    
+
     def AddObject(self, name, rootobject, parent = None):
         if not parent:
             self.__globalObjects.append(OutputWriter.NamedObject(name, rootobject))
@@ -98,7 +97,7 @@ class OutputWriter:
             myparent = self.FindParent(parent)
             if myparent:
                 parent.AddRootObject(name, rootobject)
-  
+
     def FindParent(self, parentname):
         result = None
         for o in self.__globalObjects:

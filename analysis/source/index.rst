@@ -13,7 +13,6 @@ Contents:
 
 .. include:: base.txt
 
-
 Indices and tables
 ==================
 
