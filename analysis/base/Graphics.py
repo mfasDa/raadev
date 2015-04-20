@@ -33,6 +33,11 @@ class Frame:
     def __init__(self, name, xmin, xmax, ymin, ymax):
         """
         Construct frame with name and ranges for x and y coordinate
+        @param name: Name of the frame
+        @param xmin: Min. value of the x-coordinate
+        @param xmax: Max. value of the x-coordinate
+        @param ymin: Min. value of the y-coordinate
+        @param ymax: Max. value of the y-coordinate   
         """
         self.__framehist = TH1F(name, "", 100, xmin, xmax)
         self.__framehist.SetStats(False)
@@ -41,12 +46,14 @@ class Frame:
     def SetXtitle(self, title):
         """
         Set title of the x axis
+        @param title: Title of the x-axis
         """
         self.__framehist.GetXaxis().SetTitle(title)
     
     def SetYtitle(self, title):
         """
         Set title of the y axis
+        @param title: Title of the y-axis
         """
         self.__framehist.GetYaxis().SetTitle(title)
         
@@ -189,7 +196,7 @@ class Style:
         
 class GraphicsObject:
     """
-    Container for styled objects
+    Container for styled objects, inheriting from TGraph, TH1 or TF1
     """
     
     def __init__(self, data, style = None, drawoption = "epsame"):
@@ -289,6 +296,8 @@ class PlotBase:
             def __cmp__(self, other):
                 """
                 Comparison is done accoring to the object title
+                @param other: object to compare with
+                @return: 0 if objects are equal, 1 if this object is larger, -1 if object is smaller 
                 """
                 # 1st case: either or both of the titles missing
                 if not self.__title and not other.GetTitle():
@@ -307,30 +316,42 @@ class PlotBase:
             def GetObject(self):
                 """
                 Accessor to graphics object
+                @return: Underlying object
                 """
                 return self.__object
             
             def GetTitle(self):
+                """
+                Get the title of the object
+                @return: Title of the object
+                """
                 return self.__title
             
             def IsAddToLegend(self):
                 """
                 Check whether graphics is foreseen to be added to legend
+                @return: True if the object is added to the legend
                 """
                 return self.__addToLegend
             
             def SetTitle(self, title):
                 """
                 Change title of the graphics object
+                @param title: Title of the object 
                 """
                 self.__title = title
                 
             def SetAddToLegend(self, doAdd):
+                """
+                Define whether object should be added to a legend
+                @param doAdd: Switch for adding object to a legend
+                """ 
                 self.__addToLegend = doAdd
         
         def __init__(self, pad):
             """
             Constructor, creating a framed pad structure for a TPad
+            @param pad: Underlying ROOT pad 
             """
             self.__pad = pad
             self.__Frame = None
@@ -342,6 +363,7 @@ class PlotBase:
             """
             Draw a frame, defined from outside, within the pad
             The pad becomes owner of the frame
+            @param frame: Frame of the pad 
             """
             self.__frame = frame
             self.__frame.Draw()
@@ -359,6 +381,10 @@ class PlotBase:
             """
             create a new legend within the frame with the 
             given boundary coordinates
+            @param xmin: Min. x value of the legend
+            @param xmin: Max. x value of the legend
+            @param xmin: Min. y value of the legend
+            @param xmin: Max. y value of the legend
             """
             if not self.__legend:
                 self.__legend = TLegend(xmin, ymin, xmax, ymax)
@@ -369,6 +395,10 @@ class PlotBase:
         def CreateLegend(self, xmin, ymin, xmax, ymax):
             """
             Create Legend from all graphics entries
+            @param xmin: Min. x value of the legend
+            @param xmin: Max. x value of the legend
+            @param xmin: Min. y value of the legend
+            @param xmin: Max. y value of the legend
             """
             if not self.__legend:
                 self.DefineLegend(xmin, ymin, xmax, ymax)
@@ -380,12 +410,15 @@ class PlotBase:
         def GetLegend(self):
             """
             Provide access to legend
+            @return: the legend
             """
             return self.__legend
         
         def AddToLegend(self, graphicsObject, title):
             """
             Special method adding graphics objects to a legend
+            @param graphicsObject: graphics object to be added to the legend 
+            @param title: Legend entry title 
             """
             if self.__legend:
                 graphicsObject.AddToLegend(self.__legend, title)
@@ -400,6 +433,11 @@ class PlotBase:
         def DrawLabel(self, xmin, ymin, xmax, ymax, text):
             """
             Add a new label to the pad and draw it
+            @param xmin: Min. x value of the label
+            @param xmin: Max. x value of the label
+            @param xmin: Min. y value of the label
+            @param xmin: Max. y value of the label
+            @param text: Label text
             """
             label = TPaveText(xmin, ymin, xmax, ymax, "NDC")
             label.SetBorderSize(0)
@@ -412,6 +450,7 @@ class PlotBase:
         def GetPad(self):
             """
             Provide direct access to the pad
+            @return: Underlying ROOT pad
             """
             return self.__pad
             
@@ -429,12 +468,16 @@ class PlotBase:
         def AddFrame(self, frameID, frame):
             """
             Add a new framed pad to the frame container
+            @param frameID: ID of the frame
+            @param frame: Frame to be added for pad with ID  
             """
             self.__Frames[frameID] = frame
             
         def GetFrame(self, frameID):
             """
             Provide access to frame
+            @param frameID: ID of the frame
+            @return: The frame for the pad 
             """
             if not self.__Frames.has_key(frameID):
                 return None
@@ -450,6 +493,10 @@ class PlotBase:
     def _OpenCanvas(self, canvasname, canvastitle, xsize = 1000, ysize = 800):
         """
         Initialise canvas with name, title and sizes
+        @param canvasname: Name of the canvas
+        @param canvastitle: Title of the canvas
+        @param xsize: Canvas size in x-direction
+        @param ysize: Canvas size in y-direction   
         """
         self._canvas = TCanvas(canvasname, canvastitle, xsize, ysize)
         self._canvas.cd()
@@ -459,6 +506,7 @@ class PlotBase:
         Save plot to files:
         Creating a file with a common name in the formats
         eps, pdf, jpeg, gif and pdf
+        @param filenamebase: Basic part of the filename (without endings) 
         """
         for t in ["eps", "pdf", "jpeg", "gif", "png"]:
             self._canvas.SaveAs("%s.%s" %(filenamebase, t))
@@ -474,6 +522,8 @@ class SinglePanelPlot(PlotBase):
     def _OpenCanvas(self, canvasname, canvastitle):
         """
         Create canvas and add it to the list of framed pads
+        @param canvasname: Name of the canvas
+        @param canvastitle: Title of the canvas
         """
         PlotBase._OpenCanvas(self, canvasname, canvastitle, 1000, 800)
         self._frames.AddFrame(0, self._FramedPad(self._canvas))
@@ -481,6 +531,7 @@ class SinglePanelPlot(PlotBase):
     def _GetFramedPad(self):
         """
         Access to framed pad
+        @return: The underlying framed pad
         """
         return self._frames.GetFrame(0)
     
@@ -500,6 +551,10 @@ class MultipanelPlot(PlotBase):
     def _OpenCanvas(self, canvasname, canvastitle, xsize, ysize):
         """
         Create new canvas and split it into the amount of pads as defined
+        @param canvasname: Name of the canvas
+        @param canvastitle: Title of the canvas
+        @param xsize: Canvas size in x-direction
+        @param ysize: Canvas size in y-direction   
         """
         PlotBase._OpenCanvas(self, canvasname, canvastitle, xsize, ysize)
         self._canvas.Divide(self.__ncol, self.__nrow)
@@ -507,6 +562,8 @@ class MultipanelPlot(PlotBase):
     def _OpenPad(self, padID):
         """
         Create new framed pad in a multi-panel plot for a given pad ID
+        @param padID: ID number of the pad
+        @return: The framed pad
         """
         if padID < 0 or padID > self.__GetMaxPadID():
             return None
@@ -519,24 +576,35 @@ class MultipanelPlot(PlotBase):
     def _OpenPadByRowCol(self, row, col):
         """
         Create new framed pad in a multi-panel plot for a given row an col
+        @param row: row of the pad
+        @param col: column of the pad  
+        @return: The new pad at this position 
         """
         return self._OpenPad(self.__GetPadID(row, col))
     
     def _GetPad(self, padID):
         """
         Access to Pads by pad ID
+        @param padID: ID number of the pad
+        @return: The framed pad
         """
         return self._frames.GetFrame(padID)
     
     def _GetPadByRowCol(self, row, col):
         """
         Access Pad by row and col
+        @param row: row of the pad
+        @param col: column of the pad  
+        @return: The pad at this position 
         """
         return self._frames.GetFrame(self.__GetPadID(row, col))
     
     def __GetPadID(self, row, col):
         """
         Calculate ID of the pad
+        @param row: row of the pad
+        @param col: column of the pad  
+        @return: The pad ID for this combination
         """
         if (row < 0 or row >= self.__nrow) or (col < 0 or col >= self.__ncol):
             return -1
@@ -545,6 +613,7 @@ class MultipanelPlot(PlotBase):
     def __GetMaxPadID(self):
         """
         Calculate the maximum allowed pad ID
+        @return: The maximum pad ID
         """
         return 1 + self.__ncol * self.__nrow
     
@@ -562,6 +631,8 @@ class TwoPanelPlot(MultipanelPlot):
     def _CreateCanvas(self, canvasname, canvastitle):
         """
         Create Canvas with the dimensions of a four-panel plot
+        @param canvasname: Name of the canvas
+        @param canvastitle: Title of the canvas
         """
         MultipanelPlot._OpenCanvas(self, canvasname, canvastitle, 1000, 500)
     
@@ -579,5 +650,7 @@ class FourPanelPlot(MultipanelPlot):
     def _OpenCanvas(self, canvasname, canvastitle):
         """
         Create Canvas with the dimensions of a four-panel plot
+        @param canvasname: Name of the canvas
+        @param canvastitle: Title of the canvas
         """
         MultipanelPlot._OpenCanvas(self, canvasname, canvastitle, 1000, 1000)
