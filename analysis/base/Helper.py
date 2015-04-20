@@ -16,6 +16,19 @@ def NormaliseBinWidth(hist):
         bw = hist.GetXaxis().GetBinWidth(mybin)
         hist.SetBinContent(mybin, hist.GetBinContent(mybin)/bw)
         hist.SetBinError(mybin, hist.GetBinError(mybin)/bw)
+        
+def GetListOfBinLimits(inputhist):
+    """
+    Convert bin limits to a list
+    @param inputhist: Histogram to obtain the bin limits from
+    @return: list of bin limits
+    """
+    binlimits = []
+    for i in range(1, inputhist.GetXaxis().GetNbins()+1):
+        if i == 1:
+            binlimits.append(inputhist.GetXaxis().GetBinLowEdge(i))
+        binlimits.append(inputhist.GetXaxis().GetBinUpEdge(i))
+    return binlimits    
 
 def MakeRatio(num, den, isBinomial = False):
     """
