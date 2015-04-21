@@ -15,15 +15,19 @@
 """
 Toolset module for histogram operations
 
+:organization: ALICE Collaboration
+:copyright: 1998-2014, ALICE Experiment at CERN, All rights reserved.
+
 Original author (ROOT macro):
-@author: Jacek Otwinowski
-@organization: ALICE Collaboration
-Translated into PYTHON by  
-@author: Markus Fasel
-@contact: markus.fasel@cern.ch
-@organization: ALICE Collaboration
-@organization: Lawrence Berkeley National Laboratory
-@copyright: 1998-2014, ALICE Experiment at CERN, All rights reserved.
+
+:author: Jacek Otwinowski
+:organization: ALICE Collaboration
+
+Translated into PYTHON:
+
+:author: Markus Fasel
+:contact: markus.fasel@cern.ch
+:organization: Lawrence Berkeley National Laboratory
 """
 
 from ROOT import TF1, TGraph, TGraphAsymmErrors, TGraphErrors, TMultiGraph
@@ -52,10 +56,15 @@ class SpectrumTools(object):
     def DivideGraphs(self, g1, g2, interpolationMethod = "lin"):
         """
         Divide 2 graphs g1 and g2, by each other applying an interpolation between the points for the denominator
-        @param g1: graph 1
-        @param g2: graph 2
-        @param interpolationMethod: method used for interpolation between the two graphs 
-        @return: The ratio graphs
+        
+        :param g1: graph 1
+        :param g2: graph 2
+        :param interpolationMethod: method used for interpolation between the two graphs 
+        :type g1: TGraphErrors
+        :type g2: TGraphErrors
+        :type interpolationMethod: str
+        :return: The ratio graphs
+        :rtype: TMultiGraph
         """
     
         #calculate x range
@@ -88,12 +97,19 @@ class SpectrumTools(object):
         """
         Divide 2 graphs by each other.
         For the denominator graph use interpolation
-        @param numerator: Numerator graph
-        @param denominator: Denominator graph
-        @param xmin: lower boundary for calculation
-        @param xmax: upper boundary for calculation
-        @param interpolationMethod: method used for the interpolation   
-        @return: the ratio of the graphs
+        
+        :param numerator: Numerator graph
+        :param denominator: Denominator graph
+        :param xmin: lower boundary for calculation
+        :param xmax: upper boundary for calculation
+        :param interpolationMethod: method used for the interpolation   
+        :type numerator: TGraphErrors
+        :type denominator: TGraphErrors
+        :type xmin: float 
+        :type xmax: float
+        :type interpolationMethod: str 
+        :return: the ratio of the graphs
+        :rtype: TGraphErrors
         """
         startBin = numerator.GetN()
         endBin = -1
@@ -155,8 +171,13 @@ class SpectrumTools(object):
     def __FindNeighbors(self, x, graph):
         """
         Find the upper and lower neighbor of point x in the graph
-        @param x: point to evaluate
-        @param graph: graph to check  
+        
+        :param x: point to evaluate
+        :param graph: graph to check  
+        :type x: float
+        :type graph: TGraph, TGraphErrors, TGraphAsymmErrors
+        :return: tuple of lower and upper boundary
+        :rtype: tuple
         """
         lower = -1
         upper = -1
@@ -170,10 +191,15 @@ class SpectrumTools(object):
     def RebinPtSpectrum(self, h, nBins = 0, xBins = None):
         """
         Apply rebinning of the spectrum
-        @param h: Input histogram
-        @param nBins: Number of bins
-        @param xbins: Binning of the new histogram
-        @return: The rebinned histogram
+        
+        :param h: Input histogram
+        :param nBins: Number of bins
+        :param xbins: Binning of the new histogram
+        :type h: TH1
+        :type nBins: int
+        :type xbins: list
+        :return: The rebinned histogram
+        :rtype: TH1
         """
         if not h:
             return None
@@ -204,8 +230,11 @@ class SpectrumTools(object):
     def ApplyBinShiftCorrection(self, hist):
         """
         Apply bin-shift correction to the input spectrum using an iterative procedure
-        @param hist: Input spectrum
-        @return: Bin-shift corrected spectrum 
+        
+        :param hist: Input spectrum
+        :type hist: TH1
+        :return: Bin-shift corrected spectrum 
+        :rtype: TGraphErrors
         """
     
         h = deepcopy(hist)
@@ -265,9 +294,13 @@ class SpectrumTools(object):
         Alternative method for bin shift correction:
         - Apply user-default model for bin-shift correction
         - don't multiply by pt
-        @param hist: Input spectrum for the bin shift correction
-        @param fit: Model for the bin-shift correction
-        @return: The bin-shift corrected spectrum as graph
+        
+        :param hist: Input spectrum for the bin shift correction
+        :param fit: Model for the bin-shift correction
+        :type hist: TH1
+        :type fit: TF1
+        :return: The bin-shift corrected spectrum as graph
+        :rtype: TGraphErrors
         """
         h = deepcopy(hist)    
         hist.SetName("htemp")
@@ -301,9 +334,13 @@ class SpectrumTools(object):
     def __StableFit(self, inputdata, model, doIntegral = False):
         """
         Perform stable fit: Fit until parameters don't change anymore with iteration
-        @param inputdata: Input data to fit (TGraph or TH)
-        @param model: Fit model
-        @param doIntegral: if true we perform integration during fit
+        
+        :param inputdata: Input data to fit
+        :param model: Fit model
+        :param doIntegral: if true we perform integration during fit
+        :type inputdata: TGraph, TH1
+        :type model: TF1
+        :type doIntegral: bool
         """
         last = 0
         while True:
@@ -319,11 +356,17 @@ class SpectrumTools(object):
     def FindX(self, y, function, xmin, xmax):
         """
         ROOT-finding in PYTHON style
-        @param y: y-value
-        @param function: input of the equation
-        @param xmin: min. x (for initial guess)
-        @param xmax: max. x (for initial guess)
-        @return: Solution of the equation f(x) = y    
+        
+        :param y: y-value
+        :param function: input of the equation
+        :param xmin: min. x (for initial guess)
+        :param xmax: max. x (for initial guess)
+        :type y: float
+        :type function: TF1
+        :type xmin: float
+        :type xmax: float
+        :return: Solution of the equation f(x) = y    
+        :rtype: float
         """
         return fsolve(lambda x : function.Eval(x)-y, (xmax - xmin)/2.)
    
@@ -332,10 +375,14 @@ class SpectrumTools(object):
         """
         Perform normalization
         1/(2 pi pt deleatEta Nevents)
-        @param h: Spectrum histogram
-        @param nevents: Number of events to scale
-        @param etarange: Delta eta 
-        @deprecated: Use Normalization class in the correction package
+
+        :param h: Spectrum histogram
+        :param nevents: Number of events to scale
+        :param etarange: Delta eta 
+        :type h: TH1
+        :type nevents: int, float
+        :type etarange: float
+        :deprecated: Use Normalization class in the correction package
         """
         for i in range(1, h.GetNbinsX()+1):
             pt = h.GetBinCenter(i)
@@ -362,10 +409,15 @@ class SpectrumTools(object):
         "E0" supresses calculation of errors
         "EC" calculates correlated errors (for systematics)
         "I2" uses integral for value, but eval for errors
-        @param g: inputgraph
-        @param prototype: prototype histogram
-        @param option: see above
-        @return: Histogram created from the graph 
+
+        :param g: inputgraph
+        :param prototype: prototype histogram
+        :param option: see above
+        :type g: TGraphErrors
+        :type prototype: TH1
+        :type option: str
+        :return: Histogram created from the graph 
+        :rtype: TH1
         """
         errx = False                # flag for x errors
         erry = False                # flag for y errors
@@ -442,8 +494,11 @@ class SpectrumTools(object):
     def __GetXerrors(self, inputgraph, pointID):
         """
         Get the x-errors (low, up) in a transparent way for TGraph and TGraphErrors
-        @param inputgraph: input for the graph
-        @return: tuple of lower and upper x error
+
+        :param inputgraph: input for the graph
+        :type inputgraph: TGraphErrors, TGraphAsymmErrors
+        :return: tuple of lower and upper x error
+        :rtype: tuple
         """
         if isinstance(inputgraph, TGraphAsymmErrors):
             return inputgraph.GetEXlow()[pointID], inputgraph.GetEXhigh()[pointID]
@@ -455,8 +510,11 @@ class SpectrumTools(object):
     def __GetYerrors(self, inputgraph, pointID):
         """
         Get the y-errors (low, up) in a transparent way for TGraph and TGraphErrors
-        @param inputgraph: input for the graph
-        @return: tuple of lower and upper y error
+        
+        :param inputgraph: input for the graph
+        :type inputgraph: TGraphErrors, TGraphAsymmErrors
+        :return: tuple of lower and upper y error
+        :rtype: tuple
         """
         if isinstance(inputgraph, TGraphAsymmErrors):
             return inputgraph.GetEYlow()[pointID], inputgraph.GetEYhigh()[pointID]
@@ -468,10 +526,15 @@ class SpectrumTools(object):
     def SetParameters(self, f, x1, y1, x2, y2):
         """
         Set Function parameters
-        @param x1: lower x value
-        @param y1: y-value at x1 
-        @param x2: lower x value
-        @param y2: y-value at x1 
+        
+        :param x1: lower x value
+        :param y1: y-value at x1 
+        :param x2: lower x value
+        :param y2: y-value at x1 
+        :type x1: float
+        :type x2: float
+        :type y1: float
+        :type y2: float
         """
         if f.GetName() == "lin":
             f.SetParameter(1,(y1-y2)/(x1-x2))           # slope
@@ -493,9 +556,13 @@ class SpectrumTools(object):
         """
         Create a histogram using TGraph's 
         interpolation between points
-        @param g: input graph
-        @param prototype: prototype for the 
-        @return: the new histogram
+        
+        :param g: input graph
+        :param prototype: prototype for the 
+        :type g: TGraph, TGraphErrors, TGraphAsymmErrors
+        :type prototype: TH1
+        :return: the new histogram
+        :rtype: TH1
         """
         h = deepcopy(prototype)
         h.SetName(g.GetName()) 
@@ -509,18 +576,29 @@ class SpectrumTools(object):
         """
         Get value at x, interpolated using the points (x1,y1) and (x2,y2) as steps for the interpolation.
         Several models can be applied:
-        - linear
-        - exponential
-        - power law
-        @param x: Step at which to perform the interpolation
-        @param x1: lower x coordinate
-        @param y1: Function value at x1
-        @param x2: upper x coordinate
-        @param y2: Function value at x2
-        @param option: Interpolatoin method
-        @param xmin:
-        @param xmax:
-        @return: interpolation value    
+            * linear
+            * exponential
+            * power law
+        
+        :param x: Step at which to perform the interpolation
+        :param x1: lower x coordinate
+        :param y1: Function value at x1
+        :param x2: upper x coordinate
+        :param y2: Function value at x2
+        :param option: Interpolatoin method
+        :param xmin:
+        :param xmax:
+        :type x: float
+        :type x1: float
+        :type y1: float
+        :type x2: float
+        :type y1: float
+        :type y2: float
+        :type options: str
+        :type xmin: float
+        :type xmax: float
+        :return: interpolation value    
+        :rtype: float
         """
         integrate = True if "I" in options else False
         if "lin" in options:
@@ -553,22 +631,37 @@ class SpectrumTools(object):
         """
         Get error at x, interpolated using the points (x1,y1) and (x2,y2) as steps for the interpolation.
         Several models can be applied:
-        - linear
-        - exponential
-        - power law
-        @param x: Step at which to perform the interpolation
-        @param x1: lower x coordinate
-        @param y1: Function value at x1
-        @param x2: upper x coordinate
-        @param y2: Function value at x2
-        @param dx1: uncertainty in x at point 1 
-        @param dy1: uncertainty in y at point 1 
-        @param dx2: uncertainty in x at point 2 
-        @param dy2: uncertainty in y at point 2 
-        @param option: Interpolation method
-        @param xmin:
-        @param xmax:
-        @return: error value
+            * linear
+            * exponential
+            * power law
+        
+        :param x: Step at which to perform the interpolation
+        :param x1: lower x coordinate
+        :param y1: Function value at x1
+        :param x2: upper x coordinate
+        :param y2: Function value at x2
+        :param dx1: uncertainty in x at point 1 
+        :param dy1: uncertainty in y at point 1 
+        :param dx2: uncertainty in x at point 2 
+        :param dy2: uncertainty in y at point 2 
+        :param option: Interpolation method
+        :param xmin:
+        :param xmax:
+        :type x: float
+        :type x1: float
+        :type y1: float
+        :type x2: float
+        :type y1: float
+        :type y2: float
+        :type dy1: float
+        :type dx2: float
+        :type dy1: float
+        :type dy2: float
+        :type options: str
+        :type xmin: float
+        :type xmax: float
+        :return: error value
+        :rtype: float
         """  
         integrate = True if "I" in options or "I2" in options else False 
 
