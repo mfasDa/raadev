@@ -44,10 +44,10 @@ class Interpolator(object):
         Interpolation handler:
         forwards methods to the different interpolation functions
         Interpolation methods are:
-            * lin: linear interpolation
-            * pow: power law interpolation
-            * exp: exponential interpolation
-            * hag: modified hagedorn interpolation
+            - lin: linear interpolation
+            - pow: power law interpolation
+            - exp: exponential interpolation
+            - hag: modified hagedorn interpolation
         
         :param x:  x at which to evaluate the interpolation 
         :param x1: lower x step

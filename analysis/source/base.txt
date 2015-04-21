@@ -158,5 +158,5 @@ Subpackages
 
 .. toctree::
 
-    base.struct
+..include::   base.struct.txt
 
