@@ -4,7 +4,6 @@ Created on 18.09.2014
 @author: markusfasel
 '''
 
-from base.struct.DataContainers import SpectrumContainer
 from base.Graphics import Style
 from plots.PtReachPlot import PtReachData, PtReachPlot
 from base.FileHandler import LegoTrainFileReader
@@ -12,12 +11,9 @@ from ROOT import kBlack, kRed, kBlue, kGreen, kOrange
 
 def MakeNormalisedSpectrum(container):
     inputcontainer = container.FindTrackContainer("tracksAll")
-    try:
-        inputcontainer.SetVertexRange(-10., 10.)
-        inputcontainer.SetPileupRejection(True)
-        inputcontainer.SelectTrackCuts(1)
-    except SpectrumContainer.RangeException as e:
-        print str(e)
+    inputcontainer.SetVertexRange(-10., 10.)
+    inputcontainer.SetPileupRejection(True)
+    inputcontainer.SelectTrackCuts(1)
     return inputcontainer.MakeProjection(0, "ptSpectrum%s", "p_{#rm{t}} (GeV/c)", "1/N_{event} 1/(#Delta p_{#rm t}) dN/dp_{#rm{t}} ((GeV/c)^{-2}")
 
 

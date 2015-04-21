@@ -6,7 +6,7 @@ Created on 29.09.2014
 
 from base.MonteCarloFileHandler import MonteCarloFileHandler
 from base.Graphics import Style
-from base.FileHandler import ResultDataBuilder
+from base.ResultDataBuilder import ResultDataBuilder
 from plots.TriggerEfficiencyPlotMC import TriggerEfficiencyPlotMC,TriggerEfficiencySumPlot,TriggerEfficiencyPlotClasses
 from base.TriggerEfficiency import TriggerEfficiency
 from os import getcwd

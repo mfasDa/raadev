@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 
-from base.FileHandler import ResultDataBuilder
+from base.ResultDataBuilder import ResultDataBuilder
 from base.Graphics import FourPanelPlot,GraphicsObject,Style,Frame
 from ROOT import kBlack,kBlue,kGreen,kRed,kOrange
 
-from Helper import MakeRatio,HistToGraph
+from base.Helper import MakeRatio,HistToGraph
 
 class ClusterComparisonPlot(FourPanelPlot):
     

@@ -3,20 +3,16 @@ Created on 21.09.2014
 
 @author: markusfasel
 '''
-from base.struct.DataContainers import SpectrumContainer
 from base.FileHandler import LegoTrainFileReader
 from plots.TrackYieldEventPlot import TrackYieldEventPlot
-from base.SpectrumCombiner import SpectrumCombiner
+from correction.SpectrumCombiner import SpectrumCombiner
 from base.SpectrumFitter import PowerLawModel, ModifiedHagedornModel
 
 def MakeNormalisedSpectrum(container):
     inputcontainer = container.FindTrackContainer("tracksAll")
-    try:
-        inputcontainer.SetVertexRange(-10., 10.)
-        inputcontainer.SetPileupRejection(True)
-        inputcontainer.SelectTrackCuts(1)
-    except SpectrumContainer.RangeException as e:
-        print str(e)
+    inputcontainer.SetVertexRange(-10., 10.)
+    inputcontainer.SetPileupRejection(True)
+    inputcontainer.SelectTrackCuts(1)
     return inputcontainer.MakeProjection(0, "ptSpectrum%s", "p_{#rm{t}} (GeV/c)", "1/N_{event} 1/(#Delta p_{#rm t}) dN/dp_{#rm{t}} ((GeV/c)^{-2}")
 
 def Draw(filename, trigger = "MinBias"):

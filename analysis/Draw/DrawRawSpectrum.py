@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 from ROOT import kRed,kBlue,kGreen,kOrange,kBlack
-from base.FileHandler import ResultDataBuilder
+from base.ResultDataBuilder import ResultDataBuilder
 from base.Graphics import Style
 from plots.TriggeredSpectrumComparisonPlot import PtTriggeredSpectrumComparisonPlot, EnergyTriggeredSpectrumComparisonPlot
 
