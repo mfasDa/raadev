@@ -12,13 +12,10 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-.. include:: base.txt
-.. include:: Draw.txt
-.. include:: ext.txt
-.. include:: model.txt
-.. include:: plots.txt
-.. include:: util.txt
-.. include:: write.txt
+   project
+   code
+
+
 
 Indices and tables
 ==================
