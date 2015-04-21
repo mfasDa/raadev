@@ -138,10 +138,12 @@ class SpectrumTools(object):
             x = numerator.GetX()[i]
             lower, upper = self.__FindNeighbors(x, denominator)
             # after break the two neighboring bins are found: k-1 and k
+            x1  = denominator.GetX()[lower]
+            x2  = denominator.GetX()[upper]
             y1  = denominator.GetY()[lower]
             y2  = denominator.GetY()[upper]
-            ey1 = denominator.GetEY()[lower] 
-            ey2 = denominator.GetEY()[upper] 
+            ey1 = max(self.__GetYerrors(denominator, lower))
+            ey2 = max(self.__GetYerrors(denominator, upper)) 
             if x == lower: 
                 y  = y1
                 ey = ey1
@@ -149,10 +151,10 @@ class SpectrumTools(object):
                 y  = y2
                 ey = ey2
             else:
-                y  = interpolator.Interpolate(x,lower,y1,upper,y2, method = interpolationMethod)
-                ey = interpolator.Interpolate(x,lower,ey1,upper,ey2, method=interpolationMethod)
+                y  = interpolator.Interpolate(x,x1,y1,x2,y2, method = interpolationMethod)
+                ey = interpolator.Interpolate(x,x1,ey1,x2,ey2, method=interpolationMethod)
             numy = numerator.GetY()[i]
-            numey = numerator.GetEY()[i]
+            numey = max(self.__GetYerrors(numerator, i))
             yr = 0
             eyr = 0
             if y == 0:
@@ -164,7 +166,7 @@ class SpectrumTools(object):
             else:
                 eyr = 0
             result.SetPoint(i-startBin,x,yr);
-            result.SetPointError(i-startBin,numerator.GetEX()[i],eyr)
+            result.SetPointError(i-startBin,max(self.__GetXerrors(numerator, i)),eyr)
         return result
 
     
@@ -614,7 +616,7 @@ class SpectrumTools(object):
                 return y1*math.pow(y1/y2,(x - x1)/(x1 - x2));
             #end of "exp"
         elif "pow" in options:
-            c = math.pow(x1,-math.log(y1/y2)/(math.log(x1) - math.log(x2)))
+            c = y1*math.pow(x1,-math.log(y1/y2)/(math.log(x1) - math.log(x2)))
             n = math.log(y1/y2)/(math.log(x1) - math.log(x2))
             if integrate: 
                 if math.fabs(n+1.) < 1e-6:
@@ -695,7 +697,7 @@ class SpectrumTools(object):
                                 + math.pow(dx1,2)*math.pow(x - x2,2))*math.pow(y1,2)*math.pow(math.log(y1/y2),2)))/math.pow(x1 - x2,4))
             # end of "exp"
         elif "pow" in options:
-            c = math.pow(x1,-math.log(y1/y2)/(math.log(x1) - math.log(x2)))            
+            c = y1*math.pow(x1,-math.log(y1/y2)/(math.log(x1) - math.log(x2)))            
             n = math.log(y1/y2)/(math.log(x1) - math.log(x2))
             if integrate: 
                 if math.fabs(n+1.) < 1e-6:

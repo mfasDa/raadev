@@ -33,11 +33,14 @@ import math
 
 class Interpolator(object):
     
-    def __init__(self):
+    def __init__(self, dodebug = False):
         """
         Constructor
+        
+        :param dodebug: If true then debug messages are printed
+        :type dodebug: bool
         """
-        pass
+        self.__doDebug = dodebug
     
     def Interpolate(self, x, x1, y1, x2, y2, integrate = False, r = 0, method="lin"):
         """
@@ -125,22 +128,23 @@ class Interpolator(object):
         :return: interpolated value
         :rtype: float
         """ 
-    
         #assume functional form y=a*x^n
         if not self.__AssurePositive(x, x1, x2, y1, y2):
             return 0.
  
-        n = (math.log(y1)-math.log(y2))/(math.log(x1)-math.log(x2));
-        a = y1*pow(x1,-n)
+        n = (math.log(y1)-math.log(y2))/(math.log(x1)-math.log(x2))
+        a = y1*math.pow(x1,-n)
 
-        print "y: %f" %(a*pow(x,n))
-        print "n: %f" %(n)
-        print "a: %f" %(a)
+        if self.__doDebug:
+            print "x: %f, steps: (%f, %e) and (%f, %e)" %(x, x1, y1, x2, y2)
+            print "y: %e" %(a*math.pow(x,n))
+            print "n: %f" %(n)
+            print "a: %f" %(a)
 
         if integrate: 
-            return  ((a/(n+1.))*(math.pow(x+r,n+1.)-math.pow(x-r,n+1.))/(2.*r))
+            return  ((a/(n+1.))*(pow(x+r,n+1.)-pow(x-r,n+1.))/(2.*r))
         else:
-            return (a*math.pow(x,n))
+            return a*math.pow(x,n)
 
     def __InterpolateExponential(self, x, x1, y1, x2, y2):
         """
