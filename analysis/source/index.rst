@@ -5,6 +5,7 @@
 
 Welcome to raadev's documentation!
 ==================================
+This page contains the documentation about the my RAA analysis package.
 
 Contents:
 
@@ -12,6 +13,14 @@ Contents:
    :maxdepth: 2
 
 .. include:: base.txt
+.. include:: base.struct.txt
+.. include:: Draw.txt
+.. include:: ext.txt
+.. include:: model.txt
+.. include:: old.txt
+.. include:: plots.txt
+.. include:: util.txt
+.. include:: write.txt
 
 Indices and tables
 ==================
