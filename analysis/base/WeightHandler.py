@@ -5,7 +5,6 @@ Created on 26.09.2014
 '''
 
 from base.DataCollection import DataCollection, Datapoint
-from gtk._gtk import Entry
 
 class PtHatBin:
     """
