@@ -17,6 +17,14 @@ write Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`StrippedFileCreator` Module
+-------------------------------
+
+.. automodule:: write.StrippedFileCreator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`RawSpectrumWriter` Module
 -------------------------------
 
