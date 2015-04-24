@@ -25,6 +25,22 @@ correction Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`CorrectionTools` Module
+------------------------------
+
+.. automodule:: correction.CorrectionTools
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`EfficiencyCorrectionQAPlots` Module
+------------------------------
+
+.. automodule:: correction.EfficiencyCorrectionQAPlots
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`TriggeredSpectrumScaler` Module
 -------------------------------------
 
