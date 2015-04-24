@@ -26,7 +26,7 @@ correction Package
     :show-inheritance:
 
 :mod:`CorrectionTools` Module
-------------------------------
+-----------------------------
 
 .. automodule:: correction.CorrectionTools
     :members:
@@ -34,7 +34,7 @@ correction Package
     :show-inheritance:
 
 :mod:`EfficiencyCorrectionQAPlots` Module
-------------------------------
+-----------------------------------------
 
 .. automodule:: correction.EfficiencyCorrectionQAPlots
     :members:

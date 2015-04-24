@@ -18,7 +18,7 @@ write Package
     :show-inheritance:
 
 :mod:`StrippedFileCreator` Module
--------------------------------
+---------------------------------
 
 .. automodule:: write.StrippedFileCreator
     :members:
