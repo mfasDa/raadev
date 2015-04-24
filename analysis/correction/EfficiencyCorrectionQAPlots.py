@@ -24,7 +24,7 @@ Module for control plots created during the correction procedure
 """
 
 from base.Graphics import TwoPanelPlot, Frame, GraphicsObject, Style
-from base.FrameTemplates import NormalizedPtSpectrumFrame, EfficiencyFrame
+from base.FrameTemplates import NormalizedPtSpectrumFrame, EfficiencyFrame, SpectrumRatioFrame
 from base.Helper import MakeRatio
 from copy import deepcopy
 from ROOT import kBlack, kBlue, kRed
@@ -62,10 +62,7 @@ class EfficiencyCorrectionPlot(TwoPanelPlot):
         specpad.CreateLegend(0.55, 0.75, 0.89, 0.89)
     
         ratpad = self._OpenPad(1)
-        ratframe = Frame("ratframe", 0., 100., 0., 2.)
-        ratframe.SetXtitle("p_{t} (GeV/c)")
-        ratframe.SetYtitle("After / Before correction")
-        ratpad.DrawFrame(ratframe)
+        ratpad.DrawFrame(SpectrumRatioFrame("ratframe", {"min":0. , "max":2.}, "After / Before correction"))
         ratpad.DrawGraphicsObject(GraphicsObject(MakeRatio(self.__afterCorrection, self.__beforeCorrection), Style(kBlack, 20)))
         
 class EfficienyFitPlot(TwoPanelPlot):
@@ -111,9 +108,6 @@ class EfficienyFitPlot(TwoPanelPlot):
         self._CreateCanvas("EffFitComparison", "Comparison of Efficiency vs, Fit")
     
         effpad = self._OpenPad(0)
-        effframe = Frame("effframe", 0., 100., 0., 1.2)
-        effframe.SetXtitle("p_{t, gen} (GeV/c)")
-        effframe.SetYtitle("Efficiency")
         effpad.DrawFrame(EfficiencyFrame("efficiency"))
         effpad.DrawGraphicsObject(GraphicsObject(self.__data, Style(kBlack, 24)), addToLegend = True, title = "Efficiency")
         effpad.DrawGraphicsObject(GraphicsObject(self.__param, Style(kRed, 25)), addToLegend = True, title = "Param", option="l")

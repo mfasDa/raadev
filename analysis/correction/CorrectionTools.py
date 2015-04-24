@@ -30,7 +30,7 @@ from math import pi
 from copy import deepcopy
 from ROOT import TF1
 
-from correction.EfficiencyCorrectionQAPlot import EfficiencyCorrectionPlot, EfficienyFitPlot
+from correction.EfficiencyCorrectionQAPlots import EfficiencyCorrectionPlot, EfficienyFitPlot
 
 class CorrectionQA(object):
     """
