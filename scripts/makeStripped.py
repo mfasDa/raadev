@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 
 import os, sys, getopt
-from macpath import dirname
 
 if __name__ == "__main__":
     # extract directory path, and add it if necessary to the PythonPath
