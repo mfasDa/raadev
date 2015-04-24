@@ -19,16 +19,16 @@ from write.StrippedFileCreator import ConvertTrainFile, isPythiaHard
 
 def FindRecursive(filename, inputdir):
     result = []
-    dirpath, dirnames, files = os.walk(inputdir)
-    # Go through the directory and look for files there
-    for mydir in dirnames:
-        found = FindRecursive(filename, os.path.join(dirpath, mydir))
-        for f in found:
-            result.append(f)
-    # Now check files whether they match in the name
-    for myfile in files:
-        if filename == os.path.basename(myfile):
-            result.append(os.path.join(dirpath, filename))
+    for dirpath, dirnames, files in os.walk(inputdir):
+        # Go through the directory and look for files there
+        for mydir in dirnames:
+            found = FindRecursive(filename, os.path.join(dirpath, mydir))
+            for f in found:
+                result.append(f)
+        # Now check files whether they match in the name
+        for myfile in files:
+            if filename == os.path.basename(myfile):
+                result.append(os.path.join(dirpath, filename))
     return result
 
 if __name__ == "__main__":
