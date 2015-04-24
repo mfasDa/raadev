@@ -40,7 +40,7 @@ def RecursiveMerge(outputfile, listoffiles, bucketfactor, sandbox, iteration = 0
         # move output file to its final location
         # clean sandbox
         shutil.move(listfornext[0], outputfile)    
-        os.rmdir(sandbox)
+        shutil.rmtree(sandbox)
     else:
         # next iteration step
         RecursiveMerge(outputfile, listfornext, bucketfactor, sandbox, iteration+1)
