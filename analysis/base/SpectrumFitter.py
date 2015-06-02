@@ -158,6 +158,9 @@ class SpectrumFitter:
                 
     def GetFitFunction(self):
         return self.__model.GetFunction()
+    
+    def GetData(self):
+        return self.__data
         
 class MinBiasFitter(SpectrumFitter):
     
