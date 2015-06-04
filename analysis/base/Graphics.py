@@ -222,14 +222,14 @@ class Style:
         :type rootobject: F1, TGraph (and deriving), TH1 (and deriving)
         """
         #print "Defining root object"
-        rootobject.SetMarkerColor(self.__color)
+        rootobject.SetLineColor(self.__color)
         if self.__linestyle is not None:
             rootobject.SetLineStyle(self.__linestyle)
         if self.__linewidth is not None:
             rootobject.SetLineWidth(self.__linewidth)
         if not type(rootobject) is TF1:
+            rootobject.SetMarkerColor(self.__color)
             rootobject.SetMarkerStyle(self.__marker)
-            rootobject.SetLineColor(self.__color)
             if self.__fillstyle is not None:
                 rootobject.SetFillStyle(self.__fillstyle)
             if self.__fillcolor is not None:
