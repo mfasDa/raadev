@@ -426,7 +426,7 @@ class PlotBase:
             :type pad: ROOT TPad
             """
             self.__pad = pad
-            self.__Frame = None
+            self.__frame = None
             self.__legend = None
             self.__graphicsObjects = []
             self.__labels = []
