@@ -25,6 +25,17 @@ class FitModel:
         
     def SetParameter(self, parnum, parval):
         self._model.SetParameter(parnum, parval)
+        
+    def FixParameter(self, parnum, parval):
+        self._model.FixParameter(parnum, parval)
+        
+    def GetParValue(self, parnum):
+        self._model.GetParameter(parnum)
+        
+class ExpoModel(FitModel):
+    
+    def __init__(self):
+        self._model = TF1("expoBin", "expo", 0, 100)
     
 class PowerLawModel(FitModel):
     
@@ -51,6 +62,28 @@ class ModifiedHagedornModel(FitModel):
         self._model.SetParameter(2, 0.5)
         self._model.SetParameter(3, 0.5)
         self._model.SetParameter(4, 5.)
+        
+class ExpoModifiedHagedornModel(FitModel):
+    
+    def __init__(self):
+        self._model = TF1("fitfunctionModHagedorn", "expo(0) + [2]/TMath::Power(TMath::Exp(-[3]*x - [4]*x*x) + x/[5], [6])", 0., 100.)
+        self._model.SetParName(2, "A");
+        self._model.SetParName(3, "a");
+        self._model.SetParName(4, "b");
+        self._model.SetParName(5, "p0");
+        self._model.SetParName(6, "n");
+  
+        # Force all parameters to be positive 
+        self._model.SetParLimits(2, 1e-5, 1000000);
+        self._model.SetParLimits(3, 1e-7, 1000);
+        self._model.SetParLimits(4, 1e-7, 1000);
+        self._model.SetParLimits(3, 1e-7, 1000);
+        self._model.SetParLimits(5, 1e-7, 1000);
+        self._model.SetParameter(2, 100);
+        self._model.SetParameter(3, 0.5);
+        self._model.SetParameter(4, 0.5);
+        self._model.SetParameter(5, 0.5);
+        self._model.SetParameter(6, 5.);
 
 class SpectrumFitter:
     '''
@@ -69,47 +102,47 @@ class SpectrumFitter:
         '''
         Constructor
         '''
-        self.__name = name
-        self.__data = spectrum
-        self.__model = fitmodel
-        if not self.__model:
-            self.__model = PowerLawModel()
-        self.__fitDone = False
+        self._name = name
+        self._data = spectrum
+        self._model = fitmodel
+        if not self._model:
+            self._model = PowerLawModel()
+        self._fitDone = False
         
     def SetFitModel(self, fitmodel):
-        self.__model = fitmodel
+        self._model = fitmodel
         
     def DoFit(self, rangemin, rangemax = 50):
-        self.__data.Fit(self.__model.GetFunction(), "N", "", rangemin, rangemax)
-        self.__fitDone = True
+        self._data.Fit(self._model.GetFunction(), "N", "", rangemin, rangemax)
+        self._fitDone = True
         
     def GetParameterisation(self):
-        if not self.__fitDone:
+        if not self._fitDone:
             raise self.SpectrumFitterException()
-        return self.__model.GetFunction()
+        return self._model.GetFunction()
     
     def GetParameterisedValueAt(self, x):
-        if not self.__fitDone:
+        if not self._fitDone:
             raise self.SpectrumFitterException()
-        return self.__model.GetFunction().Eval(x)
+        return self._model.GetFunction().Eval(x)
    
     def CalculateIntegralAbove(self, x):
-        if not self.__fitDone:
+        if not self._fitDone:
             raise self.SpectrumFitterException()
-        return self.__model.GetFunction().Integral(x, 10000)
+        return self._model.GetFunction().Integral(x, 10000)
    
     def CalculateNormalisedIntegralAbove(self, x):
         """
         Calculate per-event yield above a certain pt, done as sum in 1 GeV bins of the 
         binned content from a min. pt to a max. pt.
         """
-        if not self.__fitDone:
+        if not self._fitDone:
             raise self.SpectrumFitterException()
         maxint = 1000.
         ptstart = x
         yieldval = 0
         while ptstart < maxint:
-            yieldval += self.__model.GetFunction().Integral(ptstart, ptstart+10)/10.
+            yieldval += self._model.GetFunction().Integral(ptstart, ptstart+10)/10.
             ptstart += 10
         return yieldval
             
@@ -118,7 +151,7 @@ class SpectrumFitter:
         Make binned parameterisation. If normBinWith is set to True, the integral is 
         normalised by the bin width
         """
-        result = TH1F("binned%s" %(self.__name), "", nbins, xmin, xmax)
+        result = TH1F("binned%s" %(self._name), "", nbins, xmin, xmax)
         for mybin in range(2, result.GetXaxis().GetNbins()+1):
             value = 0
             if normBinWidth:
@@ -134,7 +167,7 @@ class SpectrumFitter:
         Make binned parameterisation. If normBinWith is set to True, the integral is 
         normalised by the bin width
         """
-        result = TH1F("binned%s" %(self.__name), "", self.__data.GetXaxis().GetNbins(), self.__data.GetXaxis().GetXbins().GetArray())
+        result = TH1F("binned%s" %(self._name), "", self._data.GetXaxis().GetNbins(), self._data.GetXaxis().GetXbins().GetArray())
         for mybin in range(2, result.GetXaxis().GetNbins()+1):
             value = 0
             if normBinWidth:
@@ -147,20 +180,61 @@ class SpectrumFitter:
         return result
             
     def CalculateIntegral(self, xmin, xmax):
-        if not self.__fitDone:
+        if not self._fitDone:
             raise self.SpectrumFitterException()
-        return self.__model.GetFunction().Integral(xmin, xmax)
+        return self._model.GetFunction().Integral(xmin, xmax)
     
     def CalculateBinMean(self, xmin, xmax):
-        if not self.__fitDone:
+        if not self._fitDone:
             raise self.SpectrumFitterException()
-        return self.__model.GetFunction().Integral(xmin, xmax)/(xmax - xmin)
+        return self._model.GetFunction().Integral(xmin, xmax)/(xmax - xmin)
                 
     def GetFitFunction(self):
-        return self.__model.GetFunction()
+        return self._model.GetFunction()
     
     def GetData(self):
-        return self.__data
+        return self._data
+    
+    
+class ConstrainedSpectrumFitter(SpectrumFitter):
+    
+    class ConstrainParameter(object):
+        
+        def __init__(self, parIDconstrain, parIDfull):
+            self.__parIDconstrain = parIDconstrain
+            self.__parIDfull = parIDfull
+            
+        def GetParIDConstrain(self):
+            return self.__parIDconstrain
+        
+        def GetParIDFull(self):
+            return self.__parIDfull
+        
+        def SetParIDConstrain(self, parid):
+            self.__parIDconstrain = parid
+            
+        def SetParIDFull(self, parid):
+            self.__parIDfull = parid
+    
+    def __init__(self, name, spectrum, fullmodel, constrainmodel):
+        SpectrumFitter.__init__(self, name, spectrum, fullmodel)
+        self.__constrainmodel = constrainmodel
+        self.__constrainrange = {"min":0, "max":100}
+        self.__constrainparameters = []
+    
+    def SetConstrainFitrange(self, xmin, xmax):
+        self.__constrainrange["min"] = xmin
+        self.__constrainrange["max"] = xmax
+    
+    def SetConstrainParameter(self, paridConstrain, parIdFull):
+        self.__constrainparameters.append(self.ConstrainParameter(paridConstrain, parIdFull))
+    
+    def DoConstrain(self):
+        constrainfitter = SpectrumFitter("constrainfitter", self._data, self.__constrainmodel)
+        constrainfitter.DoFit(self.__constrainrange["min"], self.__constrainrange["max"])
+        # fix  parameters
+        for param in self.__constrainparameters:
+            self._model.SetParameter(param.GetParIDFull(), self.__constrainmodel.GetParValue(param.GetParIDConstrain()))
         
 class MinBiasFitter(SpectrumFitter):
     
