@@ -29,14 +29,14 @@ class NormalizedPtSpectrumFrame(Frame):
     Frame definition for fully normalized p-t spectrum
     """
 
-    def __init__(self, name):
+    def __init__(self, name, ptmin = 0):
         """
         Constructor
 
         :param name: Name of the frame
         :type name: str
         """
-        Frame.__init__(self, name, 0., 100., 1e-12, 10)
+        Frame.__init__(self, name, ptmin, 100., 1e-12, 10)
         self.SetXtitle("p_{t} (GeV/c)")
         self.SetYtitle("1/(2 #pi p_{t} N_{ev}) dN/(dp_{t} d#eta) (GeV/c)^{-2}")
         
