@@ -345,8 +345,9 @@ class PlotBase:
             Definition of a graphics entry
             """
             
-            def __init__(self, graphobject, title = None, addToLegend = False):
+            def __init__(self, graphobject, rank, title = None, addToLegend = False):
                 self.__object = graphobject
+                self.__rank = rank
                 self.__title = title
                 self.__addToLegend = addToLegend
                 
@@ -360,18 +361,24 @@ class PlotBase:
                 :rtype: int
                 """
                 # 1st case: either or both of the titles missing
-                if not self.__title and not other.GetTitle():
-                    return None
-                if not self.__title and other.GetTitle():
-                    return -1
-                if self.__title and not other.GetTitle():
-                    return 1
-                # second case: both of the titles available
-                if self.__title == other.GetTitle():
+                if self.__rank == other.GetRank():
                     return 0
-                if self.__title < other.GetTitle():
+                elif self.__rank < other.GetRank():
                     return -1
-                return 1                
+                else:
+                    return 1
+                #if not self.__title and not other.GetTitle():
+                #    return None
+                #if not self.__title and other.GetTitle():
+                #    return -1
+                #if self.__title and not other.GetTitle():
+                #    return 1
+                # second case: both of the titles available
+                #if self.__title == other.GetTitle():
+                #    return 0
+                #if self.__title < other.GetTitle():
+                #    return -1
+                #return 1                
                 
             def GetObject(self):
                 """
@@ -390,6 +397,16 @@ class PlotBase:
                 :rtype: int
                 """
                 return self.__title
+            
+            
+            def GetRank(self):
+                """
+                Get the rank of the graphics entry
+                
+                :return: Rank of the graphics entry
+                :rtype: int
+                """
+                return self.__rank
             
             def IsAddToLegend(self):
                 """
@@ -450,7 +467,8 @@ class PlotBase:
             :param graphics: Graphics object to be added
             :type graphics: GraphicsObject
             """
-            self.__graphicsObjects.append(self.GraphicsEntry(graphics, title, addToLegend))
+            nentries = len(self.__graphicsObjects)
+            self.__graphicsObjects.append(self.GraphicsEntry(graphics, nentries, title, addToLegend))
             graphics.Draw()
             
             
