@@ -30,7 +30,7 @@ class FitModel:
         self._model.FixParameter(parnum, parval)
         
     def GetParValue(self, parnum):
-        self._model.GetParameter(parnum)
+        return self._model.GetParameter(parnum)
         
 class ExpoModel(FitModel):
     
@@ -234,7 +234,8 @@ class ConstrainedSpectrumFitter(SpectrumFitter):
         constrainfitter.DoFit(self.__constrainrange["min"], self.__constrainrange["max"])
         # fix  parameters
         for param in self.__constrainparameters:
-            self._model.SetParameter(param.GetParIDFull(), self.__constrainmodel.GetParValue(param.GetParIDConstrain()))
+            print "Constraining parameter %d from parameter %d in constrain model" %(param.GetParIDFull(), param.GetParIDConstrain())
+            self._model.FixParameter(param.GetParIDFull(), self.__constrainmodel.GetParValue(param.GetParIDConstrain()))
         
 class MinBiasFitter(SpectrumFitter):
     
