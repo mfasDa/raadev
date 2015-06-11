@@ -23,7 +23,7 @@ base classes for specific kinds of plots
 :contact: <markus.fasel@cern.ch>
 :organization: Lawrence Berkeley National Laboratory
 """
-from ROOT import TCanvas,TH1F,TLegend,TPad,TPaveText,TF1, TGraph, TH1
+from ROOT import TCanvas,TH1F,TLegend,TPad,TPaveText,TF1, TGraph, TH1, TLine
 from ROOT import kBlack
 
 class Frame:
@@ -227,7 +227,7 @@ class Style:
             rootobject.SetLineStyle(self.__linestyle)
         if self.__linewidth is not None:
             rootobject.SetLineWidth(self.__linewidth)
-        if not type(rootobject) is TF1:
+        if not type(rootobject) in [TF1, TLine]:
             rootobject.SetMarkerColor(self.__color)
             rootobject.SetMarkerStyle(self.__marker)
             if self.__fillstyle is not None:
@@ -263,7 +263,7 @@ class GraphicsObject:
             self.__drawoption = drawoption
             if not "same" in self.__drawoption:
                 self.__drawoption += "same"
-        if type(self.__data) is TF1:
+        if type(self.__data) in [TF1, TLine]:
             self.__drawoption = "lsame"
     
     def SetStyle(self, style):
@@ -302,7 +302,7 @@ class GraphicsObject:
         :type title: str
         """
         option = self.__drawoption
-        if type(self.__data) is TF1:
+        if type(self.__data) in [TF1, TLine]:
             option = "l"
         elif self.__IsBoxStyle(self.__data):
             option = "f"
@@ -319,7 +319,7 @@ class GraphicsObject:
         :return: True if in box style, False otherwise 
         :rtype: bool
         """
-        if type(self.__data) is TF1:
+        if type(self.__data) in [TF1, TLine]:
             return False
         elif issubclass(type(self.__data), TGraph):
             for i in range(2, 6):
