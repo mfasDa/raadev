@@ -136,6 +136,14 @@ base Package
     :members:
     :undoc-members:
     :show-inheritance:
+    
+:mod:`TrendingManager` Module
+-------------------------------
+
+.. automodule:: base.TrendingManager
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 :mod:`TriggerEfficiency` Module
 -------------------------------
