@@ -63,7 +63,7 @@ class TrendingPlot(SinglePanelPlot):
                                                  }, 
                                                 {"xtitle":"run number", "ytitle":ytitle}))
         for data in self.__trendmanager.GetDataList():
-            trendpad.DrawGraphicsObject(data["graphics"], addToLegend=True, data["name"])
+            trendpad.DrawGraphicsObject(data["graphics"], addToLegend=True, title=data["name"])
         trendpad.CreateLegend(0.55, 0.65, 0.89, 0.89)
         trendpad.DrawLabel(0.15, 0.15, 0.45, 0.22, self.__trendmanager.GetDataset())
 
