@@ -86,7 +86,7 @@ class DataWriter(object):
         self._outputdata = DataSpectra()
         
     def __ReadFile(self, filename, isNewStruct):
-        reader = LegoTrainFileReader(filename, isNew = isNewStruct, trackCuts="")
+        reader = LegoTrainFileReader(filename, isNew = isNewStruct, trackCuts="standard")
         return reader.ReadFile()
     
     def Convert(self):
