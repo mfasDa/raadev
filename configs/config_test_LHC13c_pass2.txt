@@ -1,0 +1,5 @@
+aliroot vAN-20140725
+root v5-34-08-6
+sample LHC13c.pass1
+mode test 
+runlist 195529

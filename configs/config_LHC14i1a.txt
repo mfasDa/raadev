@@ -1,0 +1,6 @@
+aliroot vAN-20141001
+root v5-34-08-6
+sample LHC14i1a
+mode full 
+runlist 177182
+workdir RAATrigger_pPb

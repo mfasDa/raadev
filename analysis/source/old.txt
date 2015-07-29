@@ -1,0 +1,59 @@
+old Package
+===========
+
+:mod:`old` Package
+------------------
+
+.. automodule:: old.__init__
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`ComparePeriods` Module
+----------------------------
+
+.. automodule:: old.ComparePeriods
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`ComparePileupRejection` Module
+------------------------------------
+
+.. automodule:: old.ComparePileupRejection
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`CompareTrackCuts` Module
+------------------------------
+
+.. automodule:: old.CompareTrackCuts
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`CompareTriggers` Module
+-----------------------------
+
+.. automodule:: old.CompareTriggers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`DrawRawSpectrum` Module
+-----------------------------
+
+.. automodule:: old.DrawRawSpectrum
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`SpectrumContainer` Module
+-------------------------------
+
+.. automodule:: old.SpectrumContainer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
