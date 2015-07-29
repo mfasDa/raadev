@@ -86,7 +86,7 @@ class DataWriter(object):
         self._outputdata = DataSpectra()
         
     def __ReadFile(self, filename, isNewStruct):
-        reader = LegoTrainFileReader(filename, isNew = isNewStruct, trackCuts="")
+        reader = LegoTrainFileReader(filename, isNew = isNewStruct, trackCuts="standard")
         return reader.ReadFile()
     
     def Convert(self):
@@ -198,7 +198,7 @@ def WriteTracks(filename, inAcceptance = False, etaSel = "all", isNew = True):
     writer = DataTrackWriter(filename, isNew)
     writer.SetInAcceptance(inAcceptance)
     if etaSel == "centcms":
-        writer.SetEtaCut("centcms", -0.7999, -0.300001)
+        writer.SetEtaCut("centcms", -0.7999, -0.200001)
     writer.Convert()
     writer.WriteOutput()
 
